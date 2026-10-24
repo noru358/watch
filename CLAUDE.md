@@ -2,6 +2,7 @@
 
 Read `ARCHITECTURE.md` in full before any code change — its Hard Rules are mandatory.
 Then read `HANDOFF.md` for the current state and next step.
+`GUIDE.md` is the plain-Korean map for the human owner — keep it in sync when folders or responsibilities change.
 
 - Respond to the user in Korean.
 - Current scope: Fun Gate 1 (night combat prototype). Do not build anything listed as out of scope for the current gate.
