@@ -62,6 +62,7 @@
 
 ```
 src/
+ ├── app/         # App wiring: singletons (input, store), phase-switch binding, night-mode choice
  ├── core/        # Infrastructure: InputManager, EventBus, SeededRNG, SaveManager, phase switch
  ├── types/       # Shared interfaces, ID union types (ids.ts), event map (events.ts)
  ├── i18n/        # ko.ts (source of keys), en.ts, t() helper
@@ -70,13 +71,17 @@ src/
  ├── registry/    # Behaviour by ID: skillEffects.ts (companion + tool skills), traitHooks.ts
  ├── store/       # GameStore (single source of truth) + actions
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
- │                #   combat/, trait/, contract/, run/, recruit/, economy/, dispatch/, rental/, shop/
- ├── scenes/      # Phaser: RiftScene, hub/, CombatHud, entity views, vfx/, postfx/
- └── ui/          # React panels: features/<featureId>/ (roster, recovery, dispatch, rental, settings…)
+ │                #   combat/ (action prototype), grid/ (grid turn-based prototype), contract/, run/,
+ │                #   later: recruit/, economy/, dispatch/, rental/, shop/
+ ├── scenes/      # Phaser, one folder per screen: rift/ (action night), grid/ (grid night),
+ │                #   shared/ (Overlay panels, vfx listeners, sfx), later hub/
+ └── ui/          # React: OfficeApp (Gate 1 placeholder), later features/<featureId>/
 tests/            # Vitest specs mirroring src/systems and src/store
 maps/             # Tiled source maps (.tmx/.json) and tilesets
 assets/           # Sprites, portraits, audio
 docs/design/      # Game design split by module (README.md = module index; human-readable, Korean)
+docs/reference/   # Reference-game teardowns (Pokémon Mystery Dungeon, Girls' Frontline)
+GUIDE.md          # Plain-Korean map for the human owner — keep in sync with this tree
 ```
 
 ### Module boundaries

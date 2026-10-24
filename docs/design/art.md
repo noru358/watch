@@ -1,6 +1,6 @@
 # 🎨 아트·에셋 모듈
 
-**담당 코드:** `src/scenes/vfx/`(이펙트), `src/scenes/postfx/`(화면 색보정·조명), `assets/`(그림 파일)
+**담당 코드:** 지금 `src/scenes/shared/vfx.ts`(이펙트·멈칫·흔들림), `src/scenes/shared/sfx.ts`(합성 효과음), `src/data/feel.data.ts`(색·타격감 숫자) / 예정 `src/scenes/shared/postfx.ts`(색보정·조명), `assets/`(그림 파일)
 
 ## ✅ 결정: 스타일
 - **코지 픽셀아트 바탕 + 시티팝 무드를 효과로 덧씌우기.**

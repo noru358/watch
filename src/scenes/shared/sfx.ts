@@ -1,4 +1,4 @@
-import { SFX, type SfxId } from '../data/sfx.data';
+import { SFX, type SfxId } from '../../data/sfx.data';
 
 let ctx: AudioContext | null = null;
 let noiseBuffer: AudioBuffer | null = null;

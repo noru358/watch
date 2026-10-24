@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
-import { ROOM_SIZE } from '../data/contracts.data';
-import { PALETTE } from '../data/feel.data';
-import { TRAITS } from '../data/traits.data';
-import { t } from '../i18n';
-import type { TraitId } from '../types/ids';
-import type { RunResult, Settlement } from '../systems/run';
+import { ROOM_SIZE } from '../../data/contracts.data';
+import { PALETTE } from '../../data/feel.data';
+import { TRAITS } from '../../data/traits.data';
+import { t } from '../../i18n';
+import type { TraitId } from '../../types/ids';
+import type { RunResult, Settlement } from '../../systems/run';
 
 const W = ROOM_SIZE.width;
 const H = ROOM_SIZE.height;

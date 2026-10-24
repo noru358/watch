@@ -1,12 +1,12 @@
 import Phaser from 'phaser';
-import { input, requestPhase, store } from '../app/services';
-import { eventBus } from '../core/EventBus';
-import { SeededRNG } from '../core/SeededRNG';
-import { PALETTE } from '../data/feel.data';
-import { GRID_CARDS, GRID_FEEL } from '../data/grid.data';
-import { t } from '../i18n';
-import type { GameEvent } from '../types/events';
-import type { GridCardId } from '../types/ids';
+import { input, requestPhase, store } from '../../app/services';
+import { eventBus } from '../../core/EventBus';
+import { SeededRNG } from '../../core/SeededRNG';
+import { PALETTE } from '../../data/feel.data';
+import { GRID_CARDS, GRID_FEEL } from '../../data/grid.data';
+import { t } from '../../i18n';
+import type { GameEvent } from '../../types/events';
+import type { GridCardId } from '../../types/ids';
 import {
   enterFloor,
   gridResult,
@@ -20,9 +20,9 @@ import {
   type GridFloor,
   type GridRun,
   startGridRun,
-} from '../systems/grid';
-import { Overlay } from './Overlay';
-import { attachVfx } from './vfx';
+} from '../../systems/grid';
+import { Overlay } from '../shared/Overlay';
+import { attachVfx } from '../shared/vfx';
 import { GridView, tileToPx } from './GridView';
 
 type Mode = 'play' | 'offer' | 'end';

@@ -1,16 +1,16 @@
 import Phaser from 'phaser';
-import { input, requestPhase, store } from '../app/services';
-import { eventBus } from '../core/EventBus';
-import { SeededRNG } from '../core/SeededRNG';
-import { PARTY } from '../data/companions.data';
-import { FEEL } from '../data/feel.data';
-import { t } from '../i18n';
-import type { TraitId } from '../types/ids';
-import { step, type InputFrame, type World } from '../systems/combat';
-import { enterRoom, leaveRoom, offerTraits, pickTrait, runResult, shouldOfferTraits, startRun, type RunState } from '../systems/run';
+import { input, requestPhase, store } from '../../app/services';
+import { eventBus } from '../../core/EventBus';
+import { SeededRNG } from '../../core/SeededRNG';
+import { PARTY } from '../../data/companions.data';
+import { FEEL } from '../../data/feel.data';
+import { t } from '../../i18n';
+import type { TraitId } from '../../types/ids';
+import { step, type InputFrame, type World } from '../../systems/combat';
+import { enterRoom, leaveRoom, offerTraits, pickTrait, runResult, shouldOfferTraits, startRun, type RunState } from '../../systems/run';
 import { CombatHud } from './CombatHud';
-import { Overlay } from './Overlay';
-import { attachVfx } from './vfx';
+import { Overlay } from '../shared/Overlay';
+import { attachVfx } from '../shared/vfx';
 import { WorldView } from './WorldView';
 
 type Mode = 'play' | 'offer' | 'end';

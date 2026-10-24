@@ -1,6 +1,6 @@
 # 💰 경제·월세 모듈
 
-**담당 코드:** `src/data/economy.data.ts`(월세·수임료 수치), `src/systems/economy/`(돈 계산)
+**담당 코드:** 지금 `src/store/gameStore.ts`(잔고·트라우마), `src/systems/run/settle.ts`(정산) / 예정 `src/data/economy.data.ts`(월세·평판 수치), `src/systems/economy/`(월세·평판 계산)
 
 ## ✅ 결정
 - 긴장 장치 = **밀린 월세 / 빚.** 허름한 사무소 컨셉과 맞고 스토리에도 엮음 (→ [contract.md](contract.md) 스토리 의뢰).

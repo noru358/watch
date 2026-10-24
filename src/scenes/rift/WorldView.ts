@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
-import { COMBAT } from '../data/combat.data';
-import { ROOM_SIZE } from '../data/contracts.data';
-import { FEEL, PALETTE } from '../data/feel.data';
-import { ENEMIES } from '../data/ghosts.data';
-import { ROOM_CENTER, type EnemyState, type World } from '../systems/combat';
+import { COMBAT } from '../../data/combat.data';
+import { ROOM_SIZE } from '../../data/contracts.data';
+import { FEEL, PALETTE } from '../../data/feel.data';
+import { ENEMIES } from '../../data/ghosts.data';
+import { ROOM_CENTER, type EnemyState, type World } from '../../systems/combat';
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 

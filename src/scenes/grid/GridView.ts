@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import { FEEL, PALETTE } from '../data/feel.data';
-import { GRID_FEEL, GRID_PLAYER } from '../data/grid.data';
-import type { GridFloor } from '../systems/grid';
+import { FEEL, PALETTE } from '../../data/feel.data';
+import { GRID_FEEL, GRID_PLAYER } from '../../data/grid.data';
+import type { GridFloor } from '../../systems/grid';
 
 const T = GRID_FEEL.tile;
 export const tileToPx = (x: number, y: number) => ({ x: x * T + T / 2, y: y * T + T / 2 + GRID_FEEL.offsetY });

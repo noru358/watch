@@ -6,8 +6,8 @@ import { eventBus } from './core/EventBus';
 import { PhaseController } from './core/phase';
 import { ROOM_SIZE } from './data/contracts.data';
 import { PALETTE } from './data/feel.data';
-import { GridScene } from './scenes/GridScene';
-import { RiftScene } from './scenes/RiftScene';
+import { GridScene } from './scenes/grid/GridScene';
+import { RiftScene } from './scenes/rift/RiftScene';
 import { OfficeApp } from './ui/OfficeApp';
 
 const dayEl = document.getElementById('day-root')!;

@@ -1,58 +1,46 @@
 # HANDOFF
 
-## Status (2026-10-24) — Gate 1: two night prototypes for comparison
-A full night loop is playable in the browser: Day placeholder → 출동 → 7-room Euljiro contract
-(3 combat → payphone → 2 combat → boss) → settlement → back to Day with money/trauma updated.
+## Status (2026-10-24) — Gate 1, two night prototypes side by side
+Day placeholder screen → choose a night prototype → play → settlement → back to Day (money/trauma/solved updated).
+- **Action prototype** (teal button): 7-room Euljiro contract, real-time, talisman thrower (≈ weapon B draft), 3 placeholder companions, boss with phase 2.
+- **Grid turn-based prototype** (yellow button): Mystery Dungeon style, 3 random floors, bump attacks, telegraphed ghost attacks, 발도 parry (adjacent only), focus gauge, upgrade cards between floors.
+- The user must play both and pick the combat model (see `docs/design/combat.md`).
 
-### What exists
-- Tooling: Vite 8 + TypeScript 5 (strict, noUncheckedIndexedAccess) + Phaser 3.90 + React 19 + Vitest 5. `npm run dev`, `npm run check`, `npm run build`.
-- `src/core/`: `InputManager` (window-only, context stack, `onAction` for React), typed `EventBus`, `SeededRNG`, `PhaseController`.
-- `src/systems/combat/`: pure fixed-step simulation (player move/roll/attack with auto-aim, ghosts, boss, projectiles, ward zone, pickups, waves). Public API via `index.ts`.
-- `src/systems/contract/` (room plan from contract data), `src/systems/run/` (room flow, trait offers, outcome, `settleRun` with risk-tier penalties).
-- `src/registry/traitHooks.ts` (7 traits on the fixed hook points) and `skillEffects.ts` (3 companion calls + talisman ward).
-- `src/store/gameStore.ts` (money, trauma, solved count, run seed, last run).
-- `src/scenes/` (RiftScene, WorldView shapes-only renderer, CombatHud, Overlay for trait/end panels, vfx listeners: hit-stop, shake, popups, synth SFX).
-- `src/ui/OfficeApp.tsx` (Gate 1 Day placeholder, 출동 via click or Enter through InputManager).
-- `src/app/services.ts` holds singletons (input, store, phase switch binding).
+## Code map
+| Area | Path |
+|------|------|
+| Wiring / singletons / night-mode choice | `src/app/services.ts`, `src/main.ts` |
+| Infrastructure | `src/core/` (InputManager, EventBus, SeededRNG, PhaseController) |
+| Numbers & text | `src/data/*.data.ts`, `src/i18n/` |
+| Behaviour by ID | `src/registry/` (traitHooks = upgrade cards for the action prototype, skillEffects = companion + tool skills) |
+| Action rules | `src/systems/combat/` (pure fixed-step) |
+| Grid rules | `src/systems/grid/` (pure turn-based) |
+| Shared run rules | `src/systems/contract/`, `src/systems/run/` (room flow, settlement) |
+| State | `src/store/gameStore.ts` |
+| Screens | `src/scenes/rift/`, `src/scenes/grid/`, `src/scenes/shared/` (Overlay, vfx, sfx), `src/ui/OfficeApp.tsx` |
+| Tests | `tests/` (core, combat, traits, run, grid) |
 
-### Grid turn-based prototype (added this session, for comparison — user asked)
-- Day screen has a second button "🧪 칸 턴제 시험판으로 출동" → `GridScene` (Mystery Dungeon style).
-- `src/systems/grid/`: random rooms + L corridors (`mapgen.ts`), one action = one turn then every ghost acts (`turn.ts`), 3 floors + upgrade cards between floors (`run.ts`). Numbers in `src/data/grid.data.ts`.
-- Rules: bump-to-attack, J slash faced tile, K wait, L 발도. Ghosts adjacent to the director telegraph ("!" + pink tile) and hit next turn unless the director steps off or parries. 발도 counters only ADJACENT telegraphs (a distant subway dash must be side-stepped — fixed after the bot found an infinite free-parry loop). Bump/slash hits fill the focus gauge; full gauge = free draw strike on all 8 neighbours. 처녀귀신 teleports next to the director, 달걀귀신 acts every other turn and darkens vision, 지하철 망령 dashes along a line.
-- Night mode is picked via `setNightMode` in `src/app/services.ts`; `main.ts` starts `rift` or `grid`.
-
-### Controls (action prototype)
-WASD move · J attack (held, auto-aim) · K/Space roll (i-frames) · L talisman ward · `;` call next ready companion · 1/2/3 pick trait · J/Enter confirm.
+Naming note: in code, `trait`/`TraitId` currently means the per-run **upgrade card (강화 카드)**. "기질" is reserved for future permanent companion personality/trauma.
 
 ## Verified
-- `npm run check`: tsc clean, 40 Vitest tests pass (core, combat, traits, run/settlement/store, grid).
-- Grid prototype: Playwright bot (BFS to stairs, parry adjacent telegraphs, side-step dashes) cleared all 3 floors with no page errors; screenshots checked (map contrast fixed: walls were indistinguishable from floor).
-- `vite build` succeeds (warning only: bundle > 500 kB because of Phaser).
-- Headless Chromium play-test (Playwright scripts, not committed): a scripted bot cleared the full contract twice with no page errors; death path shows the fail panel (+1 trauma, loot halved) and returns to Day; a second sortie starts and keyboard works without a click.
-- Fixed during play-test: switching phase inside `RiftScene.update` stopped the scene and then rendered destroyed objects, killing the game loop.
+- `npm run check`: tsc clean, 40 Vitest tests pass.
+- `vite build` succeeds (warning: bundle > 500 kB because of Phaser).
+- Playwright bots (scripts in the session scratchpad, not committed): action prototype cleared twice, death path + return to Day + second sortie OK; grid prototype cleared 3 floors. No page errors.
+- Bugs fixed during play-tests: phase switch inside `update` killed the game loop; grid walls were invisible; grid distant-dash parry allowed an infinite free block.
+- This session (reorganisation only): `src/scenes/` split into `rift/`, `grid/`, `shared/`; docs reorganised. Type-check and tests re-run after the move.
 
 ## Known issues / unverified
-- **Balance untested by a human.** The kiting bot took almost no damage → combat is probably too easy; tune in `src/data/`.
-- No Tiled map yet: rooms are a plain rectangle arena (HANDOFF step "one Tiled room" deferred).
-- No save/load (`SaveManager` not built); refresh resets progress.
-- Sound is synthesised placeholder beeps; visuals are plain shapes.
-- **Build is behind the design:** current build has the talisman thrower (≈ weapon B draft) + 3 placeholder companions. Decided design for Gate 1 = director alone with weapon A (newspaper sword + draw/parry). Placeholder companions may be deleted freely (user said so).
-- Only keyboard; no gamepad/touch.
-- A dev-only `window.__rift` handle exists for automated play-testing (stripped in production builds).
+- **No human has played either prototype.** Bots took little damage → both are probably too easy.
+- No Tiled maps, no SaveManager (refresh resets), keyboard only, shapes + synth beeps only.
+- Action prototype still has the 3 placeholder companions and the talisman thrower; decided design is the director alone with weapon A (newspaper sword + 발도). Not built yet in either prototype beyond the grid 발도.
+- Dev-only `window.__rift` / `window.__grid` handles exist for bots (stripped in production builds).
 
 ## Pending ARCHITECTURE changes (apply when Gate 2 hub work starts)
-(a) Day hub becomes a walkable Phaser scene with React panels on top, so §1 and Rule 4 phase wording must change; (b) InputManager needs a touch context; (c) night combat limited to ≤4 action buttons (current build follows this).
+(a) Day hub becomes a walkable Phaser scene (souls-style, talk with `E`) with React panels on top → §1 and Rule 4 wording must change; (b) InputManager needs a touch context; (c) ≤4 combat buttons (both prototypes follow this).
 
-## Design decisions (see docs/design/, docs/reference/)
-- Hub = souls-style walkable space (no dock/currency bar); run upgrades are called "강화 카드" (code still uses `trait`); light management scope (rent, reputation rank, contract choice, later dispatch farming + rental). References: Pokémon Mystery Dungeon, Girls' Frontline teardowns.
-- `world.md` (new): free "anything-goes" Seoul (Korean yokai 7 : Western 3) but tone guardrails are mandatory: real Seoul life places, Seoul vibe + city-pop, lazy-genius director, Gintama-style comedy, rent pressure.
-- `protagonist.md`: weapons A (newspaper-wrapped 사인검, draw/parry 일섬) as starter, B (talisman label gun, stack 5+ then ignite) unlocked later. C dropped for now.
-- `hub.md`: rooftop office in an Euljiro printing-alley building; main cast = bookkeeper/part-timer (ordinary person, not a shaman) + spirit cat, both story-unlocked; menus open by clicking cast members; landlady on hold.
-- `party.md` (new): solo start; later party slots + trait decks (each weapon and companion adds its own trait cards; offer cards show their source). Gate 1 = base + weapon deck only.
-- `ARCHITECTURE.md` §5 Gate 1/2 text updated to match.
+## Decisions so far → `docs/design/README.md` (module index with status)
 
 ## Next step
-0. **User compares the two prototypes** (action vs grid) and decides the combat model. Everything above combat (contract, settlement, store, cards) is shared.
-1. If action wins: rework Gate 1 combat to the decided design: remove placeholder companions, add weapon A (melee swings, newspaper sheath, draw/parry strike on enemy attack timing), split traits into base + weapon decks (`source` field).
-2. User plays and gives feel feedback; tune `src/data/`.
-3. Then: Tiled room layouts, SaveManager (schemaVersion 1).
+1. User plays both prototypes and picks the combat model.
+2. Apply weapon A (newspaper sword + 발도) to the winner, delete placeholder companions, split upgrade cards into base + weapon decks; remove or archive the losing prototype.
+3. Then Tiled/handmade room variety, SaveManager (schemaVersion 1), tuning from user feedback.

@@ -2,33 +2,39 @@
 
 > 기획을 **기능(모듈) 단위**로 쪼개 둔 곳. 한 파일 = 한 모듈 = 코드의 한 구역.
 > 새 아이디어는 맞는 모듈 파일에 넣고, 어디에도 안 맞으면 새 모듈 파일을 만들고 이 표에 한 줄 추가.
-> "✅" = 결정(바뀔 수 있음), "🤔" = 논의 중.
+> 문서 안 표시: ✅ 결정(바뀔 수 있음) · 🤔 논의 중
 
 ## 한 줄 요약
-허름한 을지로 사무소의 귀차니스트 천재 해결사가 **의뢰를 받고 → 밤에 퇴마하고 → 월세를 막는** 게임. (은혼 해결사 사무소 느낌)
+허름한 을지로 옥탑방 사무소의 귀차니스트 천재 해결사가 **의뢰를 받고 → 밤에 퇴마하고 → 월세를 막는** 게임. (은혼 해결사 + 혈계전선 같은 마경 서울)
 
 ## 핵심 루프
 ```
-☎️ 수임 → 🧰 준비 → 🌙 출동(퇴마) → 💰 정산 → 🏢 경영(월세·회복·성장) → 다시 수임
- contract   tools·roster   combat·contract   run·recruit   economy·hub
+☎️ 수임 → 🧰 준비 → 🌙 출동(퇴마) → 💰 정산 → 🏢 경영(월세·평판·성장) → 다시 수임
+contract   party·protagonist   combat·contract   run-result·recruit   economy·hub
 ```
 
 ## 모듈 목록
+상태: 🟢 코드 있음 · 🧪 시험판(비교 중) · 📝 기획만
 
-| 모듈 | 기획 문서 | 담당 코드 (예정) | 처음 만드는 Gate |
-|------|----------|----------------|----------------|
-| 🎬 플레이 흐름 (종합) | [playflow.md](playflow.md) | — (여러 모듈을 엮은 설명) | — |
-| 세계관·톤 (기준) | [world.md](world.md) | — (모든 모듈이 따름) | — |
-| 플랫폼·입력 | [platform.md](platform.md) | `src/core/InputManager.ts`, `src/core/platform.ts` | 1 (PC만), 모바일은 Steam 이후 |
-| 주인공·퇴마 도구 | [protagonist.md](protagonist.md) | `data/tools.data.ts`, `registry/skillEffects.ts` (TOOL_SKILLS), `systems/combat/` | 1 (도구 1종) |
-| 의뢰·밤 한 판 | [contract.md](contract.md) | `data/contracts.data.ts`, `systems/contract/`, `maps/` | 1 (을지로 의뢰 1건) |
-| 실패·정산 | [run-result.md](run-result.md) | `data/penalties.data.ts`, `systems/run/` | 1 (귀환·정산만), 페널티 2 |
-| 조 편성 | [party.md](party.md) | `data/companions.data.ts`, `data/traits.data.ts`, `systems/run/`, `ui/features/party/` | 2 (Gate 1은 소장 혼자) |
-| 귀신 영입 | [recruit.md](recruit.md) | `data/recruit.data.ts`, `systems/recruit/` | 2 |
-| 경제·월세 | [economy.md](economy.md) | `data/economy.data.ts`, `systems/economy/` | 2 |
-| 허브(사무소) | [hub.md](hub.md) | `data/lobby.data.ts`, `scenes/hub/`, `ui/features/` | 1 (출동 버튼만), 본격 2 |
-| 과금 | [monetization.md](monetization.md) | `data/shop.data.ts`, `systems/shop/` | Steam 출시 이후 |
-| 아트·에셋 | [art.md](art.md) | `scenes/vfx/`, `scenes/postfx/`, `assets/` | 1 (임시 그림) |
+| 묶음 | 모듈 | 문서 | 담당 코드 | 상태 | 처음 만드는 Gate |
+|------|------|------|----------|------|----------------|
+| 기준 | 세계관·톤 | [world.md](world.md) | — (모든 모듈이 따름) | 📝 | — |
+| 기준 | 플레이 흐름 (종합) | [playflow.md](playflow.md) | — (여러 모듈을 엮은 설명) | 📝 | — |
+| 기준 | 플랫폼·입력 | [platform.md](platform.md) | `core/InputManager.ts`, `core/platform.ts`(예정) | 🟢 키보드만 | 1 |
+| 밤 | **전투 방식** | [combat.md](combat.md) | 액션 `systems/combat/` `scenes/rift/` · 칸 턴제 `systems/grid/` `scenes/grid/` | 🧪 두 개 비교 중 | 1 |
+| 밤 | 주인공·무기 | [protagonist.md](protagonist.md) | `data/protagonist.data.ts`, `data/tools.data.ts`, `registry/skillEffects.ts` | 🧪 무기 A 아직 없음 | 1 |
+| 밤 | 의뢰·현장 | [contract.md](contract.md) | `data/contracts.data.ts`, `systems/contract/` | 🟢 을지로 1건 | 1 |
+| 밤 | 실패·정산 | [run-result.md](run-result.md) | `data/penalties.data.ts`, `systems/run/` | 🟢 | 1 |
+| 성장 | 조 편성·강화 카드 | [party.md](party.md) | `data/traits.data.ts`, `data/grid.data.ts`(카드), `registry/traitHooks.ts` | 🧪 카드만, 편성 없음 | 1 (카드) / 2 (편성) |
+| 성장 | 괴이 영입 | [recruit.md](recruit.md) | `systems/recruit/`(예정) | 📝 | 2 |
+| 낮 | 허브(옥탑방) | [hub.md](hub.md) | 지금 `ui/OfficeApp.tsx`(임시) → `scenes/hub/`(예정) | 🧪 임시 화면 | 1 (임시) / 2 |
+| 낮 | 경제·경영 | [economy.md](economy.md) | `store/gameStore.ts`, `systems/economy/`(예정) | 🟢 돈·트라우마만 | 2 |
+| 사업 | 과금 | [monetization.md](monetization.md) | `systems/shop/`(예정) | 📝 | Steam 출시 이후 |
+| 제작 | 아트·에셋 | [art.md](art.md) | `scenes/shared/`(연출), `assets/`(예정) | 🧪 도형·합성음 | 1 |
+
+## 참고 게임 역설계 → [`../reference/`](../reference/)
+- [포켓몬 불가사의 던전](../reference/pokemon-mystery-dungeon.md) — 의뢰판 → 던전 → 영입, 칸 턴제
+- [소녀전선](../reference/girls-frontline.md) — 편성 칸 버프, 군수 파견, 숙소
 
 ## 모듈끼리 규칙
 - 모듈은 **서로의 내부 파일을 직접 import 하지 않음.** 각 `systems/<모듈>/index.ts`가 내놓은 함수만 사용.

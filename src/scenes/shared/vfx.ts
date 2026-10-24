@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import type { EventBus } from '../core/EventBus';
-import { FEEL, PALETTE } from '../data/feel.data';
-import { t } from '../i18n';
+import type { EventBus } from '../../core/EventBus';
+import { FEEL, PALETTE } from '../../data/feel.data';
+import { t } from '../../i18n';
 import { playSfx } from './sfx';
 
 interface VfxHooks {

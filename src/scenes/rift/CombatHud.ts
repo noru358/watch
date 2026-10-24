@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
-import { ROOM_SIZE } from '../data/contracts.data';
-import { PALETTE } from '../data/feel.data';
-import { TOOLS } from '../data/tools.data';
-import { t } from '../i18n';
-import type { World } from '../systems/combat';
-import { companionReadyRatio, type RunState } from '../systems/run';
+import { ROOM_SIZE } from '../../data/contracts.data';
+import { PALETTE } from '../../data/feel.data';
+import { TOOLS } from '../../data/tools.data';
+import { t } from '../../i18n';
+import type { World } from '../../systems/combat';
+import { companionReadyRatio, type RunState } from '../../systems/run';
 
 const TEXT = { fontFamily: PALETTE.font, fontSize: '16px', color: PALETTE.text };
 
