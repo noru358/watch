@@ -27,6 +27,8 @@ npm run check    # 타입 검사 + 테스트 (커밋 전 필수)
 | 타격감 (멈칫 시간, 흔들림, 색) | `src/data/feel.data.ts` |
 | 효과음 | `src/data/sfx.data.ts` |
 | 키 설정 | `src/data/input.data.ts` |
+| 🧪 칸 턴제 시험판 숫자 (맵 크기, 적, 발도, 강화 카드) | `src/data/grid.data.ts` |
+| 🧪 칸 턴제 규칙 (차례, 예고, 발도) | `src/systems/grid/` |
 | 화면 글자 | `src/i18n/ko.ts` (+ `en.ts`) |
 
 ---

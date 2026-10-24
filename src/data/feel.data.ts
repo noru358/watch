@@ -5,6 +5,7 @@ export const FEEL = {
   hitStopHit: 0.035, // seconds the simulation freezes on an enemy hit
   hitStopKill: 0.07,
   hitStopHurt: 0.1,
+  hitStopParry: 0.12,
   shakeHurt: { duration: 160, intensity: 0.012 },
   shakeKill: { duration: 90, intensity: 0.005 },
   shakeBossPhase: { duration: 500, intensity: 0.02 },
@@ -22,6 +23,8 @@ export const PALETTE = {
   background: 0x14101f,
   floor: 0x1d1830,
   floorLine: 0x2a2342,
+  gridFloor: 0x342c5c,
+  gridWall: 0x0d0b14,
   wall: 0x3b2f5c,
   doorClosed: 0x5a2340,
   doorOpen: 0x41e0c8,

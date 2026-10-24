@@ -18,6 +18,23 @@ export const en: Record<TKey, string> = {
   'day.controlsBody': 'Move WASD · Attack J · Roll K/Space · Talisman ward L · Call squad ;',
   'day.placeholder': 'Gate 1 placeholder office. The walkable office comes in Gate 2.',
 
+  'day.sortieGrid': '🧪 Head out (grid turn-based prototype)',
+  'day.gridHint': 'For comparison: Mystery Dungeon style. Move WASD (bump to attack) · Slash J · Wait K · Draw L',
+
+  'grid.floor': 'Floor {current} / {total}',
+  'grid.focus': 'Focus',
+  'grid.cardPick': 'Choose an upgrade card — 1 / 2 / 3',
+  'grid.card.tough.name': 'Euljiro Toughness',
+  'grid.card.tough.desc': 'Max HP +{hp}, heal {heal}',
+  'grid.card.sharp.name': 'Double Newspaper',
+  'grid.card.sharp.desc': 'Slash damage +{slash}',
+  'grid.card.focus.name': 'Lazy but Serious',
+  'grid.card.focus.desc': 'Focus gauge fills {focus} step(s) sooner',
+  'grid.card.medicine.name': 'Convenience-Store Tonic',
+  'grid.card.medicine.desc': 'Heal {heal} HP',
+  'grid.card.lightning.name': 'Blue Lightning',
+  'grid.card.lightning.desc': 'Draw strike damage +{draw}',
+
   'result.success': 'Contract solved',
   'result.extracted': 'Returned via payphone',
   'result.died': 'Fell',

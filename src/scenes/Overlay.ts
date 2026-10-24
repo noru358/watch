@@ -44,20 +44,24 @@ export class Overlay {
   }
 
   showTraitOffer(offer: readonly TraitId[]): void {
+    this.showCards(offer.map((id) => ({ name: t(`trait.${id}.name`), desc: t(`trait.${id}.desc`, traitParams(id)) })));
+  }
+
+  showCards(offer: readonly { name: string; desc: string }[]): void {
     this.reset();
     this.layer.add(this.scene.add.text(W / 2, 90, t('trait.pick'), { ...TEXT, fontSize: '24px' }).setOrigin(0.5));
     const cardW = 250;
     const gap = 24;
     const startX = W / 2 - (offer.length * cardW + (offer.length - 1) * gap) / 2;
-    offer.forEach((id, i) => {
+    offer.forEach((card, i) => {
       const x = startX + i * (cardW + gap);
-      const card = this.scene.add.rectangle(x, 150, cardW, 230, PALETTE.panel).setOrigin(0).setStrokeStyle(2, PALETTE.wall);
-      this.cards.push(card);
-      this.layer.add(card);
+      const box = this.scene.add.rectangle(x, 150, cardW, 230, PALETTE.panel).setOrigin(0).setStrokeStyle(2, PALETTE.wall);
+      this.cards.push(box);
+      this.layer.add(box);
       this.layer.add(this.scene.add.text(x + 16, 166, `${i + 1}`, { ...TEXT, fontSize: '28px', color: PALETTE.damageText }));
-      this.layer.add(this.scene.add.text(x + 16, 214, t(`trait.${id}.name`), { ...TEXT, fontSize: '20px' }));
+      this.layer.add(this.scene.add.text(x + 16, 214, card.name, { ...TEXT, fontSize: '20px' }));
       this.layer.add(
-        this.scene.add.text(x + 16, 254, t(`trait.${id}.desc`, traitParams(id)), {
+        this.scene.add.text(x + 16, 254, card.desc, {
           ...TEXT,
           fontSize: '15px',
           color: PALETTE.textDim,

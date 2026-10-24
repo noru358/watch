@@ -3,11 +3,10 @@ import type { EventBus } from '../core/EventBus';
 import { FEEL, PALETTE } from '../data/feel.data';
 import { t } from '../i18n';
 import { playSfx } from './sfx';
-import type { WorldView } from './WorldView';
 
 interface VfxHooks {
   freeze(seconds: number): void; // hit-stop: pauses the simulation clock briefly
-  view: WorldView;
+  view: { flash(entityId: number): void; setNeon(on: boolean): void };
 }
 
 function popup(scene: Phaser.Scene, x: number, y: number, text: string, color: string, size = 18): void {
@@ -79,6 +78,13 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
       playSfx('phase');
     }),
     bus.on('roomCleared', () => playSfx('clear')),
+    bus.on('parry', (e) => {
+      hooks.freeze(FEEL.hitStopParry);
+      cam.flash(90, 160, 220, 255);
+      cam.shake(FEEL.shakeKill.duration, FEEL.shakeKill.intensity * 2);
+      ring(scene, e.x, e.y, 40, PALETTE.playerRoll);
+      playSfx('parry');
+    }),
   ];
   return () => offs.forEach((off) => off());
 }

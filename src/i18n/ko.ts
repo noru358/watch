@@ -17,6 +17,23 @@ export const ko = {
   'day.controlsBody': '이동 WASD · 공격 J · 구르기 K/Space · 부적 결계 L · 대원 호출 ;',
   'day.placeholder': 'Gate 1 임시 사무소 화면입니다. 걸어다니는 사무소는 Gate 2에서.',
 
+  'day.sortieGrid': '🧪 칸 턴제 시험판으로 출동',
+  'day.gridHint': '비교용: 불가사의 던전식. 이동 WASD(적에게 부딪히면 공격) · 베기 J · 대기 K · 발도 L',
+
+  'grid.floor': '{current}층 / {total}',
+  'grid.focus': '진심',
+  'grid.cardPick': '강화 카드 선택 — 1 / 2 / 3',
+  'grid.card.tough.name': '을지로 맷집',
+  'grid.card.tough.desc': '최대 체력 +{hp}, 체력 {heal} 회복',
+  'grid.card.sharp.name': '신문지 두 겹',
+  'grid.card.sharp.desc': '베기 피해 +{slash}',
+  'grid.card.focus.name': '귀찮지만 진심',
+  'grid.card.focus.desc': '진심 게이지가 {focus}칸 빨리 참',
+  'grid.card.medicine.name': '편의점 쌍화탕',
+  'grid.card.medicine.desc': '체력 {heal} 회복',
+  'grid.card.lightning.name': '푸른 벼락',
+  'grid.card.lightning.desc': '발도 피해 +{draw}',
+
   'result.success': '의뢰 해결',
   'result.extracted': '공중전화로 귀환',
   'result.died': '쓰러짐',

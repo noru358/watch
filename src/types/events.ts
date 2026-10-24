@@ -17,6 +17,7 @@ export interface GameEventMap {
   bossPhase: { phase: 2 };
   roomCleared: { boss: boolean };
   darkness: { duration: number };
+  parry: { x: number; y: number }; // 발도 counter / draw strike
   phaseChanged: { phase: Phase };
 }
 

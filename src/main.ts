@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
-import { bindPhaseSwitch, input, store } from './app/services';
+import { bindPhaseSwitch, getNightMode, input, store } from './app/services';
 import { eventBus } from './core/EventBus';
 import { PhaseController } from './core/phase';
 import { ROOM_SIZE } from './data/contracts.data';
 import { PALETTE } from './data/feel.data';
+import { GridScene } from './scenes/GridScene';
 import { RiftScene } from './scenes/RiftScene';
 import { OfficeApp } from './ui/OfficeApp';
 
@@ -24,6 +25,7 @@ const game = new Phaser.Game({
   scene: [],
 });
 game.scene.add('rift', RiftScene, false);
+game.scene.add('grid', GridScene, false);
 
 const phases = new PhaseController({
   enterDay() {
@@ -39,10 +41,11 @@ const phases = new PhaseController({
   },
   enterNight() {
     input.resetContext('night');
-    game.scene.start('rift');
+    game.scene.start(getNightMode() === 'grid' ? 'grid' : 'rift');
   },
   exitNight() {
     game.scene.stop('rift');
+    game.scene.stop('grid');
   },
 });
 

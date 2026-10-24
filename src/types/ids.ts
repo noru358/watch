@@ -17,3 +17,5 @@ export type TraitId =
 export type ContractId = 'euljiro_printer';
 export type RoomKind = 'combat' | 'payphone' | 'boss';
 export type Phase = 'day' | 'night';
+export type NightMode = 'action' | 'grid'; // prototype comparison (action vs grid turn-based)
+export type GridCardId = 'tough' | 'sharp' | 'focus' | 'medicine' | 'lightning';
