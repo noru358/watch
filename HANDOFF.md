@@ -20,3 +20,5 @@
 ## Session note (2026-10-24, lobby design)
 - Docs only; `npm run check` not run because no `package.json` exists yet.
 - Next: settle the open questions in `docs/LOBBY_DESIGN.md` §6 with the user, then continue Gate 1 scaffolding above. Gate 1 lobby = office background + `출동` + settings only.
+- Added `docs/GAME_DESIGN.md` (decision log: single fixed protagonist + swappable exorcism tools, 1 contract = 1 run = 10–15 min, rent/debt pressure, ghosts recruitable by purification, PC paid / mobile F2P, asset-light principles).
+- **Pending ARCHITECTURE changes (not applied yet, apply when Gate 2 hub work starts):** (a) Day hub becomes a walkable Phaser scene with React panels on top, so §1 "React mounted only in Day" and Rule 4 phase wording must change; (b) InputManager needs a touch context (virtual stick / tap-to-move) since mobile is a confirmed later target; (c) night combat limited to ≤4 action buttons for mobile.
