@@ -17,6 +17,7 @@
 
 | 모듈 | 기획 문서 | 담당 코드 (예정) | 처음 만드는 Gate |
 |------|----------|----------------|----------------|
+| 🎬 플레이 흐름 (종합) | [playflow.md](playflow.md) | — (여러 모듈을 엮은 설명) | — |
 | 세계관·톤 (기준) | [world.md](world.md) | — (모든 모듈이 따름) | — |
 | 플랫폼·입력 | [platform.md](platform.md) | `src/core/InputManager.ts`, `src/core/platform.ts` | 1 (PC만), 모바일은 Steam 이후 |
 | 주인공·퇴마 도구 | [protagonist.md](protagonist.md) | `data/tools.data.ts`, `registry/skillEffects.ts` (TOOL_SKILLS), `systems/combat/` | 1 (도구 1종) |
