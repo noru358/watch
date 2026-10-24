@@ -1,0 +1,70 @@
+import type { TKey } from './ko';
+
+export const en: Record<TKey, string> = {
+  'game.title': 'Seoul Nightwatch',
+  'game.subtitle': 'Euljiro Exorcism Office',
+
+  'day.office': 'Euljiro Exorcism Office',
+  'day.money': 'Balance',
+  'day.trauma': 'Trauma',
+  'day.runs': 'Contracts solved',
+  'day.contractTitle': "Tonight's contract",
+  'day.contractName': 'Euljiro 3-ga print shop basement: the press runs by itself every night',
+  'day.contractFee': 'Fee',
+  'day.sortie': 'Head out',
+  'day.sortieHint': 'Enter or click',
+  'day.lastResult': "Last night's result",
+  'day.controls': 'Controls',
+  'day.controlsBody': 'Move WASD · Attack J · Roll K/Space · Talisman ward L · Call squad ;',
+  'day.placeholder': 'Gate 1 placeholder office. The walkable office comes in Gate 2.',
+
+  'result.success': 'Contract solved',
+  'result.extracted': 'Returned via payphone',
+  'result.died': 'Fell',
+  'result.loot': 'Loot',
+  'result.fee': 'Fee',
+  'result.trauma': 'Trauma',
+  'result.total': 'Earned',
+
+  'hud.room': 'Room {current}/{total}',
+  'hud.loot': 'Spirit {value}',
+  'hud.tool': 'Ward',
+  'hud.ready': 'Ready',
+  'hud.boss': 'Printing Press Ghost',
+  'hud.shield': 'Salt {value}',
+
+  'room.cleared': 'Purified — exit through the top door',
+  'room.payphone': 'Payphone: J to go home (keep loot, no fee) · or take the door',
+  'room.bossIntro': 'The source has appeared',
+
+  'trait.pick': 'Choose a trait — 1 / 2 / 3',
+
+  'end.success': 'Contract solved!',
+  'end.extracted': 'Back home. That is enough for tonight.',
+  'end.died': 'You went down…',
+  'end.continue': 'J / Enter: back to the office',
+
+  'companion.grandma_shaman': 'Grandma Shaman',
+  'companion.ex_detective': 'Ex-Detective',
+  'companion.streamer': 'Student Streamer',
+
+  'enemy.cheonyeo': 'Maiden Ghost',
+  'enemy.dalgyal': 'Egg Ghost',
+  'enemy.subway': 'Subway Wraith',
+  'enemy.printer': 'Printing Press Ghost',
+
+  'trait.ricochet.name': 'Ricochet Talisman',
+  'trait.ricochet.desc': '{chance}% chance a talisman bounces to another ghost on hit',
+  'trait.roll_empower.name': 'Roll and Strike',
+  'trait.roll_empower.desc': 'Next talisman after a roll deals x{amount} damage',
+  'trait.vampiric.name': 'Grudge Drain',
+  'trait.vampiric.desc': '{chance}% chance to heal {amount} HP on kill',
+  'trait.thick_skin.name': 'Euljiro Toughness',
+  'trait.thick_skin.desc': 'Max HP +{hp}',
+  'trait.swift.name': 'Last-Train Sprint',
+  'trait.swift.desc': 'Move speed +{speed}%',
+  'trait.sharp_talisman.name': 'Sharpened Talisman',
+  'trait.sharp_talisman.desc': 'Talisman damage +{damage}%',
+  'trait.salt_ward.name': 'Pinch of Salt',
+  'trait.salt_ward.desc': 'Each room starts with a shield that blocks {amount} hit(s)',
+};

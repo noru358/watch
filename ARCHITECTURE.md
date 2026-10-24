@@ -67,7 +67,7 @@ src/
  ├── i18n/        # ko.ts (source of keys), en.ts, t() helper
  ├── data/        # Static typed tables: exorcists, ghosts, skills, traits, districts, items,
  │                #   tools, contracts, penalties, recruit, economy, lobby, shop
- ├── registry/    # Behaviour by ID: skillEffects.ts, traitHooks.ts, toolEffects.ts
+ ├── registry/    # Behaviour by ID: skillEffects.ts (companion + tool skills), traitHooks.ts
  ├── store/       # GameStore (single source of truth) + actions
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
  │                #   combat/, trait/, contract/, run/, recruit/, economy/, dispatch/, rental/, shop/

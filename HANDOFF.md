@@ -1,31 +1,42 @@
 # HANDOFF
 
-## Status (2026-10-24)
-- Repository initialized with `ARCHITECTURE.md` (v1.1) and `CLAUDE.md`. No code yet.
-- Added `GUIDE.md` (plain-Korean map of the codebase for the human owner; planned folders marked as such).
-- Added `docs/design/hub.md` v0 draft: Day lobby = office interior (stage) + bottom dock (≤5 slots) + single `출동` CTA, features opened as bottom sheets / fullscreen, driven by a `LOBBY_FEATURES` data table. **Still under discussion with the user** — open questions listed in section 6. Not yet reflected in `ARCHITECTURE.md`.
+## Status (2026-10-24) — Gate 1 first playable
+A full night loop is playable in the browser: Day placeholder → 출동 → 7-room Euljiro contract
+(3 combat → payphone → 2 combat → boss) → settlement → back to Day with money/trauma updated.
 
-## Next step — Gate 1 scaffolding
-1. Vite + TypeScript (strict) + Phaser 3 + React + Vitest project setup; `npm run check` script.
-2. `src/core/`: InputManager (context stack), typed EventBus, SeededRNG, phase switch (`setPhase`).
-3. Minimal `src/data/` + `src/types/ids.ts` for 4 exorcists, 3 ghost types, 1 boss.
-4. RiftScene with one Tiled room, leader movement and basic attack, hit-stop + damage popup.
+### What exists
+- Tooling: Vite 8 + TypeScript 5 (strict, noUncheckedIndexedAccess) + Phaser 3.90 + React 19 + Vitest 5. `npm run dev`, `npm run check`, `npm run build`.
+- `src/core/`: `InputManager` (window-only, context stack, `onAction` for React), typed `EventBus`, `SeededRNG`, `PhaseController`.
+- `src/systems/combat/`: pure fixed-step simulation (player move/roll/attack with auto-aim, ghosts, boss, projectiles, ward zone, pickups, waves). Public API via `index.ts`.
+- `src/systems/contract/` (room plan from contract data), `src/systems/run/` (room flow, trait offers, outcome, `settleRun` with risk-tier penalties).
+- `src/registry/traitHooks.ts` (7 traits on the fixed hook points) and `skillEffects.ts` (3 companion calls + talisman ward).
+- `src/store/gameStore.ts` (money, trauma, solved count, run seed, last run).
+- `src/scenes/` (RiftScene, WorldView shapes-only renderer, CombatHud, Overlay for trait/end panels, vfx listeners: hit-stop, shake, popups, synth SFX).
+- `src/ui/OfficeApp.tsx` (Gate 1 Day placeholder, 출동 via click or Enter through InputManager).
+- `src/app/services.ts` holds singletons (input, store, phase switch binding).
+
+### Controls
+WASD move · J attack (held, auto-aim) · K/Space roll (i-frames) · L talisman ward · `;` call next ready companion · 1/2/3 pick trait · J/Enter confirm.
 
 ## Verified
-- Nothing yet.
+- `npm run check`: tsc clean, 30 Vitest tests pass (core, combat, traits, run/settlement/store).
+- `vite build` succeeds (warning only: bundle > 500 kB because of Phaser).
+- Headless Chromium play-test (Playwright scripts, not committed): a scripted bot cleared the full contract twice with no page errors; death path shows the fail panel (+1 trauma, loot halved) and returns to Day; a second sortie starts and keyboard works without a click.
+- Fixed during play-test: switching phase inside `RiftScene.update` stopped the scene and then rendered destroyed objects, killing the game loop.
 
 ## Known issues / unverified
-- None.
+- **Balance untested by a human.** The kiting bot took almost no damage → combat is probably too easy; tune in `src/data/`.
+- No Tiled map yet: rooms are a plain rectangle arena (HANDOFF step "one Tiled room" deferred).
+- No save/load (`SaveManager` not built); refresh resets progress.
+- Sound is synthesised placeholder beeps; visuals are plain shapes.
+- `ARCHITECTURE.md` §5 Gate 1 still says "4 exorcists"; implemented as director + 3 called companions (pending user confirmation).
+- Only keyboard; no gamepad/touch.
+- A dev-only `window.__rift` handle exists for automated play-testing (stripped in production builds).
 
-## Session note (2026-10-24, lobby design)
-- Docs only; `npm run check` not run because no `package.json` exists yet.
-- Next: settle the open questions in `docs/design/hub.md` §6 with the user, then continue Gate 1 scaffolding above. Gate 1 lobby = office background + `출동` + settings only.
-- Added game design decision log (now split into `docs/design/` modules: single fixed protagonist + swappable exorcism tools, 1 contract = 1 run = 10–15 min, rent/debt pressure, ghosts recruitable by purification, PC paid / mobile F2P, asset-light principles).
-- **Pending ARCHITECTURE changes (not applied yet, apply when Gate 2 hub work starts):** (a) Day hub becomes a walkable Phaser scene with React panels on top, so §1 "React mounted only in Day" and Rule 4 phase wording must change; (b) InputManager needs a touch context (virtual stick / tap-to-move) since mobile is a confirmed later target; (c) night combat limited to ≤4 action buttons for mobile.
+## Pending ARCHITECTURE changes (apply when Gate 2 hub work starts)
+(a) Day hub becomes a walkable Phaser scene with React panels on top, so §1 and Rule 4 phase wording must change; (b) InputManager needs a touch context; (c) night combat limited to ≤4 action buttons (current build follows this).
 
-## Session note (2026-10-24, design modularized)
-- Design split into per-module docs under `docs/design/` (README index + platform, protagonist, contract, run-result, recruit, economy, hub, monetization, art). `docs/GAME_DESIGN.md` removed; `docs/LOBBY_DESIGN.md` moved to `docs/design/hub.md`.
-- Decided this session: failure penalty by risk tier (base = trauma + partial run-loot loss; high-risk opt-in adds gear loss; EXP/currency loss held as data toggles); mobile monetization = cosmetics/convenience/season pass, never penalty removal or rental-market cash; recruitment = normal ghosts low-chance on purification, district boss ghosts guaranteed via story contract.
-- `ARCHITECTURE.md` §3 updated: new module folders (contract/, run/, recruit/, shop/, hub/, vfx/, postfx/, ui/features/) and a "Module boundaries" subsection (index.ts-only imports, one design doc per module, platform branching only in core/platform.ts).
-- Docs only; `npm run check` still not runnable (no package.json).
-- Next: Gate 1 scaffolding (see top).
+## Next step
+1. User plays and gives feedback on feel (movement, hit-stop, talisman, roll, companion calls, boss).
+2. Tune numbers in `src/data/` from that feedback; adjust mechanics if Gate 1 is not fun.
+3. Then: Tiled room layouts with obstacles, SaveManager (schemaVersion 1), Gate 1 polish.

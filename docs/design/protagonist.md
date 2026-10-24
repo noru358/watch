@@ -1,6 +1,6 @@
 # 🧥 주인공·퇴마 도구 모듈
 
-**담당 코드:** `src/data/tools.data.ts`(숫자), `src/registry/toolEffects.ts`(효과 블록), `src/systems/combat/`(전투 계산)
+**담당 코드:** `src/data/tools.data.ts`(숫자), `src/registry/skillEffects.ts`의 TOOL_SKILLS(효과 블록), `src/systems/combat/`(전투 계산)
 
 ## ✅ 결정
 - **사무소장 1명 고정.** 허름한 을지로 사무소, 귀찮아하지만 수임·의뢰 해결엔 천부적인 해결사.
@@ -17,4 +17,13 @@
 | 🍶 소금/막걸리 | 범위 · 정화 | 2+ |
 
 ## 새 도구 추가하는 법
-`tools.data.ts`에 숫자 한 줄 + `toolEffects.ts`에 효과 블록 하나. 전투 코드는 안 건드림.
+`tools.data.ts`에 숫자 한 줄 + `skillEffects.ts`의 TOOL_SKILLS에 효과 블록 하나. 전투 코드는 안 건드림.
+
+## 🧪 현재 시험판 (2026-10-24, 확정 아님)
+| PC 키 | 행동 |
+|------|------|
+| WASD | 이동 |
+| J (누르고 있기) | 부적 던지기, 가까운 귀신 자동 조준 |
+| K / Space | 구르기 (무적) |
+| L | 부적 결계 (안에 든 귀신 피해 + 느려짐) |
+| ; | 대원 호출 — 무당 할머니(회복) → 전직 형사(관통 사격+기절) → 유튜버 대학생(주변 플래시) 순서 |

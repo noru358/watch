@@ -3,7 +3,31 @@
 > 코드를 직접 다 읽을 필요 없습니다. **"어디에 무엇이 있는지"만 알면** AI에게 정확히 지시할 수 있습니다.
 > 이 문서는 사람용 지도이고, AI용 정식 규칙은 `ARCHITECTURE.md`에 있습니다. 둘이 다르면 `ARCHITECTURE.md`가 이깁니다.
 >
-> ⚠️ 2026-10-24 현재 아직 코드가 없습니다. 아래 폴더들은 **앞으로 만들어질 위치**입니다.
+> 2026-10-24: Gate 1 첫 플레이 버전이 들어왔습니다. 대여·파견·상점 등 아직 안 만든 기능의 폴더는 **앞으로 만들어질 위치**입니다.
+
+## ▶️ 실행하기
+
+```bash
+npm install      # 처음 한 번
+npm run dev      # 브라우저에서 http://localhost:5173 열기
+npm run check    # 타입 검사 + 테스트 (커밋 전 필수)
+```
+
+## 🎮 지금 들어 있는 것 (Gate 1 시험판)
+
+| 하고 싶은 것 | 파일 |
+|-------------|------|
+| 귀신 체력·속도·보스 패턴 숫자 | `src/data/ghosts.data.ts` |
+| 사무소장 체력·구르기 | `src/data/protagonist.data.ts` |
+| 부적 공격·결계 숫자 | `src/data/tools.data.ts` |
+| 대원 3명 호출 스킬 숫자 | `src/data/companions.data.ts` |
+| 기질 7종 숫자 | `src/data/traits.data.ts` |
+| 의뢰 방 구성·웨이브·수임료 | `src/data/contracts.data.ts` |
+| 실패 페널티 | `src/data/penalties.data.ts` |
+| 타격감 (멈칫 시간, 흔들림, 색) | `src/data/feel.data.ts` |
+| 효과음 | `src/data/sfx.data.ts` |
+| 키 설정 | `src/data/input.data.ts` |
+| 화면 글자 | `src/i18n/ko.ts` (+ `en.ts`) |
 
 ---
 

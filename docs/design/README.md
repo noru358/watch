@@ -18,7 +18,7 @@
 | 모듈 | 기획 문서 | 담당 코드 (예정) | 처음 만드는 Gate |
 |------|----------|----------------|----------------|
 | 플랫폼·입력 | [platform.md](platform.md) | `src/core/InputManager.ts`, `src/core/platform.ts` | 1 (PC만), 모바일은 Steam 이후 |
-| 주인공·퇴마 도구 | [protagonist.md](protagonist.md) | `data/tools.data.ts`, `registry/toolEffects.ts`, `systems/combat/` | 1 (도구 1종) |
+| 주인공·퇴마 도구 | [protagonist.md](protagonist.md) | `data/tools.data.ts`, `registry/skillEffects.ts` (TOOL_SKILLS), `systems/combat/` | 1 (도구 1종) |
 | 의뢰·밤 한 판 | [contract.md](contract.md) | `data/contracts.data.ts`, `systems/contract/`, `maps/` | 1 (을지로 의뢰 1건) |
 | 실패·정산 | [run-result.md](run-result.md) | `data/penalties.data.ts`, `systems/run/` | 1 (귀환·정산만), 페널티 2 |
 | 귀신 영입 | [recruit.md](recruit.md) | `data/recruit.data.ts`, `systems/recruit/` | 2 |
