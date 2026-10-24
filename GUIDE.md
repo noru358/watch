@@ -121,6 +121,7 @@ npm run check    # 타입 검사 + 테스트 (커밋 전 필수)
 | `GUIDE.md` (이 파일) | 사람 | 쉬운 지도 |
 | `docs/design/README.md` | 사람 + AI | **기획 모듈 지도** — 모듈별 기획 문서 목록과 담당 코드 위치 |
 | `docs/design/*.md` | 사람 + AI | 모듈 하나당 기획 문서 하나 (결정 ✅ / 논의 중 🤔) |
+| `docs/reference/*.md` | 사람 + AI | 참고 게임 역설계 노트 |
 | `ARCHITECTURE.md` | AI | 정식 규칙 (영어) |
 | `HANDOFF.md` | AI + 사람 | 지난 세션에 뭘 했고, 다음에 뭘 할지 |
 | `CLAUDE.md` | AI | 세션 시작할 때 자동으로 읽는 안내문 |
