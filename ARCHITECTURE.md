@@ -65,15 +65,25 @@ src/
  ├── core/        # Infrastructure: InputManager, EventBus, SeededRNG, SaveManager, phase switch
  ├── types/       # Shared interfaces, ID union types (ids.ts), event map (events.ts)
  ├── i18n/        # ko.ts (source of keys), en.ts, t() helper
- ├── data/        # Static typed tables: exorcists, ghosts, skills, traits, districts, items
- ├── registry/    # Behaviour by ID: skillEffects.ts, traitHooks.ts
+ ├── data/        # Static typed tables: exorcists, ghosts, skills, traits, districts, items,
+ │                #   tools, contracts, penalties, recruit, economy, lobby, shop
+ ├── registry/    # Behaviour by ID: skillEffects.ts, traitHooks.ts, toolEffects.ts
  ├── store/       # GameStore (single source of truth) + actions
- ├── systems/     # Pure gameplay logic, no Phaser/React (combat/, trait/, dispatch/, rental/, economy/)
- ├── scenes/      # Phaser: RiftScene, CombatHud, entity views, VFX listeners
- └── ui/          # React Day screens: OfficeApp, RosterView, SeoulMapView, RentalMarketView
+ ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
+ │                #   combat/, trait/, contract/, run/, recruit/, economy/, dispatch/, rental/, shop/
+ ├── scenes/      # Phaser: RiftScene, hub/, CombatHud, entity views, vfx/, postfx/
+ └── ui/          # React panels: features/<featureId>/ (roster, recovery, dispatch, rental, settings…)
 tests/            # Vitest specs mirroring src/systems and src/store
 maps/             # Tiled source maps (.tmx/.json) and tilesets
+assets/           # Sprites, portraits, audio
+docs/design/      # Game design split by module (README.md = module index; human-readable, Korean)
 ```
+
+### Module boundaries
+- Each `src/systems/<module>/` exposes its public functions through `index.ts`. Other code imports only from that `index.ts`, never from a module's internal files.
+- Modules talk to each other through `GameStore` actions and shared types in `src/types/`, not by reaching into each other's state.
+- Every module has a matching design doc in `docs/design/`. When a design decision changes, update that doc; when a new module is added, add a row to `docs/design/README.md`.
+- Platform differences (PC vs mobile, paid vs F2P) are resolved in one place (`src/core/platform.ts`). Gameplay rules never branch on platform.
 
 React reads `GameStore` via `useSyncExternalStore`. Phaser reads it via `GameStore.subscribe`. Neither owns state.
 
