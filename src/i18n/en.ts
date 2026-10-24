@@ -37,7 +37,7 @@ export const en: Record<TKey, string> = {
   'room.payphone': 'Payphone: J to go home (keep loot, no fee) · or take the door',
   'room.bossIntro': 'The source has appeared',
 
-  'trait.pick': 'Choose a trait — 1 / 2 / 3',
+  'trait.pick': 'Choose an upgrade card — 1 / 2 / 3',
 
   'end.success': 'Contract solved!',
   'end.extracted': 'Back home. That is enough for tonight.',

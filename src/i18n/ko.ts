@@ -36,7 +36,7 @@ export const ko = {
   'room.payphone': '공중전화: J 로 귀환 (전리품 유지, 수임료 없음) · 문으로 계속',
   'room.bossIntro': '원인 귀신 출현',
 
-  'trait.pick': '기질 선택 — 1 / 2 / 3',
+  'trait.pick': '강화 카드 선택 — 1 / 2 / 3',
 
   'end.success': '의뢰 해결!',
   'end.extracted': '귀환했다. 오늘은 여기까지.',

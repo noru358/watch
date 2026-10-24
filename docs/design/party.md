@@ -1,4 +1,6 @@
-# 🤝 조 편성 모듈 (동행 슬롯 + 기질 덱)
+# 🤝 조 편성 모듈 (동행 슬롯 + 강화 카드 덱)
+
+> **용어 (2026-10-24):** 방 클리어마다 고르는 한 판용 강화 = **강화 카드**. "기질"은 동료의 영구 성격·트라우마용으로만 씀 (Gate 2+). 코드에서는 아직 `TraitId`/`traits`가 강화 카드를 뜻함.
 
 **담당 코드 (예정):** `src/data/companions.data.ts`, `src/data/traits.data.ts`(`source` 필드), `src/registry/skillEffects.ts`, `src/systems/run/`(기질 후보 뽑기), `src/ui/features/party/`(편성 화면)
 
