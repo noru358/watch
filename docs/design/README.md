@@ -17,10 +17,12 @@
 
 | 모듈 | 기획 문서 | 담당 코드 (예정) | 처음 만드는 Gate |
 |------|----------|----------------|----------------|
+| 세계관·톤 (기준) | [world.md](world.md) | — (모든 모듈이 따름) | — |
 | 플랫폼·입력 | [platform.md](platform.md) | `src/core/InputManager.ts`, `src/core/platform.ts` | 1 (PC만), 모바일은 Steam 이후 |
 | 주인공·퇴마 도구 | [protagonist.md](protagonist.md) | `data/tools.data.ts`, `registry/skillEffects.ts` (TOOL_SKILLS), `systems/combat/` | 1 (도구 1종) |
 | 의뢰·밤 한 판 | [contract.md](contract.md) | `data/contracts.data.ts`, `systems/contract/`, `maps/` | 1 (을지로 의뢰 1건) |
 | 실패·정산 | [run-result.md](run-result.md) | `data/penalties.data.ts`, `systems/run/` | 1 (귀환·정산만), 페널티 2 |
+| 조 편성 | [party.md](party.md) | `data/companions.data.ts`, `data/traits.data.ts`, `systems/run/`, `ui/features/party/` | 2 (Gate 1은 소장 혼자) |
 | 귀신 영입 | [recruit.md](recruit.md) | `data/recruit.data.ts`, `systems/recruit/` | 2 |
 | 경제·월세 | [economy.md](economy.md) | `data/economy.data.ts`, `systems/economy/` | 2 |
 | 허브(사무소) | [hub.md](hub.md) | `data/lobby.data.ts`, `scenes/hub/`, `ui/features/` | 1 (출동 버튼만), 본격 2 |

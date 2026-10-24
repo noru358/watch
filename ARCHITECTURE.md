@@ -97,8 +97,8 @@ React reads `GameStore` via `useSyncExternalStore`. Phaser reads it via `GameSto
 
 Each gate must be fun on its own before the next starts. If a gate fails, change the loop — do not polish.
 
-- **Gate 1 — Night combat prototype (CURRENT):** one Euljiro rift, 4 exorcists, a few ghost types, 1 boss, leader control + tag skills, hit-stop / damage popups / drop sounds, trait acquisition, extraction. Day screen = a single placeholder menu. No backend, no idle dispatch, no furniture.
-- **Gate 2 — Roster & growth:** office hub, roster management, traits/traumas persisting across runs, recovery.
+- **Gate 1 — Night combat prototype (CURRENT):** one Euljiro rift, the director alone (weapon A: newspaper-wrapped sword with a draw/parry strike), base + weapon trait decks, a few ghost types, 1 boss, hit-stop / damage popups / drop sounds, trait acquisition, extraction. Day screen = a single placeholder menu. No backend, no idle dispatch, no furniture.
+- **Gate 2 — Roster & growth:** office hub (bookkeeper + spirit cat, story-unlocked), companions with 1 party slot (call skill + companion trait deck, see `docs/design/party.md`), weapon B (talisman label gun), traits/traumas persisting across runs, recovery.
 - **Gate 3 — Seoul map & 2nd squad:** multiple districts, purification progress, capped idle dispatch.
 - **Gate 4 — Rental market:** NPC offices first (works fully offline), then Supabase with server-side stat recompute and fee settlement (Rule 7). Popularity-based fee diminishing applied per office account, not per exorcist.
 - **Gate 5 — Steam build:** Electron packaging, Steamworks (achievements, cloud save), English localization pass.

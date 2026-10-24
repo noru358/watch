@@ -29,14 +29,21 @@ WASD move · J attack (held, auto-aim) · K/Space roll (i-frames) · L talisman 
 - No Tiled map yet: rooms are a plain rectangle arena (HANDOFF step "one Tiled room" deferred).
 - No save/load (`SaveManager` not built); refresh resets progress.
 - Sound is synthesised placeholder beeps; visuals are plain shapes.
-- `ARCHITECTURE.md` §5 Gate 1 still says "4 exorcists"; implemented as director + 3 called companions (pending user confirmation).
+- **Build is behind the design:** current build has the talisman thrower (≈ weapon B draft) + 3 placeholder companions. Decided design for Gate 1 = director alone with weapon A (newspaper sword + draw/parry). Placeholder companions may be deleted freely (user said so).
 - Only keyboard; no gamepad/touch.
 - A dev-only `window.__rift` handle exists for automated play-testing (stripped in production builds).
 
 ## Pending ARCHITECTURE changes (apply when Gate 2 hub work starts)
 (a) Day hub becomes a walkable Phaser scene with React panels on top, so §1 and Rule 4 phase wording must change; (b) InputManager needs a touch context; (c) night combat limited to ≤4 action buttons (current build follows this).
 
+## Design decisions this session (see docs/design/)
+- `world.md` (new): free "anything-goes" Seoul (Korean yokai 7 : Western 3) but tone guardrails are mandatory: real Seoul life places, Seoul vibe + city-pop, lazy-genius director, Gintama-style comedy, rent pressure.
+- `protagonist.md`: weapons A (newspaper-wrapped 사인검, draw/parry 일섬) as starter, B (talisman label gun, stack 5+ then ignite) unlocked later. C dropped for now.
+- `hub.md`: rooftop office in an Euljiro printing-alley building; main cast = bookkeeper/part-timer (ordinary person, not a shaman) + spirit cat, both story-unlocked; menus open by clicking cast members; landlady on hold.
+- `party.md` (new): solo start; later party slots + trait decks (each weapon and companion adds its own trait cards; offer cards show their source). Gate 1 = base + weapon deck only.
+- `ARCHITECTURE.md` §5 Gate 1/2 text updated to match.
+
 ## Next step
-1. User plays and gives feedback on feel (movement, hit-stop, talisman, roll, companion calls, boss).
-2. Tune numbers in `src/data/` from that feedback; adjust mechanics if Gate 1 is not fun.
-3. Then: Tiled room layouts with obstacles, SaveManager (schemaVersion 1), Gate 1 polish.
+1. Rework Gate 1 combat to the decided design: remove placeholder companions, add weapon A (melee swings, newspaper sheath, draw/parry strike on enemy attack timing), split traits into base + weapon decks (`source` field).
+2. User plays and gives feel feedback; tune `src/data/`.
+3. Then: Tiled room layouts, SaveManager (schemaVersion 1).
