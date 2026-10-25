@@ -12,7 +12,8 @@ const files = import.meta.glob('../../../../assets/sprites/director-gemini-*/fra
 export const directorKey = (frame: DirectorFrame) => `director:${frame}`;
 
 export function loadDirectorFrames(scene: Phaser.Scene): void {
-  const wanted = new Set<string>([...Object.values(DIRECTOR_SPRITE.frames).flat(), DIRECTOR_SPRITE.stableHead.from]);
+  const S = DIRECTOR_SPRITE;
+  const wanted = new Set<string>([...Object.values(S.frames).flat(), S.stableHead.from, S.back.strike]);
   for (const [path, url] of Object.entries(files)) {
     const m = /\/(director-gemini-[^/]+)\/frame_(\d+)\.png$/.exec(path);
     if (!m) continue;

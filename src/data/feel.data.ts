@@ -20,6 +20,8 @@ export const FEEL = {
   hitStopKill: 0.03, // strong ghosts only; swarm kills don't freeze
   hitStopHurt: 0.035,
   hitStopParry: 0.12,
+  hitStopDraw: 0.07, // plain 발도 landing: the '탁' after the stance
+  shakeDraw: { duration: 60, intensity: 0.003 },
   hitStopCooldown: 0.15, // a new small hit-stop is ignored this soon after the last one
   // Kept deliberately quiet: the user found hit effects too busy (2026-10-25).
   shakeHurt: { duration: 70, intensity: 0.0015 },
@@ -34,7 +36,12 @@ export const FEEL = {
   popupSizeBig: 26, // heavy hits, counters, damage taken
   flashDuration: 70, // ms enemy white flash on hit
   drawFxTime: 0.3, // seconds a 발도's range arc/ring stays visible
-  swingTrailTime: 0.14, // seconds the swing trail sweeps
+  swingTrailTime: 0.16, // seconds a swing's smear stays visible (fading)
+  swingSweepTime: 0.06, // seconds the blade takes to cross the arc (fast: the smear carries the motion)
+  smearThickness: 0.45, // smear width at its leading edge, as a fraction of the reach
+  smearAlpha: 0.6,
+  thrustWidth: 7, // px half-width of the finisher's stab streak at the body
+  drawGlint: 0.05, // seconds per on/off of the hilt glint during the 발도 stance
   darknessAlpha: 0.82,
   neonAlpha: 0.08, // boss phase-2 tint
   telegraphFill: [0.12, 0.4], // telegraph fill alpha from start to strike

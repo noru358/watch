@@ -8,8 +8,8 @@
 - 받은 원본은 `assets/source/gemini/`에 보관하고, `tools/spritekit/clean_sheet.py`로 정리해서 `assets/sprites/`에 넣는다(→ `assets/README.md`). 배경이 단색 분홍이어야 깨끗하게 지워진다.
 
 ## 우선순위
-0. 주인공 추가 프레임(아래 0번): 공격·발도 자세가 없어서 휘두를 때 몸이 안 움직임
-1. 구미호 「월하」(보스): 지금 임시 도형이라 가장 티가 남
+0. 주인공 4차 프레임(아래 0-B번): 3타 콤보 자세, 뒷모습 공격, 눈 조금 더 뜨기, 피격은 찡그림(울지 않음)
+1. 구미호 「월하」(보스): 몹과 같은 굵기의 도트를 직접 그려 넣었다(`tools/artlab/gumiho_grid.py`). 모션 프레임이 필요해지면 아래 1번으로 요청
 2. 지하철 망령: 지금 도형
 3. 처녀귀신·달걀귀신·도깨비불: 지금 제 견본(픽셀이 주인공보다 굵음)을 같은 굵기로
 4. 신문지 사인검(감싼 칼·드러난 칼)
@@ -43,6 +43,19 @@ Row 2 - walk, 4 frames: legs alternating, hair swinging with the steps.
 Row 3 - attack, 2 frames: (a) right arm pulled back at shoulder height, (b) right arm swung forward and extended, body leaning into the swing.
 Row 4 - draw stance (iaido), 2 frames: (a) crouched low, left hand at the hip as if holding a sheath, right hand near the hip, eyes sharp; (b) explosive forward lunge, right arm extended far forward, hair and jacket blown back.
 Row 5 - hurt, 1 frame: flinching backward.
+```
+
+## 0-B. 주인공 4차 프레임 (2026-10-25 피드백 반영)
+1차 시트 + 3차 추가 시트(`assets/source/gemini/director-sheet-v3-extra.png`) + 게임 스크린샷을 첨부. 지금 게임은 3차 프레임을 조합해 쓰고 있고(`src/data/sprites.data.ts`), 아래가 오면 교체한다.
+
+```
+Use the attached sheets as the master design. Keep face, hair, outfit, colors, outline and proportions exactly the same, with two face changes: the eyes are a little MORE OPEN (calm and cool, not sleepy: show the blue iris 2 pixels tall under the lash line), and when hurt she only FROWNS (squinted eyes, pressed lips, no tears, no open crying mouth).
+Right-facing view only, empty hands (the game draws the sword), no effects. Art size 32x32 per frame, one row per animation:
+Row 1 - combo hit 1 (forehand), 2 frames: (a) arm raised high behind the head, (b) arm swung down and forward across the body.
+Row 2 - combo hit 2 (backhand), 2 frames: (a) arm low across the body on the far side, (b) arm swung up and out to the front, body turned.
+Row 3 - combo hit 3 (finisher thrust), 3 frames: (a) crouch and pull the arm back at the hip, (b) deep lunge with the arm fully extended forward, (c) recovery, standing up.
+Row 4 - back view (seen from behind, facing up-right), 3 frames: (a) standing, (b) arm swung forward/up, (c) walking.
+Row 5 - hurt, 1 frame: flinching backward with a frown (see above).
 ```
 
 ## 1. 보스: 구미호 「월하」 (64×64)

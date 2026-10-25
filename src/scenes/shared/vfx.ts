@@ -86,6 +86,12 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
       playSfx('phase');
     }),
     bus.on('roomCleared', () => playSfx('clear')),
+    bus.on('drawStance', () => playSfx('stance')),
+    bus.on('drawCut', () => {
+      hooks.freeze(FEEL.hitStopDraw);
+      cam.shake(FEEL.shakeDraw.duration, FEEL.shakeDraw.intensity);
+      playSfx('cut');
+    }),
     bus.on('parry', (e) => {
       hooks.freeze(FEEL.hitStopParry);
       cam.shake(FEEL.shakeParry.duration, FEEL.shakeParry.intensity);

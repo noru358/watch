@@ -1,6 +1,6 @@
 import { FEEL, PALETTE } from '../../../data/feel.data';
 import type { Enemy } from '../../../systems/rift';
-import { GHOST_ART } from './art/ghostArt';
+import { GHOST_ART, GUMIHO_ART } from './art/ghostArt';
 import { lerp, shadow, T, type G } from './common';
 import { drawPixelSprite, gridSprite } from './pixelSprite';
 
@@ -13,7 +13,7 @@ export function drawGhost(g: G, e: Enemy, alpha: number, clock: number, flashing
   const col = flashing ? 0xffffff : PALETTE[e.kind];
   const float = Math.sin(clock * 3 + e.id) * FEEL.ghostFloat;
   const fade = e.state === 'warp' ? 0.25 : 0.88 + 0.12 * Math.sin(clock * 5 + e.id);
-  const art = GHOST_ART[e.kind];
+  const art = e.kind === 'gumiho' ? GUMIHO_ART[phase2 ? 2 : 1] : GHOST_ART[e.kind];
   if (art) {
     const s = gridSprite(art.rows, art.pal);
     const flick = e.kind === 'dokkaebibul' ? 0.75 + 0.25 * Math.sin(clock * 18 + e.id) : fade;
@@ -21,7 +21,7 @@ export function drawGhost(g: G, e: Enemy, alpha: number, clock: number, flashing
     const top = y - 3 + float - s.h * art.scale;
     drawPixelSprite(g, s, x, y - 3 + float, e.face < 0, flick, flashing, art.scale);
     if (e.state === 'stun') g.lineStyle(1, PALETTE.parriable, 0.9).strokeCircle(x, top - 3, 3);
-    if (e.hp < e.maxHp) {
+    if (e.kind !== 'gumiho' && e.hp < e.maxHp) {
       g.fillStyle(PALETTE.hpBarBack).fillRect(x - r, y + 3, r * 2, 2);
       g.fillStyle(PALETTE.hpBar).fillRect(x - r, y + 3, (r * 2 * Math.max(0, e.hp)) / e.maxHp, 2);
     }
@@ -50,26 +50,9 @@ export function drawGhost(g: G, e: Enemy, alpha: number, clock: number, flashing
       g.fillStyle(0xffffff, 0.8 * flick).fillCircle(x, fy + r * 0.1, r * 0.4);
       break;
     }
-    case 'gumiho': {
-      // Placeholder until the Gemini sprite: nine tails fanned behind a white fox, fire at the tips.
-      const fire = phase2 ? PALETTE.neonPhase2 : PALETTE.gumihoFire;
-      for (let i = 0; i < 9; i++) {
-        const a = -Math.PI / 2 + (i - 4) * 0.28 + Math.sin(clock * 2 + i) * 0.06;
-        const tx = x + Math.cos(a) * r * 1.9;
-        const ty = fy + Math.sin(a) * r * 1.5;
-        g.lineStyle(r * 0.32, col, 0.95).lineBetween(x, fy, tx, ty);
-        g.fillStyle(fire, 0.9).fillCircle(tx, ty, r * 0.22 + Math.sin(clock * 9 + i) * 0.6);
-      }
-      g.fillStyle(col, 1).fillEllipse(x, fy + r * 0.2, r * 1.6, r * 1.2); // body
-      g.fillStyle(col, 1).fillCircle(x, fy - r * 0.55, r * 0.55); // head
-      g.fillTriangle(x - r * 0.5, fy - r * 0.7, x - r * 0.2, fy - r * 1.35, x - r * 0.05, fy - r * 0.85); // ears
-      g.fillTriangle(x + r * 0.5, fy - r * 0.7, x + r * 0.2, fy - r * 1.35, x + r * 0.05, fy - r * 0.85);
-      g.fillStyle(fire, 1).fillRect(x - r * 0.3, fy - r * 0.6, 2, 2).fillRect(x + r * 0.2, fy - r * 0.6, 2, 2); // eyes
-      break;
-    }
   }
   if (e.state === 'stun') g.lineStyle(1, PALETTE.parriable, 0.9).strokeCircle(x, fy - r - 3, 3);
-  if (e.kind !== 'gumiho' && e.hp < e.maxHp) {
+  if (e.hp < e.maxHp) {
     g.fillStyle(PALETTE.hpBarBack).fillRect(x - r, y + 3, r * 2, 2);
     g.fillStyle(PALETTE.hpBar).fillRect(x - r, y + 3, (r * 2 * Math.max(0, e.hp)) / e.maxHp, 2);
   }

@@ -11,6 +11,42 @@ export interface GridArt {
 
 const O = 0x2b1e2f;
 
+// 구미호 「월하」: chibi white fox in front of a fan of nine tails with fox fire at the tips
+// (made with tools/artlab/gumiho_grid.py, 2026-10-25). Phase 2 swaps the fire / eye colours.
+const GUMIHO_ROWS = [
+      '.............f..............',
+      '........f...fFf...f.........',
+      '.......fFf..fFf..fFf........',
+      '.......fFWOOWWWOOWFf........',
+      '....f..OWWWWWOWWWWWOO.f.....',
+      '...fFfOWWWWwOWOwWWWOWOFf....',
+      '...fFWWWWWWOWpOOOOOWpOFf....',
+      '...OWWWwwWWOWpWWWWWWpWOO....',
+      '.fOOWWWWwwWWOWWWWWWWWOWOOf..',
+      'fFWWWwWWWwWOWWWWWWWWWWOWWFf.',
+      'fFWWWwwwWWOWWWWkWWWWWWkOWFf.',
+      '.fWWWWWwwWOWWWWWEEWWEEWOWO..',
+      'fOWWWWWWwwOWWWWWWWWWWWWOOkO.',
+      'OWWwwwwwwWOWWWWWrWWWWWWWWkOf',
+      'FWWWWWWWwwWOwwwWWWWWWrWWwwOf',
+      'OWWWWWWWWWWOOwwWWWWWWOOOOOf.',
+      'fWWWWOOOOOOwwwwWWWWWOOWWWWO.',
+      '.OOOO....OWWWWWWWWOO..OOOO..',
+      '........OWWWWWWWWWWO........',
+      '........OWWWWWWWWWWO........',
+      '........OWWWWWWWWWWO........',
+      '........OWWWWWWWWWWO........',
+      '.........OwwwwwwwwO.........',
+      '..........OwWWwwWWO.........',
+      '...........OWWOOWWO.........',
+      '............OO..OO..........',
+] as const;
+const gumihoPal = (fire: number, core: number) => ({ O, W: 0xf4f1ff, w: 0xc4c0dc, p: 0xe8a0b8, k: 0x1a1424, r: 0xd8506a, E: fire, f: fire, F: core });
+export const GUMIHO_ART: Record<1 | 2, GridArt> = {
+  1: { scale: 2, rows: GUMIHO_ROWS, pal: gumihoPal(0x6fe3ff, 0xe8fbff) },
+  2: { scale: 2, rows: GUMIHO_ROWS, pal: gumihoPal(0xff3cac, 0xffd6ef) },
+};
+
 export const GHOST_ART: Partial<Record<EnemyId, GridArt>> = {
   cheonyeo: {
     scale: 2,

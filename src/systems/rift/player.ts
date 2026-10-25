@@ -24,8 +24,8 @@ function swing(f: Floor, rng: SeededRNG): void {
     landed = true;
   }
   if (landed) p.focus = Math.min(s.focusMax, p.focus + 1);
-  p.swingT = w.swingTime;
-  p.comboT = w.swingTime + w.comboWindow;
+  p.swingT = heavy ? w.finisherRecovery : w.swingTime;
+  p.comboT = p.swingT + w.comboWindow;
   p.swingFx = 0;
   f.events.push({ type: 'slash', x: p.x, y: p.y });
 }
@@ -47,46 +47,65 @@ export function counterable(f: Floor): Enemy[] {
 // 1) a yellow telegraph is about to land on the director → 받아치기 (counter: cancel, stun, big damage, bared blade);
 // 2) else the focus gauge is full → 일섬 (big damage all around, bared blade);
 // 3) else a wide slash in front.
-function draw(f: Floor, rng: SeededRNG): void {
+// The press decides the outcome (a counter is judged and the attack cancelled at once, so it stays
+// responsive); then the director holds the stance for drawStartup and the cut lands (releaseDraw).
+function draw(f: Floor): void {
   const p = f.player;
   const w = WEAPONS[f.weapon];
   const s = f.stats;
-  const hitAll = (reach: number, inArc: (a: number) => boolean, damage: number, empowered: boolean, skip: readonly unknown[] = []) => {
-    for (const e of [...f.enemies]) {
-      if (e.hp <= 0 || skip.includes(e)) continue;
-      const a = Math.atan2(e.y - p.y, e.x - p.x);
-      if (dist(e, p) - e.r <= reach && inArc(a)) hitEnemy(f, e, 'draw', damage, empowered, dirOf(a), rng);
-    }
-  };
   p.drawCd = w.drawCooldown;
   p.drawFx = 0;
+  p.drawT = w.drawStartup;
+  p.drawAim = p.aim;
+  p.countered = [];
+  f.events.push({ type: 'drawStance', x: p.x, y: p.y });
   const countered = counterable(f);
   if (countered.length > 0) {
     p.drawKind = 'counter';
     for (const e of countered) {
       e.teles = e.teles.filter((t) => !t.parriable);
       e.state = 'stun';
-      e.timer = w.drawStun;
-      f.events.push({ type: 'parry', x: e.x, y: e.y });
-      hitEnemy(f, e, 'draw', s.draw, true, dirOf(Math.atan2(e.y - p.y, e.x - p.x)), rng);
+      e.timer = w.drawStun + w.drawStartup;
+      p.countered.push(e.id);
     }
-    // The counter also cuts everything around, as wide as the focus strike.
-    hitAll(w.burstReach, () => true, s.draw, true, countered);
-    p.bare = s.bareTime;
-    p.iframes = Math.max(p.iframes, w.parryWindow);
+    p.iframes = Math.max(p.iframes, w.parryWindow + w.drawStartup);
     return;
   }
   if (p.focus >= s.focusMax) {
     p.drawKind = 'strike';
     p.focus = 0;
-    p.bare = s.bareTime;
-    f.events.push({ type: 'parry', x: p.x, y: p.y });
-    hitAll(w.burstReach, () => true, s.draw, true);
     return;
   }
   p.drawKind = 'slash';
-  f.events.push({ type: 'slash', x: p.x, y: p.y });
-  hitAll(w.drawReach, (a) => angleDiff(a, p.aim) <= w.drawArc / 2, w.drawSlash, false);
+}
+
+// The stance ends: the cut lands.
+function releaseDraw(f: Floor, rng: SeededRNG): void {
+  const p = f.player;
+  const w = WEAPONS[f.weapon];
+  const s = f.stats;
+  const hitAll = (reach: number, inArc: (a: number) => boolean, damage: number, empowered: boolean, skip: readonly number[] = []) => {
+    for (const e of [...f.enemies]) {
+      if (e.hp <= 0 || skip.includes(e.id)) continue;
+      const a = Math.atan2(e.y - p.y, e.x - p.x);
+      if (dist(e, p) - e.r <= reach && inArc(a)) hitEnemy(f, e, 'draw', damage, empowered, dirOf(a), rng);
+    }
+  };
+  if (p.drawKind === 'slash') {
+    f.events.push({ type: 'drawCut', x: p.x, y: p.y });
+    hitAll(w.drawReach, (a) => angleDiff(a, p.drawAim) <= w.drawArc / 2, s.drawSlash, false);
+    return;
+  }
+  f.events.push({ type: 'parry', x: p.x, y: p.y });
+  if (p.drawKind === 'counter') {
+    for (const e of f.enemies) {
+      if (!p.countered.includes(e.id) || e.hp <= 0) continue;
+      hitEnemy(f, e, 'draw', s.draw, true, dirOf(Math.atan2(e.y - p.y, e.x - p.x)), rng);
+    }
+  }
+  // Counter and focus strike both cut everything around, as hard as each other.
+  hitAll(w.burstReach, () => true, s.draw, true, p.countered);
+  p.bare = s.bareTime;
 }
 
 export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: SeededRNG): void {
@@ -103,6 +122,17 @@ export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: Seeded
   p.bare = Math.max(0, p.bare - dt);
   p.darkness = Math.max(0, p.darkness - dt);
   p.aim = input.aim;
+
+  // 발도 stance: rooted, no other action until the cut lands.
+  if (p.drawT > 0) {
+    p.drawT -= dt;
+    p.moving = false;
+    if (p.drawT <= 0) {
+      p.drawT = 0;
+      releaseDraw(f, rng);
+    }
+    return;
+  }
 
   if (input.dash && p.dashCd <= 0 && p.dashT <= 0) {
     const len = Math.hypot(input.moveX, input.moveY);
@@ -130,6 +160,6 @@ export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: Seeded
   }
 
   if (p.dashT > 0) return;
-  if (input.draw && p.drawCd <= 0) draw(f, rng);
+  if (input.draw && p.drawCd <= 0) draw(f);
   else if (input.attack && p.swingT <= 0) swing(f, rng);
 }

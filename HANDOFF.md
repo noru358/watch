@@ -6,7 +6,15 @@ Branch: work continues on `claude/vigilant-turing-c8w4ga` (fast-forwarded from `
 User decision this session: start Gate 2 now and keep finishing Gate 1 alongside ("병행"). CLAUDE.md scope line and ARCHITECTURE v1.2 updated accordingly (pending changes a/b/c applied).
 Day = walkable office interior hub (Phaser `hub` scene; user: "사무실 내부여야") → front door `E` → sortie panel (React) → night `lights_out` (3 floors + gumiho) → settlement → back to the hub. Bookkeeper appears after 1 solved contract; `E` → ledger panel. Autosave unchanged (save v1).
 
-### This session
+### Session 3 (feel + art, user feedback 2026-10-25)
+- Damage order now any normal hit < plain 발도 < counter = focus strike: slash 3, finisher 4 (bared 5), plain 발도 7 (`stats.drawSlash`, raised by 발도 cards too), counter/focus 12. Tested.
+- 3-hit combo: per-step strike/recovery poses and blade path in `DIRECTOR_SPRITE.combo` (forehand `v3:12`, backhand `v3:7`, thrust `v3:8`); finisher has `finisherRecovery` 0.42 s. Crescent smear rotated to the aim (`draw/sword.ts`); aiming up uses the back-view frame `v3:14` with sword + smear behind the body. Body stays 2-facing (Soul Knight approach).
+- 발도: press decides the outcome (counter cancels and stuns at once), then a `drawStartup` 0.12 s rooted stance (hilt glint, `drawStance` click) and the cut lands (`releaseDraw`; `drawCut` hit-stop 0.07 / `parry` 0.12) → sheathe pose. New Player fields `drawT`, `drawAim`, `countered`. Tests for stance, finisher breath, damage order.
+- Face: `tools/spritekit/face_edit.py` applied to `assets/sprites/director-gemini-v3` (eyes 1px more open on side frames, hurt frame frowns instead of crying; `face_edit.done` marker).
+- Gumiho drawn as a mob-density letter grid (`GUMIHO_ART`, phase 2 pink fire; generator `tools/artlab/gumiho_grid.py`); `gridSprite` cache is now per rows + palette. Placeholder shape code removed.
+- Docs: `2-night/combat.md` 손맛 section (references and reasoning), Gemini spec item 0-B (combo / back view / face), GUIDE.
+
+### Session 2
 - Director motion (Gate 1 feedback "평시에 번쩍이며 너무 움직임, 공격·회피·발도 어색"): single still idle frame (a head-only 1px breathing lift was tried and removed: it stretched the chin); walk frames reuse the idle head (`stableHead`) so only limbs change; frames anchored on the body column (`bodyColumn`) instead of bbox centre (was up to 2.5px sideways jumps); attack = strike frame first then recovery (hit lands on press), attackShow 0.26 ≤ swingTime so held attack never pops to idle; 발도 = lunge first then hand-on-hilt; per-frame sword grip measured from the fists; sword rests at a fixed angle from facing (no longer tracks the mouse, no front/behind swapping at rest); swing direction alternates through the combo; 발도 lunge points the blade at the aim; dash trails the sword; post-hit i-frame blink dims to 45% at 12 Hz instead of vanishing at 20 Hz, and a counter's i-frames do not blink. Files: `src/data/sprites.data.ts`, `draw/director.ts`, `draw/directorFrames.ts` (`directorSprite`), `draw/pixelSprite.ts` (`anchorX`, `stackSprites`, head lift).
 - Gate 2 hub: `src/systems/hub/` (walk, slide on walls/furniture, spot in reach, unlocks; 6 tests), `src/data/lobby.data.ts` (layout, `HUB_SPOTS`, `LOBBY_FEATURES`), `src/scenes/hub/HubScene.ts` + `HubView.ts` (shapes; director sprite reused), `src/app/features.ts` (`openFeature`/`closeFeature` push/pop `modal`), `src/ui/FeatureHost.tsx` + `ui/features/{sortie,ledger}/`. `OfficeApp.tsx` removed. New action `interact` = `E`. `HUB_LOOK` in `feel.data.ts`.
 
@@ -36,7 +44,8 @@ Day = walkable office interior hub (Phaser `hub` scene; user: "사무실 내부�
 - Scope: Gate 2 (current) with Gate 1 art/feel polish in parallel (user, 2026-10-25). Gate 3+ is out of scope. Bash calls sometimes fail with an auto-mode classifier error; retry once, otherwise use Read/Edit and retry later.
 
 ## Verified (last)
-- `npm run check`: tsc clean, 53 tests pass (47 old incl. balance + 6 hub).
+- `npm run check`: tsc clean, 56 tests pass (balance bots still naive ≤ 2/8, skilled ≥ 6/8 with the new numbers and 발도 stance).
+- Playwright (session 3): paused-scene renders of combo 1/2/3 strike + recovery, up / up-left / down attacks, 발도 stance / cut / sheathe / up cut / counter, hurt frown; gumiho phase 1 and 2 next to the director and mob ghosts. No page errors.
 - Playwright (scratchpad scripts, not committed), dev server: exact poses rendered with the scene paused (idle, walk, attack strike ×2 combo directions, recovery, 발도 lunge/sheathe, dash, left-facing, up-aim) — sword sits in the fist, body no longer shifts between poses. Hub: renders; E with nothing in reach does nothing; at the door E opens the sortie panel; Esc closes; WASD works right after closing (no click); E + Enter starts the night; a dead run returns to the hub; with a save of solved=1 the bookkeeper and prompt appear, ledger shows money/trauma/solved; clicking outside closes the panel and keys still work. No page errors.
 - Not verified: real-time feel of the new animation at full frame rate in a real browser (headless runs slow); how it looks to the user.
 
@@ -44,7 +53,7 @@ Day = walkable office interior hub (Phaser `hub` scene; user: "사무실 내부�
 - No long human playtest: parry window 0.22 s, speeds, run length are bot-tuned.
 - Hub art is shapes (office room, window, desks, sofa, cabinet, plant, water dispenser, bookkeeper placeholder figure). Cat, Esc full menu, rent, contract board not built. Unlock rule is "solved contracts ≥ N" until a story system exists.
 - Headless Chromium runs slow, so hub/night step caps (5 steps per frame) drop time there; normal browsers are unaffected.
-- Ghost pixel density (art-lab sprites at 2x) differs from the director; subway ghost, boss, sword, stairs still shapes. Walls are not y-sorted with bodies.
+- Ghost pixel density (art-lab sprites at 2x) differs from the director (the user likes the mob density); subway ghost, sword, stairs still shapes. Gumiho has one static frame (no sweep/pounce/summon poses). The combo reuses v3 frames; real combo / back-view frames are Gemini spec 0-B. No back-view walk. Walls are not y-sorted with bodies.
 - Black jacket can sink into the dark floor (needs a rim light).
 - Keyboard + mouse only; synth SFX; dev-only `window.__rift` / `window.__hub` handles (stripped in production).
 
@@ -55,7 +64,7 @@ Gate 2 (main line):
 3. Traits/traumas persisting across runs + recovery (rest/굿) → save v2 (bump `SAVE_VERSION`, migration + test).
 4. Cat (appraisal) once relics exist; Esc full menu in the hub.
 Gate 1 polish (parallel):
-5. User feedback on the new director motion; Gemini files when sent (subway ghost, cheonyeo, sword, a game screenshot) → `clean_sheet.py` (master palette, target height, in-game comparison image).
+5. User feedback on combo / 발도 stance (0.12 s) / smear / faces / gumiho; then Gemini 0-B frames; Gemini files when sent (subway ghost, cheonyeo, sword, a game screenshot) → `clean_sheet.py` (master palette, target height, in-game comparison image).
 6. Boss frames, dalgyal, dokkaebibul, tiles, props; director rim light; Hangul pixel signs; real SFX + BGM slot. Add hub art (office interior tiles/furniture, bookkeeper, cat) to the Gemini spec.
 
 ## History (short)

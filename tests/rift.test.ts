@@ -101,8 +101,10 @@ describe('ghost telegraphs', () => {
     stepFloor(f, NO_INPUT, DT, rng);
     run(f, rng, GHOSTS.dalgyal.windup - W.parryWindow / 2);
     stepFloor(f, { ...NO_INPUT, draw: true, aim: 0 }, DT, rng);
+    expect(e.state).toBe('stun'); // judged on the press: the attack is cancelled at once
+    expect(e.hp).toBe(hp); // the cut lands after the stance
+    run(f, rng, W.drawStartup + DT);
     expect(e.hp).toBe(hp - W.draw);
-    expect(e.state).toBe('stun');
     expect(f.player.bare).toBeGreaterThan(0);
     run(f, rng, 0.5);
     expect(f.player.hp).toBe(MAX);
@@ -115,6 +117,7 @@ describe('ghost telegraphs', () => {
     run(f, rng, GHOSTS.dalgyal.windup - W.parryWindow / 2);
     stepFloor(f, { ...NO_INPUT, draw: true, aim: 0 }, DT, rng);
     expect(f.player.drawKind).toBe('counter');
+    run(f, rng, W.drawStartup + DT);
     expect(behind.hp).toBe(GHOSTS.dalgyal.hp - W.draw);
     expect(W.burstReach).toBeGreaterThan(W.drawReach);
     expect(W.draw).toBeGreaterThan(W.drawSlash);
@@ -124,6 +127,7 @@ describe('ghost telegraphs', () => {
     const { f, rng, e, hp } = duel('dalgyal');
     stepFloor(f, NO_INPUT, DT, rng);
     stepFloor(f, { ...NO_INPUT, draw: true, aim: 0 }, DT, rng);
+    run(f, rng, W.drawStartup + DT);
     expect(e.hp).toBe(hp - W.drawSlash);
     expect(e.state).toBe('windup');
     expect(f.player.drawKind).toBe('slash');
@@ -196,12 +200,41 @@ describe('sword', () => {
     expect(999 - e.hp).toBe(W.slash * W.comboEvery + W.comboBonus);
   });
 
+  it('damage order: any normal hit < plain 발도 < counter = focus strike', () => {
+    const finisher = W.slash + W.comboBonus + W.bareSlashBonus;
+    expect(finisher).toBeLessThan(W.drawSlash);
+    expect(W.drawSlash).toBeLessThan(W.draw);
+  });
+
+  it('발도 roots the director in a short stance before the cut', () => {
+    const { f, rng } = duel('dalgyal', 2);
+    const x = f.player.x;
+    stepFloor(f, { ...NO_INPUT, draw: true, aim: 0 }, DT, rng);
+    run(f, rng, W.drawStartup / 2, { moveX: -1 });
+    expect(f.player.x).toBe(x);
+    expect(f.player.drawT).toBeGreaterThan(0);
+    run(f, rng, W.drawStartup + DT);
+    expect(f.player.drawT).toBe(0);
+  });
+
+  it('the combo finisher is followed by a longer breath than a normal swing', () => {
+    const { f, rng } = duel('dalgyal', 4);
+    for (let i = 0; i < W.comboEvery - 1; i++) {
+      stepFloor(f, { ...NO_INPUT, attack: true, aim: 0 }, DT, rng);
+      expect(f.player.swingT).toBeCloseTo(W.swingTime, 5);
+      run(f, rng, W.swingTime);
+    }
+    stepFloor(f, { ...NO_INPUT, attack: true, aim: 0 }, DT, rng);
+    expect(f.player.swingT).toBeCloseTo(W.finisherRecovery, 5);
+  });
+
   it('a full focus gauge allows a free draw strike all around', () => {
     const { f, rng, e, hp } = duel('dalgyal');
     f.player.focus = f.stats.focusMax;
     stepFloor(f, { ...NO_INPUT, draw: true, aim: Math.PI }, DT, rng);
-    expect(e.hp).toBe(hp - W.draw);
     expect(f.player.focus).toBe(0);
+    run(f, rng, W.drawStartup + DT);
+    expect(e.hp).toBe(hp - W.draw);
   });
 });
 

@@ -44,10 +44,13 @@ export function pixelSprite(scene: Phaser.Scene, key: string): PixelSprite | nul
   return sprite;
 }
 
-// Builds a sprite from letter rows (tools/artlab format), cached per rows array.
-const gridCache = new WeakMap<readonly string[], PixelSprite>();
+// Builds a sprite from letter rows (tools/artlab format), cached per rows array and palette
+// (the same rows can be drawn in several palettes, e.g. the boss's phase 2).
+const gridCache = new WeakMap<readonly string[], WeakMap<Record<string, number>, PixelSprite>>();
 export function gridSprite(rows: readonly string[], pal: Record<string, number>): PixelSprite {
-  const hit = gridCache.get(rows);
+  const byPal = gridCache.get(rows) ?? new WeakMap<Record<string, number>, PixelSprite>();
+  gridCache.set(rows, byPal);
+  const hit = byPal.get(pal);
   if (hit) return hit;
   const runs: PixelSprite['runs'] = [];
   rows.forEach((row, y) => {
@@ -62,7 +65,7 @@ export function gridSprite(rows: readonly string[], pal: Record<string, number>)
     }
   });
   const sprite = { w: rows[0]?.length ?? 0, h: rows.length, runs };
-  gridCache.set(rows, sprite);
+  byPal.set(pal, sprite);
   return sprite;
 }
 

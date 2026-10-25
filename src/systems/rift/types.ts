@@ -77,7 +77,10 @@ export interface Player extends Body {
   iframes: number;
   drawCd: number; // 발도 cooldown left
   drawFx: number; // render hint: time since the last 발도
-  drawKind: 'slash' | 'counter' | 'strike'; // render hint: what the last 발도 became
+  drawKind: 'slash' | 'counter' | 'strike'; // what the current / last 발도 is
+  drawT: number; // seconds until the 발도 in stance lands (0 = none pending)
+  drawAim: number; // aim locked when the 발도 key was pressed
+  countered: number[]; // enemy ids caught by the pending counter
   focus: number; // 진심 게이지
   bare: number; // seconds left with the sword unwrapped
   shield: number; // salt_ward charges
@@ -88,7 +91,8 @@ export interface Player extends Body {
 export interface Stats {
   maxHp: number;
   slash: number;
-  draw: number;
+  drawSlash: number; // plain 발도
+  draw: number; // counter / focus strike
   focusMax: number;
   bareTime: number;
   bareSlashBonus: number;

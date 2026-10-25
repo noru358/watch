@@ -13,7 +13,9 @@ export interface GameEventMap {
   pickupCollected: { x: number; y: number; value: number };
   slash: { x: number; y: number };
   dash: { x: number; y: number };
-  parry: { x: number; y: number }; // 발도 counter / draw strike
+  parry: { x: number; y: number }; // 발도 counter / focus strike lands
+  drawStance: { x: number; y: number }; // 발도 pressed: stance before the cut
+  drawCut: { x: number; y: number }; // plain 발도 lands
   bossPhase: { phase: 2 };
   roomCleared: { boss: boolean };
   darkness: { duration: number };
