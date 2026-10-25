@@ -46,7 +46,7 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 ### Round 5 (2026-10-25): art direction sample
 - User wants chunky pixel art like Soul Knight / Rusty's Retirement (not dense LimeZu/Pokémon-style), worried about editing packs and conveying Seoul.
 - Built `tools/artlab/` (outside the game build): sprites as letter grids in `sprites.js`, `lab.html` renders a lit printing-house basement scene + a sprite sheet, `render.cjs` screenshots it. Galmuri pixel font (OFL) in `tools/artlab/fonts/`. Output in `docs/design/5-business/img/`, notes in `art.md`.
-- Waiting on user feedback on the sample before fixing the style rules and porting into `src/scenes/rift/draw/`.
+- v1 feedback: pixel size and lighting OK. v2: director redesigned in a cheollik-style coat, male and female variants (`directorM`, `directorF`), 24px tall. Waiting on the user to pick, then walk/swing frames and port into `src/scenes/rift/draw/`.
 
 ## Verified
 - Round 4: `npm run check` 45 tests pass. Playwright: new game writes a v1 save on 출동; a hand-written v1 save (money 777, solved 4) shows in the office after reload; keyboard run after the view split renders as before, no page errors.
