@@ -43,6 +43,11 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 - SaveManager (`src/core/SaveManager.ts`, schemaVersion 1, `migrate()`, unreadable saves kept under `key.bad`), `GameStore.toSave()`, autosave on store change in `src/app/services.ts`, key in `src/data/save.data.ts`. Only office state is saved; a night in progress is not. Tests: `tests/save.test.ts`. Design doc: `docs/design/1-foundation/save.md`.
 - Art vertical-slice asset list and sourcing options: `docs/design/5-business/art.md`.
 
+### Round 5 (2026-10-25): art direction sample
+- User wants chunky pixel art like Soul Knight / Rusty's Retirement (not dense LimeZu/Pokémon-style), worried about editing packs and conveying Seoul.
+- Built `tools/artlab/` (outside the game build): sprites as letter grids in `sprites.js`, `lab.html` renders a lit printing-house basement scene + a sprite sheet, `render.cjs` screenshots it. Galmuri pixel font (OFL) in `tools/artlab/fonts/`. Output in `docs/design/5-business/img/`, notes in `art.md`.
+- Waiting on user feedback on the sample before fixing the style rules and porting into `src/scenes/rift/draw/`.
+
 ## Verified
 - Round 4: `npm run check` 45 tests pass. Playwright: new game writes a v1 save on 출동; a hand-written v1 save (money 777, solved 4) shows in the office after reload; keyboard run after the view split renders as before, no page errors.
 - `npm run check`: tsc clean, 40 tests pass (incl. balance: naive 0/8, skilled 8/8 after the 발도 rework). All relative links in *.md resolve.
@@ -61,5 +66,5 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 
 ## Next step
 1. Feel accepted as a hypothesis (graybox pass done; retune from play reports any time).
-2. Vertical-slice art test (user picks how to source art: asset pack / commission / self+AI): one floor with real art for the director, one ghost, one tileset + real SFX, to judge feel with visuals before producing more content.
+2. Vertical-slice art test: style sample v1 is out (`docs/design/5-business/art.md`); iterate with the user, then port sprites into the game: one floor with real art for the director, one ghost, one tileset + real SFX, to judge feel with visuals before producing more content.
 3. Then Gate 2: walkable rooftop hub (bookkeeper, cat), companions with one party slot, weapon B.
