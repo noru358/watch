@@ -1,50 +1,68 @@
 import { describe, expect, it } from 'vitest';
 import { SeededRNG } from '../src/core/SeededRNG';
+import { CARDS } from '../src/data/cards.data';
 import { CONTRACTS } from '../src/data/contracts.data';
+import { EXORCISTS } from '../src/data/protagonist.data';
 import { RUN_PENALTIES } from '../src/data/penalties.data';
-import { PARTY } from '../src/data/companions.data';
-import { buildRoomPlan } from '../src/systems/contract';
-import { enterRoom, leaveRoom, offerTraits, pickTrait, runResult, settleRun, shouldOfferTraits, startRun } from '../src/systems/run';
+import { WEAPONS } from '../src/data/weapons.data';
+import { cardPool, computeExorcistStats, enterFloor, leaveFloor, offerCards, pickCard, runResult, settleRun, startRun } from '../src/systems/run';
 import { GameStore } from '../src/store/gameStore';
 
-const setup = { contractId: 'euljiro_printer', level: 1, tool: 'talisman', party: PARTY } as const;
+const setup = { contractId: 'euljiro_printer', level: 1, weapon: 'newspaper_sword' } as const;
 
-describe('contract plan', () => {
-  it('follows the contract layout and fills combat rooms with waves', () => {
-    const plan = buildRoomPlan('euljiro_printer', new SeededRNG(3));
-    expect(plan.map((r) => r.kind)).toEqual(CONTRACTS.euljiro_printer.layout);
-    for (const r of plan) expect(r.waves.length > 0).toBe(r.kind === 'combat');
+describe('computeExorcistStats', () => {
+  it('derives stats from level, cards and weapon', () => {
+    const s = computeExorcistStats('director', 3, ['tough', 'double_newspaper', 'lazy_but_serious'], 'newspaper_sword');
+    expect(s.maxHp).toBe(EXORCISTS.director.maxHp + 2 * EXORCISTS.director.levelHpBonus + CARDS.tough.maxHp);
+    expect(s.slash).toBe(WEAPONS.newspaper_sword.slash + CARDS.double_newspaper.slash);
+    expect(s.focusMax).toBe(WEAPONS.newspaper_sword.focusMax + CARDS.lazy_but_serious.focusMax);
   });
 });
 
 describe('run flow', () => {
-  it('offers new traits once per cleared combat room and applies picks', () => {
-    const rng = new SeededRNG(5);
-    const run = startRun(setup, rng);
-    const world = enterRoom(run, rng);
-    world.status = 'cleared';
-    expect(shouldOfferTraits(run, world)).toBe(true);
-    const offer = offerTraits(run, rng);
-    expect(offer).toHaveLength(3);
-    expect(shouldOfferTraits(run, world)).toBe(false);
-    pickTrait(run, world, 'thick_skin');
-    expect(world.stats.maxHp).toBe(run.hp + 3);
-    expect(world.player.hp).toBe(world.stats.maxHp);
+  it('plays the contract floors in order and ends in success after the last', () => {
+    const rng = new SeededRNG(2);
+    const run = startRun(setup);
+    const kinds: string[] = [];
+    for (let i = 0; i < CONTRACTS.euljiro_printer.floors.length; i++) {
+      const f = enterFloor(run, rng);
+      kinds.push(f.boss ? 'boss' : 'normal');
+      f.status = f.boss ? 'bossDefeated' : 'stairs';
+      const out = leaveFloor(run, f);
+      if (out) break;
+      pickCard(run, offerCards(run, rng)[0]!);
+    }
+    expect(kinds).toEqual(CONTRACTS.euljiro_printer.floors.map((p) => p.kind));
+    expect(run.outcome).toBe('success');
+    expect(runResult(run).fee).toBe(CONTRACTS.euljiro_printer.fee);
   });
 
-  it('banks loot and advances rooms, then ends on death', () => {
+  it('the payphone floor exists and extraction ends the run without a fee', () => {
     const rng = new SeededRNG(5);
-    const run = startRun(setup, rng);
-    const w1 = enterRoom(run, rng);
-    w1.loot = 10;
-    w1.status = 'exited';
-    expect(leaveRoom(run, w1)).toBeNull();
-    expect(run.roomIndex).toBe(1);
-    const w2 = enterRoom(run, rng);
-    w2.loot = 6;
-    w2.status = 'dead';
-    expect(leaveRoom(run, w2)).toBe('died');
-    expect(runResult(run)).toEqual({ contractId: 'euljiro_printer', outcome: 'died', loot: 16, fee: 0 });
+    const run = startRun(setup);
+    run.floorIndex = CONTRACTS.euljiro_printer.floors.findIndex((p) => p.kind === 'normal' && p.payphone);
+    const f = enterFloor(run, rng);
+    expect(f.payphone).not.toBeNull();
+    f.loot = 30;
+    f.status = 'extracted';
+    expect(leaveFloor(run, f)).toBe('extracted');
+    expect(runResult(run)).toMatchObject({ outcome: 'extracted', loot: 30, fee: 0 });
+  });
+
+  it('offers only base + equipped-weapon cards the director does not own', () => {
+    const run = startRun(setup);
+    pickCard(run, 'tough');
+    const pool = cardPool(run);
+    expect(pool).not.toContain('tough');
+    for (const id of pool) expect(['base', 'newspaper_sword']).toContain(CARDS[id].source);
+    expect(offerCards(run, new SeededRNG(1))).toHaveLength(3);
+  });
+
+  it('picking tough raises max HP and heals', () => {
+    const run = startRun(setup);
+    run.hp = 5;
+    pickCard(run, 'tough');
+    expect(run.hp).toBe(5 + CARDS.tough.maxHp + CARDS.tough.heal);
   });
 });
 
@@ -55,8 +73,7 @@ describe('settlement', () => {
     const died = settleRun({ contractId: 'euljiro_printer', outcome: 'died', loot: 50, fee: 0 }, 100);
     expect(died.lootKept).toBe(Math.floor(50 * RUN_PENALTIES.deathLootKeepRatio));
     expect(died.traumaDelta).toBe(RUN_PENALTIES.deathTrauma);
-    const ext = settleRun({ contractId: 'euljiro_printer', outcome: 'extracted', loot: 50, fee: 0 }, 0);
-    expect(ext.moneyDelta).toBe(50);
+    expect(settleRun({ contractId: 'euljiro_printer', outcome: 'extracted', loot: 50, fee: 0 }, 0).moneyDelta).toBe(50);
   });
 
   it('store applies results and notifies subscribers', () => {
@@ -67,8 +84,6 @@ describe('settlement', () => {
     expect(store.getState().money).toBe(320);
     expect(store.getState().solved).toBe(1);
     expect(calls).toBe(1);
-    const s1 = store.takeRunSeed();
-    const s2 = store.takeRunSeed();
-    expect(s1).not.toBe(s2);
+    expect(store.takeRunSeed()).not.toBe(store.takeRunSeed());
   });
 });

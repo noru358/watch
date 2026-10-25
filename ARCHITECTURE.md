@@ -25,7 +25,7 @@
 ### Rule 2 — Function registry for skills & traits (`src/registry/`)
 - No string DSL / effect interpreters (e.g. `["DAMAGE", "STUN"]`).
 - Numbers live in `src/data/`. Behaviour lives in small pure functions registered by ID in `src/registry/`.
-- Traits, traumas and gear effects hook into fixed timing points only: `onRunStart`, `onRoomEnter`, `onBeforeAttack`, `onHit`, `onTakeDamage`, `onKill`, `onRunEnd`. Adding a hook point is an architecture change — note it in `HANDOFF.md`.
+- Upgrade cards (and later traits, traumas, gear) hook into fixed timing points only: `onRunStart`, `onRoomEnter`, `onBeforeAttack`, `onHit`, `onTakeDamage`, `onKill`, `onRunEnd`. Adding a hook point is an architecture change — note it in `HANDOFF.md`.
 
 ### Rule 3 — State mutation vs presentation
 - **State changes** (HP, gold, items, trait acquisition, district purification) happen ONLY through direct calls to `src/systems/*` functions or `GameStore` actions. Never mutate state from an EventBus listener.
@@ -44,11 +44,11 @@
 
 ### Rule 6 — Determinism & save safety
 - No `Math.random()` in gameplay. Use `SeededRNG` (`src/core/SeededRNG.ts`), passed in explicitly.
-- Combat logic runs on a fixed timestep; rendering interpolates.
+- Night combat is grid turn-based (one director action = one turn, then every enemy acts; decided 2026-10-25, see `docs/design/combat.md`). Rendering only animates between tiles.
 - Saves carry `schemaVersion: number` and pass through `SaveManager.migrate()` on load. Any change to the save shape bumps the version and adds a migration + test.
 
 ### Rule 7 — Server-authoritative economy (design for it now, build it in Gate 4)
-- Exorcist power is ALWAYS derived by a pure function: `computeExorcistStats(level, traits, gear)` in `src/systems/`. Never store final stats.
+- Exorcist power is ALWAYS derived by a pure function: `computeExorcistStats(exorcist, level, cards, weapon)` in `src/systems/run/stats.ts`. Never store final stats.
 - The rental market will only accept the inputs (level, trait IDs, gear IDs). The server recomputes stats with the same shared function and settles fees itself. The client never sends final stats or fee amounts.
 - Idle (2nd squad) income and rental fees will use server time once the backend exists. Until then, keep the calculation a pure function of `(startTime, endTime, state)` so it can move server-side unchanged.
 
@@ -66,15 +66,14 @@ src/
  ├── core/        # Infrastructure: InputManager, EventBus, SeededRNG, SaveManager, phase switch
  ├── types/       # Shared interfaces, ID union types (ids.ts), event map (events.ts)
  ├── i18n/        # ko.ts (source of keys), en.ts, t() helper
- ├── data/        # Static typed tables: exorcists, ghosts, skills, traits, districts, items,
- │                #   tools, contracts, penalties, recruit, economy, lobby, shop
- ├── registry/    # Behaviour by ID: skillEffects.ts (companion + tool skills), traitHooks.ts
+ ├── data/        # Static typed tables: protagonist, weapons, cards, ghosts, dungeon, contracts,
+ │                #   penalties, feel (presentation), sfx, input; later recruit, economy, lobby, shop
+ ├── registry/    # Behaviour by ID: cardEffects.ts (upgrade-card hooks); later companion skills
  ├── store/       # GameStore (single source of truth) + actions
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
- │                #   combat/ (action prototype), grid/ (grid turn-based prototype), contract/, run/,
+ │                #   rift/ (one floor: map gen, turns, boss), run/ (a night: floors, cards, stats, settlement),
  │                #   later: recruit/, economy/, dispatch/, rental/, shop/
- ├── scenes/      # Phaser, one folder per screen: rift/ (action night), grid/ (grid night),
- │                #   shared/ (Overlay panels, vfx listeners, sfx), later hub/
+ ├── scenes/      # Phaser, one folder per screen: rift/ (night), shared/ (Overlay panels, vfx, sfx), later hub/
  └── ui/          # React: OfficeApp (Gate 1 placeholder), later features/<featureId>/
 tests/            # Vitest specs mirroring src/systems and src/store
 maps/             # Tiled source maps (.tmx/.json) and tilesets
@@ -102,8 +101,8 @@ React reads `GameStore` via `useSyncExternalStore`. Phaser reads it via `GameSto
 
 Each gate must be fun on its own before the next starts. If a gate fails, change the loop — do not polish.
 
-- **Gate 1 — Night combat prototype (CURRENT):** one Euljiro rift, the director alone (weapon A: newspaper-wrapped sword with a draw/parry strike), base + weapon trait decks, a few ghost types, 1 boss, hit-stop / damage popups / drop sounds, trait acquisition, extraction. Day screen = a single placeholder menu. No backend, no idle dispatch, no furniture.
-- **Gate 2 — Roster & growth:** office hub (bookkeeper + spirit cat, story-unlocked), companions with 1 party slot (call skill + companion trait deck, see `docs/design/party.md`), weapon B (talisman label gun), traits/traumas persisting across runs, recovery.
+- **Gate 1 — Night combat prototype (CURRENT):** one Euljiro contract as grid turn-based floors (Mystery Dungeon style), the director alone (weapon A: newspaper-wrapped sword with combo, bared blade and the 발도 draw/parry), base + weapon upgrade-card decks, a few ghost types, 1 boss, hit-stop / damage popups / drop sounds, payphone extraction. Day screen = a single placeholder menu. No backend, no idle dispatch, no furniture.
+- **Gate 2 — Roster & growth:** office hub (bookkeeper + spirit cat, story-unlocked), companions with 1 party slot (call skill + companion card deck, see `docs/design/party.md`), weapon B (talisman label gun), traits/traumas persisting across runs, recovery.
 - **Gate 3 — Seoul map & 2nd squad:** multiple districts, purification progress, capped idle dispatch.
 - **Gate 4 — Rental market:** NPC offices first (works fully offline), then Supabase with server-side stat recompute and fee settlement (Rule 7). Popularity-based fee diminishing applied per office account, not per exorcist.
 - **Gate 5 — Steam build:** Electron packaging, Steamworks (achievements, cloud save), English localization pass.

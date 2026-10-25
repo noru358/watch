@@ -68,8 +68,8 @@ describe('InputManager', () => {
     input.resetContext('night');
     w.fire('keydown', 'KeyK');
     w.fire('keydown', 'KeyK', true);
-    expect(input.consume('roll', 'night')).toBe(true);
-    expect(input.consume('roll', 'night')).toBe(false);
+    expect(input.consume('wait', 'night')).toBe(true);
+    expect(input.consume('wait', 'night')).toBe(false);
   });
   it('keys work immediately after closing a modal (no click needed)', () => {
     const w = new FakeWindow();
@@ -111,6 +111,6 @@ describe('i18n', () => {
     expect(Object.keys(en).sort()).toEqual(Object.keys(ko).sort());
   });
   it('fills params', () => {
-    expect(t('hud.room', { current: 2, total: 7 })).toBe('방 2/7');
+    expect(t('rift.floor', { current: 2, total: 3 })).toBe('2층 / 3');
   });
 });

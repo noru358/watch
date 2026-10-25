@@ -1,6 +1,6 @@
 import { InputManager } from '../core/InputManager';
 import { GameStore } from '../store/gameStore';
-import type { NightMode, Phase } from '../types/ids';
+import type { Phase } from '../types/ids';
 
 // App-wide singletons. Created once; scenes and UI import them from here.
 export const input = new InputManager(window);
@@ -15,15 +15,4 @@ export function bindPhaseSwitch(fn: (phase: Phase) => void): void {
 
 export function requestPhase(phase: Phase): void {
   phaseSwitch(phase);
-}
-
-// Which night prototype the next sortie starts (action vs grid comparison).
-let nightMode: NightMode = 'action';
-
-export function setNightMode(mode: NightMode): void {
-  nightMode = mode;
-}
-
-export function getNightMode(): NightMode {
-  return nightMode;
 }

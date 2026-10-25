@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from 'react';
-import { input, requestPhase, setNightMode, store } from '../app/services';
+import { input, requestPhase, store } from '../app/services';
 import { CONTRACTS } from '../data/contracts.data';
 import { PALETTE } from '../data/feel.data';
 import { t } from '../i18n';
@@ -28,12 +28,6 @@ function outcomeLabel(last: LastRun): string {
 }
 
 function sortie(): void {
-  setNightMode('action');
-  requestPhase('night');
-}
-
-function sortieGrid(): void {
-  setNightMode('grid');
   requestPhase('night');
 }
 
@@ -69,11 +63,10 @@ export function OfficeApp() {
         </div>
         <button style={css.sortie} onClick={sortie}>🌙 {t('day.sortie')}</button>
         <div style={css.hint}>{t('day.sortieHint')}</div>
-        <button style={{ ...css.sortie, background: '#ffd166', fontSize: 16 }} onClick={sortieGrid}>{t('day.sortieGrid')}</button>
-        <div style={css.hint}>{t('day.gridHint')}</div>
         <div style={{ ...css.box, fontSize: 13 }}>
           <div style={{ color: PALETTE.textDim, marginBottom: 4 }}>{t('day.controls')}</div>
           {t('day.controlsBody')}
+          <div style={{ color: PALETTE.textDim, marginTop: 6 }}>{t('day.controlsTip')}</div>
         </div>
         <div style={css.hint}>{t('day.placeholder')}</div>
       </div>

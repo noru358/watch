@@ -1,17 +1,5 @@
 // Key bindings (KeyboardEvent.code). Touch/gamepad will map to the same actions.
-export type Action =
-  | 'up'
-  | 'down'
-  | 'left'
-  | 'right'
-  | 'attack'
-  | 'roll'
-  | 'tool'
-  | 'call'
-  | 'confirm'
-  | 'choice1'
-  | 'choice2'
-  | 'choice3';
+export type Action = 'up' | 'down' | 'left' | 'right' | 'attack' | 'wait' | 'draw' | 'confirm' | 'choice1' | 'choice2' | 'choice3';
 
 export const KEY_BINDINGS: Record<Action, readonly string[]> = {
   up: ['KeyW', 'ArrowUp'],
@@ -19,9 +7,8 @@ export const KEY_BINDINGS: Record<Action, readonly string[]> = {
   left: ['KeyA', 'ArrowLeft'],
   right: ['KeyD', 'ArrowRight'],
   attack: ['KeyJ'],
-  roll: ['KeyK', 'Space'],
-  tool: ['KeyL'],
-  call: ['Semicolon'],
+  wait: ['KeyK', 'Space'],
+  draw: ['KeyL'],
   confirm: ['KeyJ', 'Enter'],
   choice1: ['Digit1'],
   choice2: ['Digit2'],

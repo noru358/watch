@@ -1,12 +1,10 @@
 import Phaser from 'phaser';
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
-import { bindPhaseSwitch, getNightMode, input, store } from './app/services';
+import { bindPhaseSwitch, input, store } from './app/services';
 import { eventBus } from './core/EventBus';
 import { PhaseController } from './core/phase';
-import { ROOM_SIZE } from './data/contracts.data';
-import { PALETTE } from './data/feel.data';
-import { GridScene } from './scenes/grid/GridScene';
+import { PALETTE, SCREEN } from './data/feel.data';
 import { RiftScene } from './scenes/rift/RiftScene';
 import { OfficeApp } from './ui/OfficeApp';
 
@@ -16,8 +14,8 @@ const dayRoot = createRoot(dayEl);
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
-  width: ROOM_SIZE.width,
-  height: ROOM_SIZE.height,
+  width: SCREEN.width,
+  height: SCREEN.height,
   backgroundColor: PALETTE.background,
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   // Phaser must not grab the keyboard; InputManager owns it (Rule 4).
@@ -25,7 +23,6 @@ const game = new Phaser.Game({
   scene: [],
 });
 game.scene.add('rift', RiftScene, false);
-game.scene.add('grid', GridScene, false);
 
 const phases = new PhaseController({
   enterDay() {
@@ -41,11 +38,10 @@ const phases = new PhaseController({
   },
   enterNight() {
     input.resetContext('night');
-    game.scene.start(getNightMode() === 'grid' ? 'grid' : 'rift');
+    game.scene.start('rift');
   },
   exitNight() {
     game.scene.stop('rift');
-    game.scene.stop('grid');
   },
 });
 

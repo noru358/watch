@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import type { EventBus } from '../../core/EventBus';
 import { FEEL, PALETTE } from '../../data/feel.data';
-import { t } from '../../i18n';
 import { playSfx } from './sfx';
 
 interface VfxHooks {
@@ -59,17 +58,7 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
       playSfx('block');
     }),
     bus.on('pickupCollected', () => playSfx('pickup')),
-    bus.on('playerRolled', () => playSfx('roll')),
-    bus.on('talismanThrown', () => playSfx('throw')),
-    bus.on('wardPlaced', (e) => {
-      ring(scene, e.x, e.y, e.radius, PALETTE.ward);
-      playSfx('ward');
-    }),
-    bus.on('companionCalled', (e) => {
-      popup(scene, e.x, e.y - 24, t(`companion.${e.companion}`), PALETTE.text, 16);
-      ring(scene, e.x, e.y, 80, PALETTE.doorOpen);
-      playSfx('call');
-    }),
+    bus.on('slash', () => playSfx('slash')),
     bus.on('enemyTeleport', (e) => ring(scene, e.x, e.y, 20, PALETTE.telegraph)),
     bus.on('bossPhase', () => {
       cam.shake(FEEL.shakeBossPhase.duration, FEEL.shakeBossPhase.intensity);
@@ -82,7 +71,7 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
       hooks.freeze(FEEL.hitStopParry);
       cam.flash(90, 160, 220, 255);
       cam.shake(FEEL.shakeKill.duration, FEEL.shakeKill.intensity * 2);
-      ring(scene, e.x, e.y, 40, PALETTE.playerRoll);
+      ring(scene, e.x, e.y, 40, PALETTE.bareBlade);
       playSfx('parry');
     }),
   ];

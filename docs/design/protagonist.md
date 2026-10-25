@@ -1,6 +1,6 @@
 # 🧥 주인공·퇴마 도구 모듈
 
-**담당 코드:** `src/data/tools.data.ts`(숫자), `src/registry/skillEffects.ts`의 TOOL_SKILLS(효과 블록), `src/systems/combat/`(전투 계산)
+**담당 코드:** `src/data/weapons.data.ts`(무기 숫자), `src/data/protagonist.data.ts`(체력 등), `src/systems/rift/turn.ts`(베기·발도 규칙), `src/systems/run/stats.ts`(능력치 계산)
 
 ## ✅ 결정
 - **사무소장 1명 고정.** 허름한 을지로 사무소, 귀찮아하지만 수임·의뢰 해결엔 천부적인 해결사.
@@ -16,10 +16,11 @@
 
 - 근접(A) ↔ 원거리·누적(B)로 대비. 무기마다 **무기 덱**(전용 강화 카드)을 가짐 → [party.md](party.md)
 - C(염주 맨주먹)는 보류.
-- 지금 시험판의 "부적 던지기"는 B의 초안. A(근접 + 발도)는 새로 만들어야 함.
+- A는 칸 턴제 규칙으로 구현됨. B(타카: 딱지 쌓기 → 점화)는 Gate 2.
 
 ## 새 도구 추가하는 법
-`tools.data.ts`에 숫자 한 줄 + `skillEffects.ts`의 TOOL_SKILLS에 효과 블록 하나. 전투 코드는 안 건드림.
+`weapons.data.ts`에 숫자 한 줄 + `cards.data.ts`에 그 무기 덱 카드 몇 장. 새 행동이 필요하면 `systems/rift/turn.ts`에 추가.
 
-## 지금 시험판
-두 가지 전투 방식을 비교 중 → [combat.md](combat.md)
+## 지금 들어 있는 것 (무기 A)
+신문지째 베기 · 연속 3타째 강타 · 진심 게이지 · 발도(근접 공격 받아치기 / 게이지 일섬) · 발도 후 검신 노출(베기 피해 ↑).
+숫자는 `src/data/weapons.data.ts`, 규칙은 `src/systems/rift/turn.ts` → [combat.md](combat.md)

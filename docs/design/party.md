@@ -1,8 +1,8 @@
 # 🤝 조 편성 모듈 (동행 슬롯 + 강화 카드 덱)
 
-> **용어 (2026-10-24):** 방 클리어마다 고르는 한 판용 강화 = **강화 카드**. "기질"은 동료의 영구 성격·트라우마용으로만 씀 (Gate 2+). 코드에서는 아직 `TraitId`/`traits`가 강화 카드를 뜻함.
+> **용어 (2026-10-24):** 방 클리어마다 고르는 한 판용 강화 = **강화 카드**. "기질"은 동료의 영구 성격·트라우마용으로만 씀 (Gate 2+). 코드 이름은 `CardId` / `cards.data.ts` / `registry/cardEffects.ts`.
 
-**담당 코드 (예정):** `src/data/companions.data.ts`, `src/data/traits.data.ts`(`source` 필드), `src/registry/skillEffects.ts`, `src/systems/run/`(강화 카드 후보 뽑기), `src/ui/features/party/`(편성 화면)
+**담당 코드:** 지금 `src/data/cards.data.ts`(카드 숫자 + `source` = 어느 덱), `src/registry/cardEffects.ts`(카드 효과), `src/systems/run/run.ts`(`cardPool` = 기본 덱 + 무기 덱에서 뽑기) / 예정 `src/data/companions.data.ts`, `src/ui/features/party/`(편성 화면)
 
 ## ✅ 결정
 - **처음엔 소장 혼자.** 동료는 스토리 진행·괴이 영입([recruit.md](recruit.md))으로 얻음.
@@ -44,7 +44,7 @@
 ### 도입 순서
 | 시점 | 내용 |
 |------|------|
-| Gate 1 | 소장 혼자. **기본 덱 + 무기 덱**만. 동료 없음 |
+| Gate 1 ✅ | 소장 혼자. **기본 덱 5장 + 사인검 덱 5장**. 동료 없음 (구현됨) |
 | Gate 2 | 동행 슬롯 1개. 동료 2~3명, 각 호출 스킬 1 + 강화 카드 3장 |
 | 이후 | 슬롯 2개, 동료 간 시너지 카드 (재미 검증되면) |
 

@@ -1,25 +1,11 @@
 import Phaser from 'phaser';
-import { ROOM_SIZE } from '../../data/contracts.data';
-import { PALETTE } from '../../data/feel.data';
-import { TRAITS } from '../../data/traits.data';
+import { PALETTE, SCREEN } from '../../data/feel.data';
 import { t } from '../../i18n';
-import type { TraitId } from '../../types/ids';
 import type { RunResult, Settlement } from '../../systems/run';
 
-const W = ROOM_SIZE.width;
-const H = ROOM_SIZE.height;
+const W = SCREEN.width;
+const H = SCREEN.height;
 const TEXT = { fontFamily: PALETTE.font, color: PALETTE.text };
-
-function traitParams(id: TraitId): Record<string, number> {
-  const d = TRAITS[id];
-  return {
-    chance: Math.round(d.chance * 100),
-    amount: d.amount,
-    hp: d.maxHpBonus,
-    speed: Math.round((d.moveSpeedMult - 1) * 100),
-    damage: Math.round((d.damageMult - 1) * 100),
-  };
-}
 
 // Canvas panels shown over the night: trait choice, run end, banners.
 export class Overlay {
@@ -43,13 +29,10 @@ export class Overlay {
     this.layer.setVisible(false);
   }
 
-  showTraitOffer(offer: readonly TraitId[]): void {
-    this.showCards(offer.map((id) => ({ name: t(`trait.${id}.name`), desc: t(`trait.${id}.desc`, traitParams(id)) })));
-  }
-
-  showCards(offer: readonly { name: string; desc: string }[]): void {
+  // Up to three numbered cards (강화 카드 or a choice prompt). Select with 1/2/3 or A/D + J.
+  showCards(title: string, offer: readonly { name: string; desc: string }[]): void {
     this.reset();
-    this.layer.add(this.scene.add.text(W / 2, 90, t('trait.pick'), { ...TEXT, fontSize: '24px' }).setOrigin(0.5));
+    this.layer.add(this.scene.add.text(W / 2, 90, title, { ...TEXT, fontSize: '24px' }).setOrigin(0.5));
     const cardW = 250;
     const gap = 24;
     const startX = W / 2 - (offer.length * cardW + (offer.length - 1) * gap) / 2;

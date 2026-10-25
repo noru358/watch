@@ -14,18 +14,18 @@ contract   party·protagonist   combat·contract   run-result·recruit   economy
 ```
 
 ## 모듈 목록
-상태: 🟢 코드 있음 · 🧪 시험판(비교 중) · 📝 기획만
+상태: 🟢 코드 있음 · 🧪 임시·일부만 · 📝 기획만
 
 | 묶음 | 모듈 | 문서 | 담당 코드 | 상태 | 처음 만드는 Gate |
 |------|------|------|----------|------|----------------|
 | 기준 | 세계관·톤 | [world.md](world.md) | — (모든 모듈이 따름) | 📝 | — |
 | 기준 | 플레이 흐름 (종합) | [playflow.md](playflow.md) | — (여러 모듈을 엮은 설명) | 📝 | — |
 | 기준 | 플랫폼·입력 | [platform.md](platform.md) | `core/InputManager.ts`, `core/platform.ts`(예정) | 🟢 키보드만 | 1 |
-| 밤 | **전투 방식** | [combat.md](combat.md) | 액션 `systems/combat/` `scenes/rift/` · 칸 턴제 `systems/grid/` `scenes/grid/` | 🧪 두 개 비교 중 | 1 |
-| 밤 | 주인공·무기 | [protagonist.md](protagonist.md) | `data/protagonist.data.ts`, `data/tools.data.ts`, `registry/skillEffects.ts` | 🧪 무기 A 아직 없음 | 1 |
-| 밤 | 의뢰·현장 | [contract.md](contract.md) | `data/contracts.data.ts`, `systems/contract/` | 🟢 을지로 1건 | 1 |
+| 밤 | **전투 방식** | [combat.md](combat.md) | `systems/rift/`, `systems/run/`, `scenes/rift/` | 🟢 칸 턴제로 결정 | 1 |
+| 밤 | 주인공·무기 | [protagonist.md](protagonist.md) | `data/protagonist.data.ts`, `data/weapons.data.ts`, `systems/run/stats.ts` | 🟢 무기 A | 1 |
+| 밤 | 의뢰·현장 | [contract.md](contract.md) | `data/contracts.data.ts`, `data/dungeon.data.ts`, `systems/rift/mapgen.ts` | 🟢 을지로 1건 | 1 |
 | 밤 | 실패·정산 | [run-result.md](run-result.md) | `data/penalties.data.ts`, `systems/run/` | 🟢 | 1 |
-| 성장 | 조 편성·강화 카드 | [party.md](party.md) | `data/traits.data.ts`, `data/grid.data.ts`(카드), `registry/traitHooks.ts` | 🧪 카드만, 편성 없음 | 1 (카드) / 2 (편성) |
+| 성장 | 조 편성·강화 카드 | [party.md](party.md) | `data/cards.data.ts`, `registry/cardEffects.ts`, `systems/run/run.ts` | 🟢 카드 덱 / 📝 편성 | 1 (카드) / 2 (편성) |
 | 성장 | 괴이 영입 | [recruit.md](recruit.md) | `systems/recruit/`(예정) | 📝 | 2 |
 | 낮 | 허브(옥탑방) | [hub.md](hub.md) | 지금 `ui/OfficeApp.tsx`(임시) → `scenes/hub/`(예정) | 🧪 임시 화면 | 1 (임시) / 2 |
 | 낮 | 경제·경영 | [economy.md](economy.md) | `store/gameStore.ts`, `systems/economy/`(예정) | 🟢 돈·트라우마만 | 2 |

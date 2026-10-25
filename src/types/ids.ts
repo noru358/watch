@@ -1,21 +1,13 @@
 // All game IDs are string-literal unions (ARCHITECTURE Rule 1).
 
 export type ExorcistId = 'director';
-export type CompanionId = 'grandma_shaman' | 'ex_detective' | 'streamer';
+export type WeaponId = 'newspaper_sword'; // weapon B 'label_gun' arrives in Gate 2
 export type GhostId = 'cheonyeo' | 'dalgyal' | 'subway';
 export type BossId = 'printer';
 export type EnemyId = GhostId | BossId;
-export type ToolId = 'talisman';
-export type TraitId =
-  | 'ricochet'
-  | 'roll_empower'
-  | 'vampiric'
-  | 'thick_skin'
-  | 'swift'
-  | 'sharp_talisman'
-  | 'salt_ward';
+export type BaseCardId = 'tough' | 'medicine' | 'salt_ward' | 'grudge_drain' | 'spirit_nose';
+export type WeaponCardId = 'double_newspaper' | 'blue_lightning' | 'lazy_but_serious' | 'torn_paper' | 'third_strike';
+export type CardId = BaseCardId | WeaponCardId; // 강화 카드 (per-run upgrade)
+export type CardSource = 'base' | WeaponId;
 export type ContractId = 'euljiro_printer';
-export type RoomKind = 'combat' | 'payphone' | 'boss';
 export type Phase = 'day' | 'night';
-export type NightMode = 'action' | 'grid'; // prototype comparison (action vs grid turn-based)
-export type GridCardId = 'tough' | 'sharp' | 'focus' | 'medicine' | 'lightning';
