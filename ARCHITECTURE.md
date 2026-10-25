@@ -1,4 +1,4 @@
-# Seoul Nightwatch — Architecture & Development Rules (v1.1)
+# Seoul Nightwatch — Architecture & Development Rules (v1.2)
 
 > 《서울 나이트워치: 을지로 퇴마 사무소》 — City-pop urban fantasy + management RPG.
 > Every AI session MUST read this file before writing code. If a request conflicts with a rule here, stop and say so instead of silently breaking the rule.
@@ -7,7 +7,8 @@
 
 - **Language & Bundler:** TypeScript (`strict: true`), Vite
 - **Night (Rift combat & exploration):** Phaser 3 — 100% canvas, including the combat HUD and the in-run pause menu
-- **Day (Office, Roster, Seoul Map, Rental Market):** React (DOM overlay, mounted ONLY in the Day phase)
+- **Day hub (rooftop office):** a walkable Phaser scene (souls-style: walk up to someone, `E` to talk, walk out the iron door to sortie). No permanent menu bar or currency bar on screen.
+- **Day panels (Office ledger, Roster, Seoul Map, Rental Market):** React (DOM overlay, mounted ONLY in the Day phase), opened from the hub by talking to someone; one panel at a time
 - **Shared State:** Vanilla TypeScript store (`GameStore`), independent of both React and Phaser
 - **Map Authoring:** Tiled Map Editor (`.json` tilemaps loaded by Phaser)
 - **Tests:** Vitest for everything under `src/systems/` and `src/store/`
@@ -35,7 +36,9 @@
 ### Rule 4 — Unified input & focus safety (`src/core/InputManager.ts`)
 - Never attach keyboard/gamepad listeners to the Phaser canvas or to React components directly. All input is read from `window` through `InputManager`.
 - `InputManager` holds a context stack: `night` / `day` / `modal`. Only the top context receives input.
-- Night: React overlay is unmounted, Phaser renders; keyboard and mouse are still read only through `InputManager` (mouse buttons bind like keys: `Mouse0`, `Mouse2`). Day: Phaser scene is paused and its input disabled. Switching phase goes through one function (`setPhase`) — never toggle visibility ad hoc.
+- Night: React overlay is unmounted, Phaser renders; keyboard and mouse are still read only through `InputManager` (mouse buttons bind like keys: `Mouse0`, `Mouse2`). Day: the rift scene is stopped; the hub scene reads the `day` context, and a React panel opened from it pushes `modal` (the hub then reads as idle). Panels open and close only through `openFeature(id)` / `closeFeature()` (`src/app/features.ts`), which push/pop the context. Switching phase goes through one function (`setPhase`) — never toggle visibility ad hoc.
+- Touch (mobile, after Steam) will be one more input source inside `InputManager` that produces the same actions (tap-to-walk in the hub, on-screen buttons at night). Scenes and panels never read touch events themselves.
+- Night combat uses at most 4 action buttons (now: slash, dash, 발도, plus one free slot for the companion call) besides movement and mouse aim; `Esc` is menu only. A new combat action must replace one, not add a fifth.
 - Regression to prevent: "after closing a window, the game needs a click before keys work." Any UI change must be checked against this.
 
 ### Rule 5 — File size & responsibility
@@ -62,19 +65,19 @@
 
 ```
 src/
- ├── app/         # App wiring: singletons (input, store), phase-switch binding, night-mode choice
+ ├── app/         # App wiring: singletons (input, store), phase-switch binding, open-panel state (features.ts)
  ├── core/        # Infrastructure: InputManager, EventBus, SeededRNG, SaveManager (schemaVersion 1, live), phase switch
  ├── types/       # Shared interfaces, ID union types (ids.ts), event map (events.ts)
  ├── i18n/        # ko.ts (source of keys), en.ts, t() helper
  ├── data/        # Static typed tables: protagonist, weapons, cards, ghosts, dungeon, contracts,
- │                #   penalties, feel (presentation), sfx, input, save, sprites (sprite anim tables); later recruit, economy, lobby, shop
+ │                #   penalties, feel (presentation), sfx, input, save, sprites (sprite anim tables), lobby (hub layout + feature registry); later recruit, economy, shop
  ├── registry/    # Behaviour by ID: cardEffects.ts (upgrade-card hooks); later companion skills
  ├── store/       # GameStore (single source of truth) + actions
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
- │                #   rift/ (one floor: map gen, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement),
+ │                #   rift/ (one floor: map gen, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement), hub/ (walking, who is in reach, what is unlocked),
  │                #   later: recruit/, economy/, dispatch/, rental/, shop/
- ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view = draw order, HUD; draw/ = one file per drawn thing, the art swap points), shared/ (Overlay panels, vfx, sfx, crisp text), later hub/
- └── ui/          # React: OfficeApp (Gate 1 placeholder), later features/<featureId>/
+ ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view = draw order, HUD; draw/ = one file per drawn thing, the art swap points), hub/ (day: walkable rooftop), shared/ (Overlay panels, vfx, sfx, crisp text)
+ └── ui/          # React: FeatureHost (mounts the open panel), features/<featureId>/ (one folder per hub panel)
 tests/            # Vitest specs mirroring src/systems and src/store
 maps/             # Tiled source maps (.tmx/.json) and tilesets
 assets/           # source/ = raw generated or commissioned art (never deleted), sprites/ = cleaned game sprites (see assets/README.md)
@@ -102,8 +105,8 @@ React reads `GameStore` via `useSyncExternalStore`. Phaser reads it via `GameSto
 
 Each gate must be fun on its own before the next starts. If a gate fails, change the loop — do not polish.
 
-- **Gate 1 — Night combat prototype (CURRENT):** one Euljiro contract as real-time top-down floors on a tile grid (Core Keeper style), the director alone (weapon A: newspaper-wrapped sword with combo, bared blade and 발도 — one key: wide slash / counter in the flash window / 360° strike on full focus), dash with front-loaded i-frames, base + weapon upgrade-card decks, a few ghost types, 1 boss, hit-stop / damage popups / drop sounds, payphone extraction. Day screen = a single placeholder menu. No backend, no idle dispatch, no furniture.
-- **Gate 2 — Roster & growth:** office hub (bookkeeper + spirit cat, story-unlocked), companions with 1 party slot (call skill + companion card deck, see `docs/design/3-growth/party.md`), weapon B (talisman label gun), traits/traumas persisting across runs, recovery.
+- **Gate 1 — Night combat prototype (art/sound polish continues alongside Gate 2):** one Euljiro contract as real-time top-down floors on a tile grid (Core Keeper style), the director alone (weapon A: newspaper-wrapped sword with combo, bared blade and 발도 — one key: wide slash / counter in the flash window / 360° strike on full focus), dash with front-loaded i-frames, base + weapon upgrade-card decks, a few ghost types, 1 boss, hit-stop / damage popups / drop sounds, payphone extraction. Day screen = a single placeholder menu. No backend, no idle dispatch, no furniture.
+- **Gate 2 — Roster & growth (CURRENT, started 2026-10-25):** office hub (bookkeeper + spirit cat, story-unlocked), companions with 1 party slot (call skill + companion card deck, see `docs/design/3-growth/party.md`), weapon B (talisman label gun), traits/traumas persisting across runs, recovery.
 - **Gate 3 — Seoul map & 2nd squad:** multiple districts, purification progress, capped idle dispatch.
 - **Gate 4 — Rental market:** NPC offices first (works fully offline), then Supabase with server-side stat recompute and fee settlement (Rule 7). Popularity-based fee diminishing applied per office account, not per exorcist.
 - **Gate 5 — Steam build:** Electron packaging, Steamworks (achievements, cloud save), English localization pass.

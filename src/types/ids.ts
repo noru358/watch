@@ -11,3 +11,5 @@ export type CardId = BaseCardId | WeaponCardId; // 강화 카드 (per-run upgrad
 export type CardSource = 'base' | WeaponId;
 export type ContractId = 'lights_out';
 export type Phase = 'day' | 'night';
+export type LobbyFeatureId = 'sortie' | 'ledger'; // hub panels (src/ui/features/<id>/)
+export type HubSpotId = 'door' | 'bookkeeper'; // things in the hub you can walk up to and use

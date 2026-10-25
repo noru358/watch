@@ -1,7 +1,8 @@
 # 🏢 허브(옥탑방 사무소) 모듈
 
-**담당 코드 (예정):** `src/scenes/hub/`(걸어다니는 사무소), `src/ui/features/<기능>/`(말 걸면 열리는 창), `src/data/lobby.data.ts`(기능 등록표)
-**지금 코드:** `src/ui/OfficeApp.tsx` — Gate 1 임시 사무소 화면 (출동 버튼만)
+**담당 코드:** `src/scenes/hub/`(HubScene 진행 · HubView 그리기), `src/systems/hub/`(걷기·충돌·손 닿는 곳·해금, 테스트 `tests/hub.test.ts`), `src/data/lobby.data.ts`(옥상 배치 + 기능 등록표), `src/app/features.ts`(`openFeature`/`closeFeature`), `src/ui/FeatureHost.tsx` + `src/ui/features/<기능>/`(말 걸면 열리는 창)
+
+**지금 상태 (2026-10-25):** 옥상 한 화면(18×10칸, 24px 칸, 2배 줌). 철문 E → 출동 창(`sortie`), 경리 E → 장부 창(`ledger`, 의뢰 1회 해결 후 등장). Esc·바깥 클릭으로 닫힘, 닫은 즉시 키 입력됨(Playwright 확인). 해금 조건은 임시로 "해결한 의뢰 수"(스토리 장 생기면 교체). 경리·소품은 도형, 고양이·Esc 전체 메뉴·월세는 아직.
 
 ## ✅ 결정
 ### 장소와 분위기
@@ -40,12 +41,13 @@
 
 ## 확장 구조: "등록표 한 줄 = 메뉴 하나"
 ```ts
-// src/data/lobby.data.ts (예정)
-export const LOBBY_FEATURES: Record<LobbyFeatureId, LobbyFeatureData> = {
-  contracts: { labelKey: 'lobby.contracts', npc: 'bookkeeper', unlock: 'story_ch1' },
-  appraise:  { labelKey: 'lobby.appraise',  npc: 'cat',        unlock: 'story_ch2' },
-  // 새 기능 = 여기 한 줄 + src/ui/features/<이름>/ 화면 파일 하나
+// src/data/lobby.data.ts (지금 모양)
+export const HUB_SPOTS: Record<HubSpotId, HubSpotData> = {      // 걸어가서 E 누르는 곳
+  door:       { x: 14.5, y: 3,   feature: 'sortie', promptKey: 'hub.prompt.door',       unlock: { solved: 0 } },
+  bookkeeper: { x: 5,    y: 4.5, feature: 'ledger', promptKey: 'hub.prompt.bookkeeper', unlock: { solved: 1 } },
 };
+export const LOBBY_FEATURES: Record<LobbyFeatureId, LobbyFeatureData> = { sortie: {...}, ledger: {...} };
+// 새 기능 = LOBBY_FEATURES 한 줄 + src/ui/features/<이름>/ 화면 파일 하나 (+ FeatureHost의 PANELS 한 줄)
 ```
 - 창 여닫기는 `openFeature(id)` / `closeFeature()` 하나로만 → 입력 계단(`modal`)도 여기서 자동 처리 (ARCHITECTURE 규칙 4).
 - `Esc` = 열린 창 닫기. 닫은 직후 클릭 없이 키가 바로 먹어야 함.

@@ -50,6 +50,37 @@ export const FEEL = {
   },
 } as const;
 
+// Day hub look (rooftop office at sunset, after work). Layout lives in lobby.data.ts.
+export const HUB_LOOK = {
+  zoom: 2,
+  sky: 0x3a2150, // camera background behind the roof
+  roof: 0x3f7a5c, // green waterproof paint
+  roofAlt: 0x447f61,
+  roofSeam: 0x356a50,
+  parapet: 0x8f8aa0,
+  parapetTop: 0xb3aec2,
+  hutWall: 0xc9b99a,
+  hutWallLo: 0xa8977a,
+  hutRoof: 0x5a4a6e,
+  window: 0xffd89a, // warm light inside
+  stairWall: 0x9a96aa,
+  ironDoor: 0x2f6f6a,
+  ironDoorHi: 0x41e0c8,
+  desk: 0x8a6a4a,
+  bed: 0xa77d52, // 평상
+  bedSlat: 0x8a643f,
+  pot: 0x9a4a3a,
+  pepper: 0x4f9a4a,
+  acUnit: 0xd0d0d8,
+  acFan: 0x6a6a78,
+  bookkeeperTop: 0xd88a9a, // pink cardigan (placeholder shapes until art)
+  bookkeeperHair: 0x2a1a14,
+  skin: 0xefd2b0,
+  promptBg: 0x1d1830,
+  promptSize: 22, // px text size (drawn at half scale for crispness)
+  hintSize: 18,
+} as const;
+
 export const PALETTE = {
   background: 0x14101f,
   // Euljiro basement tileset (art lab sample, 2026-10-25): concrete floor, plaster + green paint walls

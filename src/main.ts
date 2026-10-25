@@ -1,15 +1,19 @@
 import Phaser from 'phaser';
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
+import { forgetFeature } from './app/features';
 import { bindPhaseSwitch, input, store } from './app/services';
 import { eventBus } from './core/EventBus';
 import { PhaseController } from './core/phase';
 import { PALETTE, SCREEN } from './data/feel.data';
+import { HubScene } from './scenes/hub/HubScene';
 import { RiftScene } from './scenes/rift/RiftScene';
-import { OfficeApp } from './ui/OfficeApp';
+import { FeatureHost } from './ui/FeatureHost';
 
 const dayEl = document.getElementById('day-root')!;
 const dayRoot = createRoot(dayEl);
+// Panels catch their own clicks; empty overlay space lets clicks through to the hub canvas.
+dayEl.style.pointerEvents = 'none';
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -23,14 +27,18 @@ const game = new Phaser.Game({
   scene: [],
 });
 game.scene.add('rift', RiftScene, false);
+game.scene.add('hub', HubScene, false);
 
 const phases = new PhaseController({
   enterDay() {
     input.resetContext('day');
+    game.scene.start('hub');
     dayEl.style.display = 'block';
-    dayRoot.render(createElement(OfficeApp));
+    dayRoot.render(createElement(FeatureHost));
   },
   exitDay() {
+    forgetFeature();
+    game.scene.stop('hub');
     dayRoot.render(null); // React overlay is unmounted at night
     dayEl.style.display = 'none';
     // Drop focus from the clicked button so Space/Enter can't re-trigger it.
