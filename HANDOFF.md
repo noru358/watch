@@ -31,9 +31,10 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 ### Round 3 (2026-10-25): docs grouped, 발도 simplified, one key per action, quieter effects
 - User feedback: docs too fragmented; hit effects too busy; 발도 unclear (range?); "which key counters?"; too many keys per action.
 - Design docs regrouped into `docs/design/1-foundation`, `2-night`, `3-growth`, `4-day`, `5-business`, each with a README; `docs/design/README.md` is the module map (status + code location per sub-module).
-- 발도 (`player.ts draw()`): always does something — wide front slash (2.2 tiles, ~150°, 5 dmg); inside the 0.22 s flash window = counter (cancel, 0.9 s stun, 10 dmg, bare blade); full focus = 360° strike. 1.0 s cooldown, whiff penalty removed. Range flashes on use (0.3 s); faint circle when focus is full; HUD slot says what the next press will do.
+- 발도 (`player.ts draw()`): always does something — wide front slash (~150°, 5 dmg); inside the 0.22 s flash window = counter (cancel, 0.9 s stun, 10 dmg, bare blade); full focus = 360° strike. 1.0 s cooldown, whiff penalty removed. Range flashes on use (0.3 s); faint circle when focus is full; HUD slot says what the next press will do.
 - Keys (`input.data.ts`): WASD, J/left-click slash (hold), Space dash, K/right-click 발도, 1/2/3 choices. Arrow keys, Z/X/C/L/Shift removed.
-- Effects (`feel.data.ts`, `vfx.ts`): weaker shakes, no full-screen flashes (hurt = faint red screen edge), smaller numbers, none on fodder.
+- Effects (`feel.data.ts`, `vfx.ts`): weaker shakes, no full-screen flashes (hurt = faint red screen edge), smaller numbers (fodder numbers were removed, then restored at a smaller size after the user clarified that the problem was the hurt shake).
+- Follow-up: 발도 tiers — plain slash 5 dmg / 2.6-tile front arc < counter = focus strike 10 dmg / 3.4-tile full circle (`burstReach`); the counter now also cuts everything around. Hurt shake 0.0015 / hit-stop 0.035 s. Fodder already drops 1 영력 (strong 3–5, boss 40).
 
 ## Verified
 - `npm run check`: tsc clean, 40 tests pass (incl. balance: naive 0/8, skilled 8/8 after the 발도 rework). All relative links in *.md resolve.
