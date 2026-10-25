@@ -86,10 +86,45 @@ const V6 = [
   '.........OOO.OOO......',
 ];
 
+
+// v7: built like Soul Knight reference 4 — face almost frontal, long hair falling like curtains
+// on both sides with a narrow body between them; light see-through bangs, sleek long straight
+// hair (user photo). Used as the front-diagonal (↘) facing; ↙ is the mirror.
+const V7 = [
+  '.........OOOOOOOOO.........',
+  '.......OOhhhhhhhhhOO.......',
+  '......OhhhhhhhhhhhhhO......',
+  '.....OhhhhhhhhhhhhhhhO.....',
+  '....OhhhhllllllllhhhhhO....',
+  '....OHhhlhhhhhhhhlhhhHO....',
+  '....OHhhhhhhhhhhhhhhhHO....',
+  '....OHhhhhhhhhhhhhhhhHO....',
+  '....OhihiSiiSiiSiiShihO....',
+  '....OhihSSiSSSSiSSShihO....',
+  '....OhihSOOOSSSOOOShihO....',
+  '....OhihSwEESSSEEwShihO....',
+  '....OhihSSeeSSSeeSShihO....',
+  '....OhihSppSSmSSppShihO....',
+  '....OhihhSSSSSSSSShhihO....',
+  '....OhihhhOOTTTOOhhhihO....',
+  '....OhihOOJJ1T1JJOOhihO....',
+  '....OhihkOJyT1TJJOkhihO....',
+  '....OhihkOJJT2TJJOkhihO....',
+  '....OhihSOJyTTTJJOShihO....',
+  '....OhhOOjjjTTTjjjOOhhO....',
+  '.....OiO.O889O988O.OiO.....',
+  '......O..O889O988O..O......',
+  '.........OaaaOaaaO.........',
+  '.........OgggOgggO.........',
+  '..........OOO.OOO..........',
+];
+
 export const V5_SPRITES = {
   v5: { pal: PAL5, rows: V5 },
   swordHand: { pal: PAL5, rows: SWORD_HAND },
   v5s: { base: 'v5', over: [['swordHand', 19, 13]] },
   v6: { pal: { ...PAL5, H: '#1f1716', h: '#3a2a26', i: '#5e463d' }, rows: V6 },
   v6s: { base: 'v6', over: [['swordHand', 18, 14]] },
+  v7: { pal: { ...PAL5, H: '#1a1312', h: '#2e2220', i: '#4a3632', l: '#6e5249', y: '#c9cede', k: '#4a4e70' }, rows: V7 },
+  v7s: { base: 'v7', over: [['swordHand', 21, 15]] },
 };
