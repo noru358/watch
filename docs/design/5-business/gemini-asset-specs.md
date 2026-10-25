@@ -8,6 +8,7 @@
 - 받은 원본은 `assets/source/gemini/`에 보관하고, `tools/spritekit/clean_sheet.py`로 정리해서 `assets/sprites/`에 넣는다(→ `assets/README.md`). 배경이 단색 분홍이어야 깨끗하게 지워진다.
 
 ## 우선순위
+0. 주인공 추가 프레임(아래 0번): 공격·발도 자세가 없어서 휘두를 때 몸이 안 움직임
 1. 구미호 「월하」(보스): 지금 임시 도형이라 가장 티가 남
 2. 지하철 망령: 지금 도형
 3. 처녀귀신·달걀귀신·도깨비불: 지금 제 견본(픽셀이 주인공보다 굵음)을 같은 굵기로
@@ -25,6 +26,19 @@ Rules for every image I ask for:
 - No text, no UI, no effects unless I ask for them.
 - Frames are laid out left to right in one row per animation, each frame in its own equal-size cell.
 - Characters face RIGHT (3/4 view, the same angle as the attached sheet). The game mirrors them for left.
+```
+
+## 0. 주인공 추가 프레임 (32×32, 1차 시트 기준)
+1차 시트(`assets/source/gemini/director-sheet-v1.png`)를 반드시 첨부. 디자인은 1차 그대로 두고, 빠진 프레임만 받는다. 오른쪽을 보는 그림만(왼쪽은 게임이 뒤집음). 자세한 배경은 [주인공 명세](director-sprite-spec.md) 15번.
+
+```
+Use the attached sprite sheet as the master design for this character. Keep the face, hair, outfit, colors, outline and proportions exactly the same. Draw only the right-facing view (the same angle as the attached front frames). No weapon in her hands (the game draws the sword separately), no effects.
+Art size 32x32 per frame, laid out one row per animation:
+Row 1 - idle, 2 frames: standing with EMPTY hands, 1px breathing difference, hair tips swaying slightly.
+Row 2 - walk, 4 frames: legs alternating, hair swinging with the steps.
+Row 3 - attack, 2 frames: (a) right arm pulled back at shoulder height, (b) right arm swung forward and extended, body leaning into the swing.
+Row 4 - draw stance (iaido), 2 frames: (a) crouched low, left hand at the hip as if holding a sheath, right hand near the hip, eyes sharp; (b) explosive forward lunge, right arm extended far forward, hair and jacket blown back.
+Row 5 - hurt, 1 frame: flinching backward.
 ```
 
 ## 1. 보스: 구미호 「월하」 (64×64)
