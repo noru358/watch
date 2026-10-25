@@ -15,6 +15,6 @@ python3 -m http.server 8765
 node tools/artlab/render.cjs docs/design/5-business/img
 ```
 
-장면의 주인공은 주소 뒤 `?who=directorW`(기본), `directorM`, `directorF`로 바꾼다.
+장면의 주인공은 주소 뒤 `?who=v4b`처럼 바꾸고, `&scale=3`을 붙이면 실제 게임 크기에 가깝게 나온다. 4차부터 주인공 시안은 `v4.js`(그림마다 자기 팔레트).
 
 그림체가 확정되면 이 격자들을 게임의 `src/scenes/rift/draw/`로 옮긴다.
