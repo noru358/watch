@@ -36,15 +36,34 @@ export const FEEL = {
   darknessAlpha: 0.82,
   neonAlpha: 0.08, // boss phase-2 tint
   telegraphFill: [0.12, 0.4], // telegraph fill alpha from start to strike
+  // Night lighting: the world is multiplied by `nightAmbient`, then light pools are added in
+  // `lightBands` hard-edged rings (pixel look, no soft gradient). Radius in tiles.
+  lightBands: 3,
+  lights: {
+    director: { radius: 3.2, color: 0xffe6c4, alpha: 0.05 },
+    wisp: { radius: 1.8, color: 0x4aa8ff, alpha: 0.09 },
+    cheonyeo: { radius: 1.6, color: 0xcfd0ff, alpha: 0.06 },
+    stairs: { radius: 2.2, color: 0x2fd8c8, alpha: 0.08 },
+    payphone: { radius: 2, color: 0x9be0c0, alpha: 0.08 },
+  },
 } as const;
 
 export const PALETTE = {
   background: 0x14101f,
-  gridFloor: 0x342c5c,
-  gridFloorAlt: 0x3a3266,
+  // Euljiro basement tileset (art lab sample, 2026-10-25): concrete floor, plaster + green paint walls
+  gridFloor: 0x4f4866,
+  gridFloorAlt: 0x575070,
+  floorSeam: 0x3d3754,
+  floorSpeck: 0x6a6386,
+  floorCrack: 0x36304a,
   gridWall: 0x0d0b14,
-  wallTop: 0x2a2244,
-  wallFace: 0x5a4a86,
+  wallTop: 0x2a2338,
+  wallTopEdge: 0x3b3352,
+  wallFace: 0x3f7a5c, // green waterproof paint
+  wallFaceHi: 0x4f9271,
+  wallFaceLo: 0x2f5e47,
+  plaster: 0x8f8aa0,
+  wallTrim: 0x24202e,
   body: 0x2f3a56, // director's coat
   skin: 0xefd2b0,
   hair: 0x3a2a20,
@@ -63,6 +82,7 @@ export const PALETTE = {
   dokkaebibul: 0x6ad8ff,
   printer: 0xc77dff,
   neonPhase2: 0xff3cac,
+  nightAmbient: 0x9a8cd0, // multiply colour for the whole floor at night
   text: '#f6e7c1',
   textDim: '#9d8fc4',
   textDimHex: 0x9d8fc4,

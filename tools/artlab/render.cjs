@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
   p.on('pageerror', (e) => errs.push(e.message));
   p.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
   // [who, scale]: scale 5 = close-up, scale 3 ≈ the in-game size (the game zooms 2.5×)
-  for (const [who, scale] of [['v7s', 5], ['v7s', 3]]) {
+  for (const [who, scale] of [['none', 5], ['none', 3]]) {
     await p.goto(`http://localhost:${port}/lab.html?who=${who}&scale=${scale}`);
     await p.waitForSelector('body[data-ready="1"]', { timeout: 10000 });
     await (await p.$('#scene')).screenshot({ path: `${out}/artlab-scene-${who}${scale === 5 ? '' : '-x' + scale}.png` });

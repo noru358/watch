@@ -1,12 +1,44 @@
 import { FEEL, PALETTE } from '../../../data/feel.data';
+import { EXORCISTS } from '../../../data/protagonist.data';
+import { DIRECTOR_SPRITE, type DirectorAnim } from '../../../data/sprites.data';
 import { WEAPONS } from '../../../data/weapons.data';
 import type { Floor, Player } from '../../../systems/rift';
 import { lerp, shadow, T, type G } from './common';
+import { drawPixelSprite, type PixelSprite } from './pixelSprite';
 
-// The director: body, the separately drawn sword, and the 발도 range effects.
-export function drawDirector(g: G, p: Player, f: Floor, alpha: number, clock: number): void {
+type FrameLookup = (frame: number) => PixelSprite | null;
+
+// Which animation and frame to show, from the player's render hints.
+function pickFrame(p: Player, clock: number): { anim: DirectorAnim; frame: number } {
+  const up = Math.sin(p.aim) < -0.3;
+  const hurt = p.iframes > EXORCISTS.director.hurtIframes - DIRECTOR_SPRITE.hurtShow && p.dashT <= 0;
+  const anim: DirectorAnim = hurt ? 'hurt' : p.dashT > 0 ? 'dash' : up ? (p.moving ? 'upWalk' : 'upIdle') : p.moving ? 'walk' : 'idle';
+  const list = DIRECTOR_SPRITE.frames[anim];
+  return { anim, frame: list[Math.floor(clock * DIRECTOR_SPRITE.fps) % list.length] ?? list[0] ?? 0 };
+}
+
+// The director: body (pixel sprite when loaded, shapes otherwise), the separately drawn
+// sword, and the 발도 range effects.
+export function drawDirector(g: G, p: Player, f: Floor, alpha: number, clock: number, frames: FrameLookup): void {
   const x = lerp(p.prevX, p.x, alpha) * T;
   const y = lerp(p.prevY, p.y, alpha) * T;
+  const { anim, frame } = pickFrame(p, clock);
+  const sprite = frames(frame);
+  if (sprite) {
+    shadow(g, x, y, 7);
+    const blink = p.iframes > 0 && p.dashT <= 0 && anim !== 'hurt' && Math.floor(clock * 20) % 2 === 0;
+    const flip = Math.cos(p.aim) < 0;
+    const behind = Math.sin(p.aim) < -0.3;
+    const breathe = anim === 'idle' || anim === 'upIdle' ? Math.round((Math.sin(clock * DIRECTOR_SPRITE.breathe * Math.PI) + 1) / 2) : 0;
+    const hx = x + (flip ? -DIRECTOR_SPRITE.hand.x : DIRECTOR_SPRITE.hand.x);
+    const hy = y + DIRECTOR_SPRITE.hand.y;
+    if (behind) drawSword(g, p, f, hx, hy);
+    if (!blink) drawPixelSprite(g, sprite, x, y + 1 + breathe, flip);
+    if (!behind) drawSword(g, p, f, hx, hy);
+    if (p.shield > 0) g.lineStyle(1, PALETTE.shield, 0.9).strokeCircle(x, y - sprite.h / 2, sprite.h / 2 + 2);
+    drawDrawFx(g, p, f, x, y, clock);
+    return;
+  }
   shadow(g, x, y, 5);
   if (p.iframes > 0 && p.dashT <= 0 && Math.floor(clock * 20) % 2 === 0) return;
   const hop = p.moving ? Math.abs(Math.sin(clock * 14)) * FEEL.bobHeight : 0;

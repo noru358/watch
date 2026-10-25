@@ -15,13 +15,11 @@
 <canvas id="sheet"></canvas>
 <script type="module">
 import { PAL, SPRITES as BASE, TILE } from './sprites.js';
-import { V4_SPRITES } from './v4.js';
-import { V5_SPRITES } from './v5.js';
-const SPRITES = { ...BASE, ...V4_SPRITES, ...V5_SPRITES };
+const SPRITES = BASE;
 
 const W = 192, H = 112;
 const SCALE = Number(new URLSearchParams(location.search).get('scale') || 5);
-const WHO = new URLSearchParams(location.search).get('who') || 'directorW';
+const WHO = new URLSearchParams(location.search).get('who') || 'none';
 const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
 
 // A sprite is a rows array (shared PAL) or { rows, pal } or a composite { base, under, pal }.
@@ -166,8 +164,6 @@ function scene() {
     const s = size(a.name);
     shadow(ctx, a.x + s.w / 2, a.sh, a.float ? s.w - 4 : s.w - 2);
     blit(ctx, a.name, a.x, a.y);
-    if (a.name.startsWith('director')) blit(ctx, 'sword', a.x + 15, a.y + 10);
-    if (a.name === 'v4a') blit(ctx, 'sword', a.x + 19, a.y + 14);
   });
   light(ctx, [
     { x: 97, y: 6, r: 78, rgb: hex('#d8e6ff'), i: 0.6 },
@@ -192,7 +188,7 @@ function scene() {
 
 function sheet() {
   const S = 8, pad = 14;
-  const list = ['v6s', 'v7', 'v7s', 'sword', 'cheonyeo', 'wisp', 'payphone', 'chair', 'aircon', 'lamp'];
+  const list = ['sword', 'cheonyeo', 'wisp', 'payphone', 'chair', 'aircon', 'lamp'];
   const labels = { v7: 'v7', v7s: 'v7 칼 들고', v6: 'v6 대각선', v6s: 'v6 칼 들고', v5: 'v5', v5s: 'v5 칼 들고', v4a: 'v4 기본', v4b: 'v4 칼 등에', v4c: 'v4 흑발', directorW: '3차 (비교)', director: '이전 소장', directorM: '철릭 소장 (남)', directorF: '철릭 소장 (여)', sword: '신문지 사인검', cheonyeo: '처녀귀신', wisp: '도깨비불', payphone: '공중전화', chair: '플라스틱 의자', aircon: '실외기', lamp: '형광등' };
   const out = document.getElementById('sheet');
   out.width = 1700; out.height = 300;

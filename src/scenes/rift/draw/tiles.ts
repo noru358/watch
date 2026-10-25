@@ -10,19 +10,37 @@ export function drawTiles(m: G, f: Floor): void {
   for (let y = 0; y < f.rows; y++) {
     for (let x = 0; x < f.cols; x++) {
       if (wall(x, y)) continue;
-      m.fillStyle((x + y) % 2 ? PALETTE.gridFloor : PALETTE.gridFloorAlt).fillRect(x * T, y * T, T, T);
+      const px = x * T;
+      const py = y * T;
+      // concrete slab with a seam, a speck and the odd crack (positions from the tile coords, so stable)
+      m.fillStyle((x + y) % 2 ? PALETTE.gridFloor : PALETTE.gridFloorAlt).fillRect(px, py, T, T);
+      m.fillStyle(PALETTE.floorSeam).fillRect(px + T - 1, py, 1, T).fillRect(px, py + T - 1, T, 1);
+      m.fillStyle(PALETTE.floorSpeck).fillRect(px + ((x * 7 + y * 3) % 11) + 2, py + ((x * 5 + y * 9) % 10) + 2, 2, 1);
+      if ((x * 3 + y) % 7 === 0) {
+        m.fillStyle(PALETTE.floorCrack);
+        for (const [i, j] of [[3, 4], [4, 5], [5, 5], [6, 6], [6, 7], [7, 8], [9, 8]] as const) m.fillRect(px + i, py + j, 1, 1);
+      }
     }
   }
-  // Walls that border floor: raised top + front face where the floor is below.
+  // Walls that border floor: raised top + front face (plaster above, green paint below) where the floor is below.
+  const fh = FEEL.wallFace;
   for (let y = 0; y < f.rows; y++) {
     for (let x = 0; x < f.cols; x++) {
       if (!wall(x, y)) continue;
       const nearFloor = !wall(x, y + 1) || !wall(x, y - 1) || !wall(x + 1, y) || !wall(x - 1, y);
       if (!nearFloor) continue;
-      m.fillStyle(PALETTE.wallTop).fillRect(x * T, y * T - FEEL.wallFace, T, T);
+      const px = x * T;
+      const top = y * T - fh;
+      m.fillStyle(PALETTE.wallTop).fillRect(px, top, T, T);
       if (!wall(x, y + 1)) {
-        m.fillStyle(PALETTE.wallFace).fillRect(x * T, y * T + T - FEEL.wallFace, T, FEEL.wallFace);
-        m.fillStyle(0x000000, 0.25).fillRect(x * T, y * T + T, T, 2);
+        const face = y * T + T - fh;
+        m.fillStyle(PALETTE.wallTopEdge).fillRect(px, face - 1, T, 1);
+        m.fillStyle(PALETTE.plaster).fillRect(px, face, T, 3);
+        m.fillStyle(PALETTE.wallTrim).fillRect(px, face + 3, T, 1);
+        m.fillStyle(PALETTE.wallFace).fillRect(px, face + 4, T, fh - 4);
+        m.fillStyle(PALETTE.wallFaceHi).fillRect(px, face + 4, T, 1);
+        m.fillStyle(PALETTE.wallFaceLo).fillRect(px, face + fh - 1, T, 1);
+        m.fillStyle(0x000000, 0.3).fillRect(px, y * T + T, T, 2);
       }
     }
   }

@@ -13,6 +13,7 @@ import { Overlay } from '../shared/Overlay';
 import { RiftHud } from './RiftHud';
 import { attachVfx } from '../shared/vfx';
 import { RiftView, tileToPx } from './RiftView';
+import { loadDirectorFrames } from './draw/directorFrames';
 
 type Mode = 'play' | 'cards' | 'payphone' | 'end';
 const END_INPUT_DELAY = 0.6; // seconds before the end panel accepts input
@@ -65,6 +66,10 @@ export class RiftScene extends Phaser.Scene {
 
   constructor() {
     super('rift');
+  }
+
+  preload(): void {
+    loadDirectorFrames(this);
   }
 
   create(): void {

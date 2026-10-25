@@ -3,7 +3,7 @@
 > 코드를 직접 다 읽을 필요 없습니다. **"어디에 무엇이 있는지"만 알면** AI에게 정확히 지시할 수 있습니다.
 > 이 문서는 사람용 지도입니다. AI용 정식 규칙은 `ARCHITECTURE.md`에 있고, 둘이 다르면 `ARCHITECTURE.md`가 이깁니다.
 >
-> **마지막 업데이트: 2026-10-25 (그림 담당 파일 분리 · 자동 저장 · 아트 시험 준비)**
+> **마지막 업데이트: 2026-10-25 (주인공 그림 적용 · 귀신 도트 · 지하 타일 · 밤 조명)**
 
 ---
 
@@ -99,14 +99,14 @@ src/
 ├── store/        🗄️ 금고 (gameStore.ts)
 ├── scenes/       🎬 Phaser 화면
 │   ├── rift/         밤 화면 (RiftScene 진행 · RiftView 그리는 순서 · RiftHud 상단 정보와 키 안내 바)
-│   │   └── draw/         그리는 대상별 파일: 바닥·벽, 사무소장·칼, 괴이, 소품, 바닥 예고 (그림 들어오면 여기만 교체)
+│   │   └── draw/         그리는 대상별 파일: 바닥·벽, 사무소장·칼, 괴이(art/ = 귀신 도트), 소품, 바닥 예고, 그림 찍기(pixelSprite)
 │   └── shared/       공용: 카드 선택·결과 창, 타격 연출, 효과음
 ├── ui/           🖥️ React 화면 (지금은 임시 사무소 OfficeApp.tsx 하나)
 └── main.ts       ▶️ 시작점
 tests/            ✅ 자동 테스트
 tools/artlab/     🎨 그림체 견본 작업대 (게임 밖, 그림을 글자 격자로 적어서 뽑음)
 tools/spritekit/  🧹 AI가 만든 픽셀 시트를 진짜 픽셀로 정리하는 도구
-assets/sprites/   🖼️ 정리된 그림 파일 (지금: 주인공 제미나이 1차)
+assets/sprites/   🖼️ 정리된 그림 파일 (지금: 주인공 제미나이 1차, 게임에서 사용 중)
 docs/design/      📐 기획: 1-foundation 기준 · 2-night 밤 · 3-growth 성장 · 4-day 낮 · 5-business 사업·제작
 docs/reference/   🔍 참고 게임 역설계
 ```
@@ -129,6 +129,7 @@ docs/reference/   🔍 참고 게임 역설계
 | 효과음 | `sfx.data.ts` |
 | 키·마우스 설정 | `input.data.ts` |
 | 저장 위치 이름 | `save.data.ts` |
+| 주인공 그림의 동작별 프레임 번호·속도·칼 잡는 손 위치 | `sprites.data.ts` |
 
 지시 예: *"ghosts.data.ts에서 달걀귀신 체력 14 → 10으로"*
 

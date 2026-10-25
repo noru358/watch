@@ -1,6 +1,8 @@
 import { FEEL, PALETTE } from '../../../data/feel.data';
 import type { Enemy } from '../../../systems/rift';
+import { GHOST_ART } from './art/ghostArt';
 import { lerp, shadow, T, type G } from './common';
+import { drawPixelSprite, gridSprite } from './pixelSprite';
 
 // One case per ghost kind. A new ghost in ghosts.data.ts needs one case here.
 // `flashing`: the white hit flash (timed by RiftView).
@@ -11,6 +13,20 @@ export function drawGhost(g: G, e: Enemy, alpha: number, clock: number, flashing
   const col = flashing ? 0xffffff : PALETTE[e.kind];
   const float = Math.sin(clock * 3 + e.id) * FEEL.ghostFloat;
   const fade = e.state === 'warp' ? 0.25 : 0.88 + 0.12 * Math.sin(clock * 5 + e.id);
+  const art = GHOST_ART[e.kind];
+  if (art) {
+    const s = gridSprite(art.rows, art.pal);
+    const flick = e.kind === 'dokkaebibul' ? 0.75 + 0.25 * Math.sin(clock * 18 + e.id) : fade;
+    shadow(g, x, y, (s.w * art.scale) / 3);
+    const top = y - 3 + float - s.h * art.scale;
+    drawPixelSprite(g, s, x, y - 3 + float, e.face < 0, flick, flashing, art.scale);
+    if (e.state === 'stun') g.lineStyle(1, PALETTE.parriable, 0.9).strokeCircle(x, top - 3, 3);
+    if (e.hp < e.maxHp) {
+      g.fillStyle(PALETTE.hpBarBack).fillRect(x - r, y + 3, r * 2, 2);
+      g.fillStyle(PALETTE.hpBar).fillRect(x - r, y + 3, (r * 2 * Math.max(0, e.hp)) / e.maxHp, 2);
+    }
+    return;
+  }
   shadow(g, x, y, r * 0.8);
   const fy = y - r - 3 + float;
   switch (e.kind) {
