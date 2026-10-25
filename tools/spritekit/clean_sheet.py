@@ -51,6 +51,12 @@ def resample(img, step):
     return out
 
 
+def is_key_magenta(p):
+    # #FF00FF background and the pink fringe it leaves on anti-aliased edges
+    r, g, b = int(p[0]), int(p[1]), int(p[2])
+    return r - g > 70 and b - g > 70
+
+
 def background(sm, tol=20):
     H, W, _ = sm.shape
     border = [sm[y, x] for y in (0, H - 1) for x in range(0, W, 7)] + [sm[y, x] for x in (0, W - 1) for y in range(0, H, 7)]
@@ -120,6 +126,9 @@ def main():
     print('pixel size', round(step, 3))
     sm = resample(img, step)
     fg = ~background(sm)
+    # a magenta key background also leaves pink fringe pixels on the outline: drop them all
+    magenta = np.array([[is_key_magenta(p) for p in row] for row in sm])
+    fg &= ~magenta
     lab, found = blobs(fg, min_size)
     px = np.concatenate([sm[lab == b[0]] for b in found]).astype(float)
     pal = kmeans(px, K)
