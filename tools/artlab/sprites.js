@@ -26,6 +26,7 @@ export const PAL = {
 };
 
 export const SPRITES = {
+  none: ['.'],
   director: [
     '.......OO.....',
     '....OOOhOO....',

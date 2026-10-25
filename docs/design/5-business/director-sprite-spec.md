@@ -105,3 +105,11 @@ Revise the sprite sheet with these fixes:
 7. Eyes: normal open eyes with a calm look and faint dark circles, not sleepy.
 8. Keep the same head size and face in every frame (on-model).
 ```
+
+## 13. 1차 결과 정리 (우리 쪽)
+`tools/spritekit/clean_sheet.py`로 정리: 픽셀 크기 5.1px를 찾아 원래 격자(약 40px 칸, 캐릭터 키 약 35px)로 되돌리고, 배경을 지우고, 22프레임을 24색 공용 팔레트로 맞춤. 결과는 `assets/sprites/director-gemini-v1/`.
+
+![1차 정리 결과](img/gemini/sheet-v1-cleaned.png)
+![밤 장면에 놓아 본 것(조명 미적용)](img/gemini/scene-gemini-v1-x3.png)
+
+바로 쓸 수 있는 프레임: 서 있기(16번), 걷기(5·6·7번), 달리기(10·13번), 뒷모습 서 있기(8·9번), 피격(20번), 쓰러짐(21번). 서 있기 0~4번은 다리 앞에 칼이 겹쳐 있어 손질 필요, 11·12번은 속도선, 14~18번은 칼이 박혀 있어 제외.
