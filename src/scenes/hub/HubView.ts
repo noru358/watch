@@ -1,12 +1,13 @@
 import type Phaser from 'phaser';
-import { HUB_LOOK as L, PALETTE } from '../../data/feel.data';
+import { PALETTE } from '../../data/feel.data';
+import { HUB_LOOK as L } from '../../data/hubLook.data';
 import { HUB, HUB_PROPS, HUB_SPOTS, type Rect } from '../../data/lobby.data';
 import { DIRECTOR_SPRITE, type DirectorAnim } from '../../data/sprites.data';
 import type { HubState } from '../../systems/hub';
 import type { HubPropId, HubSpotId } from '../../types/ids';
-import { lerp, shadow, T, type G } from '../rift/draw/common';
-import { directorSprite } from '../rift/draw/directorFrames';
-import { drawPixelSprite } from '../rift/draw/pixelSprite';
+import { lerp, shadow, T, type G } from '../shared/draw/common';
+import { directorSprite } from '../shared/draw/directorFrames';
+import { drawPixelSprite } from '../shared/draw/pixelSprite';
 
 const px = (r: Rect) => ({ x: r.x * T, y: r.y * T, w: r.w * T, h: r.h * T });
 

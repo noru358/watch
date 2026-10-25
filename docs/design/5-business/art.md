@@ -1,6 +1,6 @@
 # 🎨 아트·에셋 모듈
 
-**담당 코드:** `src/scenes/rift/draw/`(그리는 대상별 파일), `src/scenes/rift/RiftView.ts`(그리는 순서·밤 조명), `src/data/sprites.data.ts`(주인공 동작별 프레임), `src/data/feel.data.ts`(칸 크기·배율·색·조명·타격감), `src/scenes/shared/vfx.ts`·`sfx.ts`(이펙트·합성 효과음), `assets/`(그림 파일), `tools/spritekit/`(AI 그림 정리 도구), `tools/artlab/`(도트 견본 작업대)
+**담당 코드:** `src/scenes/rift/draw/`(밤에 그리는 대상별 파일: 주인공 몸 `director.ts`, 칼·휘두름 잔상·발도 효과 `sword.ts`, 귀신, 소품, 타일, 예고), `src/scenes/shared/draw/`(밤·사무소 공용: 도트 찍기 `pixelSprite.ts`, 주인공 프레임 불러오기·조합 `directorFrames.ts`, 공용 도우미 `common.ts`), `src/scenes/hub/HubView.ts`(사무소 실내), `src/data/hubLook.data.ts`(사무소 색), `src/scenes/rift/RiftView.ts`(그리는 순서·밤 조명), `src/data/sprites.data.ts`(주인공 동작별 프레임), `src/data/feel.data.ts`(칸 크기·배율·색·조명·타격감), `src/scenes/shared/vfx.ts`·`sfx.ts`(이펙트·합성 효과음), `assets/`(그림 파일), `tools/spritekit/`(AI 그림 정리 도구), `tools/artlab/`(도트 견본 작업대)
 
 ## ✅ 그림체 (확정)
 - 소울나이트·러스티의 은퇴 계열의 **큼직한 도트**. 고전 포켓몬처럼 오밀조밀한 도트는 아님.
@@ -11,7 +11,7 @@
 ## ✅ 크기와 방향 (확정)
 - 바닥 한 칸 24px, 카메라 1.75배. 주인공(약 37px)은 약 1.5칸, 강적 귀신도 비슷한 키. 판정 범위는 그림보다 조금 작다.
 - 데미지 숫자 20px(큰 타격 26, 잡몹 16).
-- 캐릭터는 **오른쪽을 보는 그림만** 그리고 왼쪽은 좌우 반전(2방향). 뒷모습은 당분간 없음. 칼은 따로 그려 조준 방향으로 회전.
+- 캐릭터는 **오른쪽을 보는 그림만** 그리고 왼쪽은 좌우 반전(2방향). 칼과 휘두름 잔상은 따로 그려 조준 방향으로 회전(소울나이트 방식). 위쪽을 향한 공격만 뒷모습 프레임을 쓴다(2026-10-25). 뒷모습 걷기는 아직 없음.
 
 ## ✅ 그림 만드는 방법 (확정)
 1. 제미나이에 [Gate 1 그림 명세](gemini-asset-specs.md)의 공통 규칙 + 그림별 프롬프트를 넣는다. 주인공 1차 시트와 게임 스크린샷을 꼭 같이 첨부. 배경은 단색 분홍(#FF00FF).
@@ -27,19 +27,21 @@
 
 | 대상 | 상태 | 위치 |
 |------|------|------|
-| 주인공 | 🟢 제미나이 그림. 서 있기·걷기·베기·발도·돌진·피격·쓰러짐 | `assets/sprites/director-gemini-v1`·`v3`, `sprites.data.ts`, `draw/director.ts` |
+| 주인공 | 🟢 제미나이 그림 + 손질(눈 뜨게, 피격 찡그림: `tools/spritekit/face_edit.py`). 서 있기·걷기·3타 콤보·발도(자세→베기→납도)·위쪽 공격 뒷모습·돌진·피격·쓰러짐 | `assets/sprites/director-gemini-v1`·`v3`, `sprites.data.ts`, `draw/director.ts` |
 | 처녀귀신·도깨비불·달걀귀신 | 🧪 제 견본 도트를 2배로(픽셀이 주인공보다 굵음) | `draw/art/ghostArt.ts` |
-| 지하철 망령·구미호 보스 | 🧪 임시 도형 | `draw/ghosts.ts` |
-| 신문지 칼 | 🧪 임시 도형 | `draw/director.ts` |
+| 구미호 보스 | 🧪 제가 그린 몹 굵기 도트 1장(꼬리 9개 부채, 2페이즈 분홍 불). 패턴별 자세 없음 | `draw/art/ghostArt.ts`, 생성기 `tools/artlab/gumiho_grid.py` |
+| 지하철 망령 | 🧪 임시 도형 | `draw/ghosts.ts` |
+| 신문지 칼·휘두름 잔상 | 🧪 칼은 임시 도형, 잔상은 코드(초승달·찌르기) | `draw/sword.ts` |
+| 사무소 실내·경리 | 🧪 도형 | `scenes/hub/HubView.ts` |
 | 바닥·벽 | 🧪 코드로 그린 콘크리트 + 회벽·초록 페인트 | `draw/tiles.ts` |
 | 소품 | 🧪 공중전화만 견본 도트, 계단은 도형 | `draw/props.ts`, `draw/art/propArt.ts` |
 | 밤 조명 | 🟢 화면 전체를 보랏빛으로 곱하고, 빛나는 것 둘레에 3단으로 끊기는 빛 | `RiftView.drawLights`, `FEEL.lights` |
 | 효과음 | 🧪 합성음 | `scenes/shared/sfx.ts`, `data/sfx.data.ts` |
 
-그리는 방식: 그림을 같은 색 가로줄로 쪼개 한 그래픽에 찍는다(`draw/pixelSprite.ts`). 그래서 주인공과 귀신의 앞뒤 순서(아래쪽이 앞)가 유지된다. 바닥 예고는 조명 위에 따로 그려 어두워지지 않는다.
+그리는 방식: 그림을 같은 색 가로줄로 쪼개 한 그래픽에 찍는다(`scenes/shared/draw/pixelSprite.ts`). 그래서 주인공과 귀신의 앞뒤 순서(아래쪽이 앞)가 유지된다. 바닥 예고는 조명 위에 따로 그려 어두워지지 않는다.
 
 ## 🤔 남은 것 (Gate 1)
-- 제미나이로: 구미호 보스, 지하철 망령, 처녀귀신·달걀귀신·도깨비불(주인공과 같은 굵기로), 신문지 칼, 바닥·벽 타일, 소품. 첫 시도(지하철 망령·처녀귀신·칼)는 비율·굵기·색이 따로 놀아서 공통 규칙을 강화함.
+- 제미나이로: 주인공 4차(콤보·뒷모습·얼굴, 명세 0-B), 지하철 망령, 처녀귀신·달걀귀신·도깨비불(주인공과 같은 굵기로), 신문지 칼, 바닥·벽 타일, 소품. 첫 시도(지하철 망령·처녀귀신·칼)는 비율·굵기·색이 따로 놀아서 공통 규칙을 강화함.
 - 정리 도구에 **기준 팔레트 강제**와 **목표 키 맞추기**, 그리고 **게임 화면에 붙인 비교 이미지** 자동 생성 추가.
 - 한글 픽셀 폰트 간판(갈무리, OFL, `tools/artlab/fonts/`)과 소품을 실제 맵에 배치.
 - 실제 효과음과 밤 배경음 한 곡.

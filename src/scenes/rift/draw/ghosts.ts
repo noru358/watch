@@ -1,8 +1,8 @@
 import { FEEL, PALETTE } from '../../../data/feel.data';
 import type { Enemy } from '../../../systems/rift';
 import { GHOST_ART, GUMIHO_ART } from './art/ghostArt';
-import { lerp, shadow, T, type G } from './common';
-import { drawPixelSprite, gridSprite } from './pixelSprite';
+import { lerp, shadow, T, type G } from '../../shared/draw/common';
+import { drawPixelSprite, gridSprite } from '../../shared/draw/pixelSprite';
 
 // One case per ghost kind. A new ghost in ghosts.data.ts needs one case here.
 // `flashing`: the white hit flash (timed by RiftView).

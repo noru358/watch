@@ -3,8 +3,8 @@ import { EXORCISTS } from '../../../data/protagonist.data';
 import { DIRECTOR_SPRITE, type ComboStep, type DirectorAnim, type DirectorFrame } from '../../../data/sprites.data';
 import { WEAPONS } from '../../../data/weapons.data';
 import type { Floor, Player } from '../../../systems/rift';
-import { lerp, shadow, T, type G } from './common';
-import { drawPixelSprite, type PixelSprite } from './pixelSprite';
+import { lerp, shadow, T, type G } from '../../shared/draw/common';
+import { drawPixelSprite, type PixelSprite } from '../../shared/draw/pixelSprite';
 import { drawDrawFx, drawSmear, drawSword } from './sword';
 
 type FrameLookup = (anim: DirectorAnim, frame: DirectorFrame) => PixelSprite | null;

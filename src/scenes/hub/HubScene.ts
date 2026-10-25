@@ -1,13 +1,14 @@
 import Phaser from 'phaser';
 import { input, store } from '../../app/services';
 import { openFeature } from '../../app/features';
-import { HUB_LOOK, PALETTE } from '../../data/feel.data';
+import { PALETTE } from '../../data/feel.data';
+import { HUB_LOOK } from '../../data/hubLook.data';
 import { HUB, HUB_SPOTS } from '../../data/lobby.data';
 import { t } from '../../i18n';
 import { newHub, spotInReach, stepHub, unlockedSpots, type HubState } from '../../systems/hub';
 import type { HubSpotId } from '../../types/ids';
-import { T } from '../rift/draw/common';
-import { loadDirectorFrames } from '../rift/draw/directorFrames';
+import { T } from '../shared/draw/common';
+import { loadDirectorFrames } from '../shared/draw/directorFrames';
 import { crisp } from '../shared/text';
 import { HubView } from './HubView';
 

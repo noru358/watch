@@ -2,7 +2,7 @@ import { FEEL, PALETTE } from '../../../data/feel.data';
 import { DIRECTOR_SPRITE, type ComboStep } from '../../../data/sprites.data';
 import { WEAPONS } from '../../../data/weapons.data';
 import type { Floor, Player } from '../../../systems/rift';
-import { T, type G } from './common';
+import { T, type G } from '../../shared/draw/common';
 
 // The sword is drawn separately from the body: a newspaper bundle, or a glowing blade while bare.
 // At rest it hangs at a fixed angle from the facing (it does not track the aim, which made it twitch).

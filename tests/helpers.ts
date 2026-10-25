@@ -2,7 +2,7 @@ import { SeededRNG } from '../src/core/SeededRNG';
 import { GHOSTS } from '../src/data/ghosts.data';
 import type { CardId, GhostId } from '../src/types/ids';
 import { generateFloor, type Floor } from '../src/systems/rift';
-import { makeEnemy } from '../src/systems/rift/mapgen';
+import { makeEnemy } from '../src/systems/rift';
 import { computeExorcistStats } from '../src/systems/run';
 
 export const DT = 1 / 60;

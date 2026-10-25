@@ -5,7 +5,7 @@ import { BOSSES, GHOSTS } from '../src/data/ghosts.data';
 import { EXORCISTS } from '../src/data/protagonist.data';
 import { WEAPONS } from '../src/data/weapons.data';
 import { answerPayphone, generateFloor, giveUp, isFloor, NO_INPUT, stepFloor, type Floor, type RiftInput } from '../src/systems/rift';
-import { makeEnemy } from '../src/systems/rift/mapgen';
+import { makeEnemy } from '../src/systems/rift';
 import { carry, DT, duel, floorWith } from './helpers';
 
 const W = WEAPONS.newspaper_sword;

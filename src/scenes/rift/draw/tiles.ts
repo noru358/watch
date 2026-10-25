@@ -1,6 +1,6 @@
 import { FEEL, PALETTE } from '../../../data/feel.data';
 import type { Floor } from '../../../systems/rift';
-import { T, type G } from './common';
+import { T, type G } from '../../shared/draw/common';
 
 // Floor and walls in the 3/4 view: wall tops are raised by `wallFace` px with a front face below.
 export function drawTiles(m: G, f: Floor): void {

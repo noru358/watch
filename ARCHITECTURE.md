@@ -70,13 +70,13 @@ src/
  ├── types/       # Shared interfaces, ID union types (ids.ts), event map (events.ts)
  ├── i18n/        # ko.ts (source of keys), en.ts, t() helper
  ├── data/        # Static typed tables: protagonist, weapons, cards, ghosts, dungeon, contracts,
- │                #   penalties, feel (presentation), sfx, input, save, sprites (sprite anim tables), lobby (hub layout + feature registry); later recruit, economy, shop
+ │                #   penalties, feel (night presentation), hubLook (day presentation), sfx, input, save, sprites (sprite anim tables), lobby (hub layout + feature registry); later recruit, economy, shop
  ├── registry/    # Behaviour by ID: cardEffects.ts (upgrade-card hooks); later companion skills
  ├── store/       # GameStore (single source of truth) + actions
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
  │                #   rift/ (one floor: map gen, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement), hub/ (walking, who is in reach, what is unlocked),
  │                #   later: recruit/, economy/, dispatch/, rental/, shop/
- ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view = draw order, HUD; draw/ = one file per drawn thing, the art swap points), hub/ (day: walkable office interior), shared/ (Overlay panels, vfx, sfx, crisp text)
+ ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view = draw order, HUD; draw/ = one file per drawn thing, the art swap points), hub/ (day: walkable office interior), shared/ (Overlay panels, vfx, sfx, crisp text; draw/ = sprite kit shared by every scene)
  └── ui/          # React: FeatureHost (mounts the open panel), features/<featureId>/ (one folder per hub panel)
 tests/            # Vitest specs mirroring src/systems and src/store
 maps/             # Tiled source maps (.tmx/.json) and tilesets
@@ -105,8 +105,8 @@ React reads `GameStore` via `useSyncExternalStore`. Phaser reads it via `GameSto
 
 Each gate must be fun on its own before the next starts. If a gate fails, change the loop — do not polish.
 
-- **Gate 1 — Night combat prototype (art/sound polish continues alongside Gate 2):** one Euljiro contract as real-time top-down floors on a tile grid (Core Keeper style), the director alone (weapon A: newspaper-wrapped sword with combo, bared blade and 발도 — one key: wide slash / counter in the flash window / 360° strike on full focus), dash with front-loaded i-frames, base + weapon upgrade-card decks, a few ghost types, 1 boss, hit-stop / damage popups / drop sounds, payphone extraction. Day screen = a single placeholder menu. No backend, no idle dispatch, no furniture.
-- **Gate 2 — Roster & growth (CURRENT, started 2026-10-25):** office hub (bookkeeper + spirit cat, story-unlocked), companions with 1 party slot (call skill + companion card deck, see `docs/design/3-growth/party.md`), weapon B (talisman label gun), traits/traumas persisting across runs, recovery.
+- **Gate 1 — Night combat prototype (feature-complete; passes on the user's playtest; art/sound polish is a parallel track, not a gate condition):** one Euljiro contract as real-time top-down floors on a tile grid (Core Keeper style), the director alone (weapon A: newspaper-wrapped sword with combo, bared blade and 발도 — one key: wide slash / counter in the flash window / 360° strike on full focus), dash with front-loaded i-frames, base + weapon upgrade-card decks, a few ghost types, 1 boss, hit-stop / damage popups / drop sounds, payphone extraction. Day screen = a single placeholder menu. No backend, no idle dispatch, no furniture.
+- **Gate 2 — Office & growth (CURRENT, started 2026-10-25):** the day loop first (2-A: walkable office hub, day counter and weekly rent, 2–3 contracts to choose from on the bookkeeper's board, a minimal dialogue box, save v2 with title / new game), then growth (2-B: companions with 1 party slot — call skill + companion card deck, first companion = the gumiho after its contract, see `docs/design/3-growth/party.md`; companion traits (기질) and traumas persisting across runs, traumas with real effects + recovery; reputation rank unlocking contracts; weapon B talisman label gun). Spirit cat: role to be decided (recovery now, appraisal/black market with relics later). Plan and gap review: `docs/design/roadmap.md`.
 - **Gate 3 — Seoul map & 2nd squad:** multiple districts, purification progress, capped idle dispatch.
 - **Gate 4 — Rental market:** NPC offices first (works fully offline), then Supabase with server-side stat recompute and fee settlement (Rule 7). Popularity-based fee diminishing applied per office account, not per exorcist.
 - **Gate 5 — Steam build:** Electron packaging, Steamworks (achievements, cloud save), English localization pass.

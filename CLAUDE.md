@@ -8,5 +8,5 @@ Then read `HANDOFF.md` for the current state and next step.
 - Short replies like "ㅇㅇ" / "ㅇㅋ" mean "go ahead": do not ask again; state your interpretation in one line and proceed.
 - Reference research must be deep enough to reproduce the system from the description, not a surface list.
 - The user is on a MacBook (zsh): give terminal commands one per line without inline `#` comments.
-- Current scope: Fun Gate 2 (roster & growth), with Gate 1 art/feel polish continuing in parallel (user decision 2026-10-25). Do not build anything listed as out of scope for the current gate.
+- Current scope: Fun Gate 2 (office & growth; plan in `docs/design/roadmap.md`), with Gate 1 art/feel polish continuing in parallel (user decision 2026-10-25). Do not build anything listed as out of scope for the current gate.
 - Run `npm run check` before every commit. Update `HANDOFF.md` at the end of every session.

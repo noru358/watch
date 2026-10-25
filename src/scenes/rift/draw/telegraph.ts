@@ -1,7 +1,7 @@
 import { FEEL, PALETTE } from '../../../data/feel.data';
 import { WEAPONS } from '../../../data/weapons.data';
 import type { Floor, Telegraph } from '../../../systems/rift';
-import { T, type G } from './common';
+import { T, type G } from '../../shared/draw/common';
 
 // Floor warnings: yellow = counter with 발도, red = dodge. The fill grows until the strike.
 export function drawTelegraph(g: G, t: Telegraph, f: Floor): void {

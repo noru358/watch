@@ -1,8 +1,8 @@
 import { PALETTE } from '../../../data/feel.data';
 import type { Floor } from '../../../systems/rift';
 import { PAYPHONE_ART } from './art/propArt';
-import { shadow, T, type G } from './common';
-import { drawPixelSprite, gridSprite } from './pixelSprite';
+import { shadow, T, type G } from '../../shared/draw/common';
+import { drawPixelSprite, gridSprite } from '../../shared/draw/pixelSprite';
 
 // Things on the floor that are not bodies: stairs, the payphone, spirit pickups.
 export function drawProps(g: G, f: Floor, clock: number): void {

@@ -13,7 +13,7 @@ import { Overlay } from '../shared/Overlay';
 import { RiftHud } from './RiftHud';
 import { attachVfx } from '../shared/vfx';
 import { RiftView, tileToPx } from './RiftView';
-import { loadDirectorFrames } from './draw/directorFrames';
+import { loadDirectorFrames } from '../shared/draw/directorFrames';
 
 type Mode = 'play' | 'cards' | 'payphone' | 'paused' | 'end';
 const END_INPUT_DELAY = 0.6; // seconds before the end panel accepts input
