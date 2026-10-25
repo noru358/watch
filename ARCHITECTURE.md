@@ -67,7 +67,7 @@ src/
  ├── types/       # Shared interfaces, ID union types (ids.ts), event map (events.ts)
  ├── i18n/        # ko.ts (source of keys), en.ts, t() helper
  ├── data/        # Static typed tables: protagonist, weapons, cards, ghosts, dungeon, contracts,
- │                #   penalties, feel (presentation), sfx, input; later recruit, economy, lobby, shop
+ │                #   penalties, feel (presentation), sfx, input, save, sprites (sprite anim tables); later recruit, economy, lobby, shop
  ├── registry/    # Behaviour by ID: cardEffects.ts (upgrade-card hooks); later companion skills
  ├── store/       # GameStore (single source of truth) + actions
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
@@ -77,7 +77,8 @@ src/
  └── ui/          # React: OfficeApp (Gate 1 placeholder), later features/<featureId>/
 tests/            # Vitest specs mirroring src/systems and src/store
 maps/             # Tiled source maps (.tmx/.json) and tilesets
-assets/           # Sprites, portraits, audio
+assets/           # source/ = raw generated or commissioned art (never deleted), sprites/ = cleaned game sprites (see assets/README.md)
+tools/            # Outside the game build: spritekit/ (clean AI pixel sheets), artlab/ (pixel-art lab)
 docs/design/      # Game design in 5 groups: 1-foundation, 2-night, 3-growth, 4-day, 5-business (README.md = module map; each group has its own README)
 docs/reference/   # Reference-game teardowns (Pokémon Mystery Dungeon, Girls' Frontline)
 GUIDE.md          # Plain-Korean map for the human owner — keep in sync with this tree
