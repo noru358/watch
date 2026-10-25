@@ -106,7 +106,8 @@ src/
 tests/            ✅ 자동 테스트
 tools/artlab/     🎨 그림체 견본 작업대 (게임 밖, 그림을 글자 격자로 적어서 뽑음)
 tools/spritekit/  🧹 AI가 만든 픽셀 시트를 진짜 픽셀로 정리하는 도구
-assets/sprites/   🖼️ 정리된 그림 파일 (지금: 주인공 제미나이 1차, 게임에서 사용 중)
+assets/source/    🗃️ 받은 그림 원본 보관 (제미나이 시트 등, 지우지 않음)
+assets/sprites/   🖼️ 원본을 정리한 게임용 그림 (지금: 주인공 제미나이 1차) → assets/README.md
 docs/design/      📐 기획: 1-foundation 기준 · 2-night 밤 · 3-growth 성장 · 4-day 낮 · 5-business 사업·제작
 docs/reference/   🔍 참고 게임 역설계
 ```

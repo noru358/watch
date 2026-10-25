@@ -3,9 +3,9 @@
 ← [아트 모듈](art.md) · 2026-10-25. 주인공 명세는 [director-sprite-spec.md](director-sprite-spec.md).
 
 ## 쓰는 법
-- 대화를 시작할 때 **주인공 1차 시트**(`img/gemini/sheet-v1.webp`)를 그림체 기준으로 같이 첨부한다. 모든 그림이 그 시트와 같은 픽셀 굵기·외곽선·색감이어야 한다.
+- 대화를 시작할 때 **주인공 1차 시트**(`assets/source/gemini/director-sheet-v1.png`)를 그림체 기준으로 같이 첨부한다. 모든 그림이 그 시트와 같은 픽셀 굵기·외곽선·색감이어야 한다.
 - 아래 "공통 규칙"을 한 번 붙여 넣고, 그다음 그림마다 프롬프트를 하나씩 보낸다(한 번에 하나).
-- 받은 그림은 `tools/spritekit/clean_sheet.py`로 정리해서 넣는다. 배경이 단색 분홍이어야 깨끗하게 지워진다.
+- 받은 원본은 `assets/source/gemini/`에 보관하고, `tools/spritekit/clean_sheet.py`로 정리해서 `assets/sprites/`에 넣는다(→ `assets/README.md`). 배경이 단색 분홍이어야 깨끗하게 지워진다.
 
 ## 우선순위
 1. 구미호 「월하」(보스): 지금 임시 도형이라 가장 티가 남

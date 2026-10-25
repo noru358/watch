@@ -62,6 +62,10 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 - Director shows the KO frame (21) when HP hits 0.
 - Gemini prompts for the remaining Gate 1 art: `docs/design/5-business/gemini-asset-specs.md`.
 
+### Asset storage
+- Raw generated sheets are kept in `assets/source/gemini/` (v1 in use, v2 rejected), cleaned frames in `assets/sprites/`; rules in `assets/README.md`. Personal reference photos and third-party game screenshots (Soul Knight) are NOT committed.
+- All work lives on branch `claude/admiring-keller-rdwk4w` (not `main`).
+
 ## Verified
 - Round 6: `npm run check` 46 tests pass; Playwright: new scale renders, Esc opens/closes pause, 3 = give up → end screen, no page errors.
 - Art pass: `npm run check` 45 tests pass; Playwright: director faces ↘/↙ (mirror)/↑ and dashes correctly, staged ghosts render with lighting, no page errors. Not human-played yet.
