@@ -87,7 +87,7 @@ export function skilled(f: Floor): RiftInput {
 
 export function playNight(seed: number, bot: (f: Floor) => RiftInput): { outcome: RunOutcome; floor: number; seconds: number } {
   const rng = new SeededRNG(seed);
-  const run = startRun({ contractId: 'euljiro_printer', level: 1, weapon: 'newspaper_sword' });
+  const run = startRun({ contractId: 'lights_out', level: 1, weapon: 'newspaper_sword' });
   let seconds = 0;
   for (;;) {
     const f = enterFloor(run, rng);

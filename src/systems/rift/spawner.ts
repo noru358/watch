@@ -12,7 +12,7 @@ export function updateSwarm(f: Floor, dt: number, rng: SeededRNG): void {
   f.swarmTimer -= dt;
   if (f.swarmTimer > 0) return;
   f.swarmTimer = s.every;
-  const alive = f.enemies.filter((e) => e.kind !== 'printer' && GHOSTS[e.kind].fodder).length;
+  const alive = f.enemies.filter((e) => e.kind !== 'gumiho' && GHOSTS[e.kind].fodder).length;
   const room = Math.min(s.group, s.cap - alive);
   const p = f.player;
   let placed = 0;

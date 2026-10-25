@@ -8,7 +8,7 @@
 - 받은 그림은 `tools/spritekit/clean_sheet.py`로 정리해서 넣는다. 배경이 단색 분홍이어야 깨끗하게 지워진다.
 
 ## 우선순위
-1. 활자귀 「미발송」(보스): 지금 도형이라 가장 티가 남
+1. 구미호 「월하」(보스): 지금 임시 도형이라 가장 티가 남
 2. 지하철 망령: 지금 도형
 3. 처녀귀신·달걀귀신·도깨비불: 지금 제 견본(픽셀이 주인공보다 굵음)을 같은 굵기로
 4. 신문지 사인검(감싼 칼·드러난 칼)
@@ -27,18 +27,19 @@ Rules for every image I ask for:
 - Characters face RIGHT (3/4 view, the same angle as the attached sheet). The game mirrors them for left.
 ```
 
-## 1. 보스: 활자귀 「미발송」 (64×64)
+## 1. 보스: 구미호 「월하」 (64×64)
 
 ```
 Boss sprite, art size 64x64 per frame.
-Character: "Hwalja-gwi", a hunched giant ghost made of stacked paper sheets and old lead printing type (small metal letter blocks). A large printing-press roller is embedded in its chest and turns. Its face is a newspaper front page whose headline letters keep changing (draw it as blocky unreadable black lettering on cream paper). Ink drips from its arms. Colors: cream and yellowed paper (#efe6cc, #cbb98f), lead gray (#6b6878, #4a4658), black ink (#141018), a few red ink stamps (#c94a5a).
+Character: "Wolha", a nine-tailed fox spirit (gumiho). A slender white fox with nine long tails fanned out behind it like a peacock fan, each tail tip burning with a small blue fox-fire. Elegant and a little sleepy-looking (half-lidded red eyes), but clearly dangerous. The fanned tails must make a strong, readable silhouette even when small. Colors: white fur (#f4f1ff, shadow #b9bde4), fox-fire cyan (#6fe3ff, white core), eyes red (#e04a5a), outline dark.
 Rows:
-1. idle, 2 frames: slow breathing, paper edges fluttering.
-2. roller windup, 1 frame: leans forward, chest roller glowing faintly.
-3. press slam, 2 frames: windup with both arms raised as a printing plate, then slammed down.
-4. summon, 1 frame: holds up an unsent wedding invitation that glows.
-5. phase 2 idle, 2 frames: same pose as idle but the paper is tinted neon pink (#ff3cac) and the headline is a big red "EXTRA" mark.
-6. defeated, 1 frame: collapsed into a pile of paper with letters scattering.
+1. idle, 2 frames: tails sway slightly, fire tips flicker.
+2. tail sweep windup, 1 frame: all nine tails pulled to one side, fire tips flaring.
+3. tail sweep, 1 frame: tails swung across in a wide arc.
+4. pounce, 2 frames: crouch low, then leap forward with front paws extended.
+5. summon, 1 frame: tails raised, scattering small blue flames.
+6. phase 2 idle, 2 frames: same as idle but the fire tips are neon pink (#ff3cac) and the fur glows faintly pink.
+7. defeated, 1 frame: curled up asleep, tails wrapped around itself, fires out.
 ```
 
 ## 2. 지하철 망령 (32×32)
@@ -97,20 +98,20 @@ Rows:
 ## 7. 바닥·벽 타일 (24×24)
 
 ```
-Tileset, each tile 24x24 art pixels, top-down 3/4 view, location: the basement of an old printing shop in Euljiro, Seoul, at night. Tiles must repeat seamlessly.
-Row 1: concrete floor, 3 variants (plain, with a crack, with an oil stain).
-Row 2: floor with scattered printed paper sheets, 2 variants.
-Row 3: wall top (dark), 1 tile; wall front face, 2 variants (gray plaster upper part, green waterproof paint lower part; one with an exposed pipe, one with a taped flyer).
-Colors: floor purple-gray concrete (#575070, #4f4866), wall paint green (#3f7a5c), plaster (#8f8aa0).
+Tileset, each tile 24x24 art pixels, top-down 3/4 view, location: an old underground shopping arcade in a fantasy Seoul at night, half the lights dead. Tiles must repeat seamlessly.
+Row 1: worn floor tiles, 3 variants (plain, cracked, with a puddle).
+Row 2: floor with litter (flyers, a crushed can), 2 variants.
+Row 3: wall top (dark), 1 tile; wall front face, 2 variants (one with a closed metal shutter, one with a peeling poster).
+Colors: muted purple-gray floor (#575070, #4f4866), shutter blue-gray, a little green paint (#3f7a5c).
 ```
 
 ## 8. 소품 (크기는 각각)
 
 ```
-Prop sprites for the same printing-shop basement, one per cell:
-1. old letterpress printing machine, 48x48.
-2. stack of paper bundles tied with string, 24x24.
-3. shelf of lead type cases (small wooden drawers full of metal letters), 48x32.
+Prop sprites for the same night setting, one per cell:
+1. dead streetlight (bent lamp post), 16x48.
+2. glowing street sign box with a blank face (we add text in game), 32x16.
+3. stack of cardboard boxes, 24x24.
 4. red plastic stool (Korean street-food style), 16x16.
 5. outdoor air-conditioner unit, 24x24.
 6. Korean public payphone (blue booth), 24x32.

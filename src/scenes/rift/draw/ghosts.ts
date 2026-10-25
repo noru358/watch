@@ -6,7 +6,7 @@ import { drawPixelSprite, gridSprite } from './pixelSprite';
 
 // One case per ghost kind. A new ghost in ghosts.data.ts needs one case here.
 // `flashing`: the white hit flash (timed by RiftView).
-export function drawGhost(g: G, e: Enemy, alpha: number, clock: number, flashing: boolean): void {
+export function drawGhost(g: G, e: Enemy, alpha: number, clock: number, flashing: boolean, phase2 = false): void {
   const x = lerp(e.prevX, e.x, alpha) * T;
   const y = lerp(e.prevY, e.y, alpha) * T;
   const r = e.r * T;
@@ -50,16 +50,26 @@ export function drawGhost(g: G, e: Enemy, alpha: number, clock: number, flashing
       g.fillStyle(0xffffff, 0.8 * flick).fillCircle(x, fy + r * 0.1, r * 0.4);
       break;
     }
-    case 'printer': {
-      g.fillStyle(col, 1).fillRoundedRect(x - r * 1.2, fy - r * 0.9, r * 2.4, r * 1.6, 4);
-      const roll = (clock * 6) % 1;
-      g.fillStyle(0x0b0a14, 1).fillRect(x - r, fy - 2, r * 2, 4);
-      g.fillStyle(0xf4f0d8, 1).fillRect(x - r + roll * r * 1.6, fy - 1, r * 0.4, 2); // paper rolling out
+    case 'gumiho': {
+      // Placeholder until the Gemini sprite: nine tails fanned behind a white fox, fire at the tips.
+      const fire = phase2 ? PALETTE.neonPhase2 : PALETTE.gumihoFire;
+      for (let i = 0; i < 9; i++) {
+        const a = -Math.PI / 2 + (i - 4) * 0.28 + Math.sin(clock * 2 + i) * 0.06;
+        const tx = x + Math.cos(a) * r * 1.9;
+        const ty = fy + Math.sin(a) * r * 1.5;
+        g.lineStyle(r * 0.32, col, 0.95).lineBetween(x, fy, tx, ty);
+        g.fillStyle(fire, 0.9).fillCircle(tx, ty, r * 0.22 + Math.sin(clock * 9 + i) * 0.6);
+      }
+      g.fillStyle(col, 1).fillEllipse(x, fy + r * 0.2, r * 1.6, r * 1.2); // body
+      g.fillStyle(col, 1).fillCircle(x, fy - r * 0.55, r * 0.55); // head
+      g.fillTriangle(x - r * 0.5, fy - r * 0.7, x - r * 0.2, fy - r * 1.35, x - r * 0.05, fy - r * 0.85); // ears
+      g.fillTriangle(x + r * 0.5, fy - r * 0.7, x + r * 0.2, fy - r * 1.35, x + r * 0.05, fy - r * 0.85);
+      g.fillStyle(fire, 1).fillRect(x - r * 0.3, fy - r * 0.6, 2, 2).fillRect(x + r * 0.2, fy - r * 0.6, 2, 2); // eyes
       break;
     }
   }
   if (e.state === 'stun') g.lineStyle(1, PALETTE.parriable, 0.9).strokeCircle(x, fy - r - 3, 3);
-  if (e.kind !== 'printer' && e.hp < e.maxHp) {
+  if (e.kind !== 'gumiho' && e.hp < e.maxHp) {
     g.fillStyle(PALETTE.hpBarBack).fillRect(x - r, y + 3, r * 2, 2);
     g.fillStyle(PALETTE.hpBar).fillRect(x - r, y + 3, (r * 2 * Math.max(0, e.hp)) / e.maxHp, 2);
   }

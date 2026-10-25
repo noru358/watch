@@ -34,7 +34,7 @@ function tele(shape: Telegraph['shape'], e: Enemy, angle: number, range: number,
 }
 
 function updateGhost(f: Floor, e: Enemy, dt: number, rng: SeededRNG): void {
-  if (e.kind === 'printer') return;
+  if (e.kind === 'gumiho') return;
   const data = GHOSTS[e.kind];
   const p = f.player;
   const d = dist(e, p);
@@ -110,8 +110,8 @@ function separate(f: Floor): void {
       const push = (min - d) / 2;
       const nx = (a.x - b.x) / d;
       const ny = (a.y - b.y) / d;
-      if (a.kind !== 'printer') moveBody(f, a, nx * push, ny * push);
-      if (b.kind !== 'printer') moveBody(f, b, -nx * push, -ny * push);
+      if (a.kind !== 'gumiho') moveBody(f, a, nx * push, ny * push);
+      if (b.kind !== 'gumiho') moveBody(f, b, -nx * push, -ny * push);
     }
   }
 }
@@ -125,7 +125,7 @@ export function updateEnemies(f: Floor, dt: number, rng: SeededRNG): void {
       e.knockX = Math.abs(e.knockX * k) < 0.05 ? 0 : e.knockX * k;
       e.knockY = Math.abs(e.knockY * k) < 0.05 ? 0 : e.knockY * k;
     }
-    if (e.kind === 'printer') updateBoss(f, e, dt, rng, BOSSES.printer);
+    if (e.kind === 'gumiho') updateBoss(f, e, dt, rng, BOSSES.gumiho);
     else updateGhost(f, e, dt, rng);
   }
   f.enemies = f.enemies.filter((e) => e.hp > 0);

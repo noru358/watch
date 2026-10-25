@@ -59,7 +59,7 @@ export function OfficeApp() {
         <div style={css.box}>
           <div style={{ ...css.row, color: PALETTE.textDim }}>{t('day.contractTitle')}</div>
           <div style={{ fontSize: 16, margin: '6px 0' }}>{t('day.contractName')}</div>
-          <div style={css.row}><span>{t('day.contractFee')}</span><span>{CONTRACTS.euljiro_printer.fee}</span></div>
+          <div style={css.row}><span>{t('day.contractFee')}</span><span>{CONTRACTS.lights_out.fee}</span></div>
         </div>
         <button style={css.sortie} onClick={sortie}>🌙 {t('day.sortie')}</button>
         <div style={css.hint}>{t('day.sortieHint')}</div>

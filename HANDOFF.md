@@ -1,7 +1,7 @@
 # HANDOFF
 
 ## Status (2026-10-25) — Gate 1: Core Keeper–style real-time night, full contract playable
-Day placeholder → 출동 → Euljiro contract: 3 random floors (rooms + 2-tile corridors, ☎ payphone on floor 2) → boss room (활자귀 「미발송」, id printer) → settlement → Day.
+Day placeholder → 출동 → Euljiro contract: 3 random floors (rooms + 2-tile corridors, ☎ payphone on floor 2) → boss room (구미호 「월하」, id printer) → settlement → Day.
 
 ### How we got here (read `docs/design/2-night/combat.md`)
 1. Action prototype (auto-aim) lost: a stand-still bot won 6/8 → switched to grid turn-based.
@@ -57,10 +57,10 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 - Pause: `pause` action (Esc). `RiftScene` mode `paused` (sim doesn't step), Overlay shows 계속하기 / 조작 안내 / 의뢰 포기; give up = `giveUp(f)` in `systems/rift/step.ts` (floor → dead → normal failure settlement). Test in `tests/rift.test.ts`.
 - Director: right-facing frames only, left mirrored (no back view for now). Gemini sheet v2 rejected (off-style); targeted v1-based prompt in spec §15.
 
-### Round 7 (2026-10-25): story + asset specs
-- Boss story rewritten as Seoul fantasy: 활자귀 「미발송」 (unsent sentences sink like ink under Euljiro; abandoned lead type became a paper giant). Full text in `docs/design/2-night/contract.md`; display names in i18n (code ID stays `printer`).
+### Round 7 (2026-10-25): boss → 구미호, asset specs
+- User: story second, visual appeal first; don't tie to Euljiro/printing. Boss is now 구미호 「월하」 (IDs renamed: boss `printer`→`gumiho`, contract `euljiro_printer`→`lights_out`). Summons 3 fox-fire wisps (`BossData.summonCount`, test added). Placeholder drawing: nine fanned tails with fire tips (pink in phase 2). Short story in `docs/design/2-night/contract.md`.
 - Director shows the KO frame (21) when HP hits 0.
-- Gemini prompts for the remaining Gate 1 art: `docs/design/5-business/gemini-asset-specs.md` (boss, subway, cheonyeo, dalgyal, wisp, sword, tiles, props).
+- Gemini prompts for the remaining Gate 1 art: `docs/design/5-business/gemini-asset-specs.md`.
 
 ## Verified
 - Round 6: `npm run check` 46 tests pass; Playwright: new scale renders, Esc opens/closes pause, 3 = give up → end screen, no page errors.

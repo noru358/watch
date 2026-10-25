@@ -43,9 +43,9 @@ describe('floor generation', () => {
   });
 
   it('the boss floor is one room with the boss and no stairs', () => {
-    const f = generateFloor(3, { kind: 'boss', boss: 'printer', swarm: null }, new SeededRNG(1), carry());
+    const f = generateFloor(3, { kind: 'boss', boss: 'gumiho', swarm: null }, new SeededRNG(1), carry());
     expect(f.stairs).toBeNull();
-    expect(f.enemies.map((e) => e.kind)).toEqual(['printer']);
+    expect(f.enemies.map((e) => e.kind)).toEqual(['gumiho']);
   });
 });
 
@@ -246,7 +246,7 @@ describe('floor exits and cards', () => {
 describe('boss', () => {
   function bossFloor() {
     const rng = new SeededRNG(4);
-    const f = generateFloor(3, { kind: 'boss', boss: 'printer', swarm: null }, rng, carry());
+    const f = generateFloor(3, { kind: 'boss', boss: 'gumiho', swarm: null }, rng, carry());
     return { f, rng, boss: f.enemies[0]! };
   }
 
@@ -256,8 +256,17 @@ describe('boss', () => {
     stepFloor(f, NO_INPUT, DT, rng);
     expect(boss.teles[0]?.shape).toBe('band');
     expect(boss.teles[0]?.parriable).toBe(false);
-    run(f, rng, BOSSES.printer.sweepWindup, { moveY: -1 });
+    run(f, rng, BOSSES.gumiho.sweepWindup, { moveY: -1 });
     expect(f.player.hp).toBe(MAX);
+  });
+
+  it('scatters a group of fox-fire wisps when it summons', () => {
+    const { f, rng } = bossFloor();
+    Object.assign(f.boss!, { summonTimer: 0, sweepTimer: 99 });
+    const before = f.enemies.filter((e) => e.kind === BOSSES.gumiho.summon).length;
+    stepFloor(f, NO_INPUT, DT, rng);
+    const after = f.enemies.filter((e) => e.kind === BOSSES.gumiho.summon).length;
+    expect(after - before).toBe(BOSSES.gumiho.summonCount);
   });
 
   it('enters phase 2 at half HP and its death ends the floor', () => {
@@ -265,7 +274,7 @@ describe('boss', () => {
     Object.assign(f.player, { x: boss.x, y: boss.y + 1.6 });
     boss.state = 'stun';
     boss.timer = 99;
-    boss.hp = boss.maxHp * BOSSES.printer.phase2Ratio + 1;
+    boss.hp = boss.maxHp * BOSSES.gumiho.phase2Ratio + 1;
     stepFloor(f, { ...NO_INPUT, attack: true, aim: -Math.PI / 2 }, DT, rng);
     expect(f.boss?.phase).toBe(2);
     boss.hp = 1;

@@ -11,7 +11,7 @@ import type { Enemy, Floor } from './types';
 function checkBossPhase(f: Floor, e: Enemy): void {
   const b = f.boss;
   if (!b || b.id !== e.id || b.phase === 2) return;
-  if (e.hp <= e.maxHp * BOSSES.printer.phase2Ratio) {
+  if (e.hp <= e.maxHp * BOSSES.gumiho.phase2Ratio) {
     b.phase = 2;
     f.events.push({ type: 'bossPhase', phase: 2 });
   }
@@ -30,7 +30,7 @@ export function hitEnemy(
   const atk = { damage: base, kind };
   runCardHooks(f, 'onBeforeAttack', atk);
   e.hp -= atk.damage;
-  const push = WEAPONS[f.weapon].knockback * (empowered ? 2 : 1) * (e.kind === 'printer' ? 0.2 : 1);
+  const push = WEAPONS[f.weapon].knockback * (empowered ? 2 : 1) * (e.kind === 'gumiho' ? 0.2 : 1);
   e.knockX = (dir.x * push) / DUNGEON.knockTime;
   e.knockY = (dir.y * push) / DUNGEON.knockTime;
   f.events.push({ type: 'enemyHit', x: e.x, y: e.y, amount: atk.damage, entityId: e.id, empowered, kind: e.kind });
@@ -40,11 +40,11 @@ export function hitEnemy(
 
   e.teles = [];
   const kindId = e.kind;
-  const drop = kindId === 'printer' ? BOSSES[kindId].drop : GHOSTS[kindId].drop;
+  const drop = kindId === 'gumiho' ? BOSSES[kindId].drop : GHOSTS[kindId].drop;
   f.pickups.push({ x: e.x, y: e.y, value: drop });
   f.events.push({ type: 'enemyKilled', x: e.x, y: e.y, kind: e.kind, entityId: e.id });
   runCardHooks(f, 'onKill', { enemy: e, rng });
-  if (kindId === 'printer') {
+  if (kindId === 'gumiho') {
     // The source is purified: everything else in the room goes with it.
     for (const k of f.pickups) f.loot += k.value;
     f.pickups = [];

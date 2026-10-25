@@ -62,7 +62,7 @@ export class RiftHud {
     const boss = f.boss && f.enemies.find((e) => e.id === f.boss!.id);
     if (boss) {
       g.fillStyle(PALETTE.hpBarBack).fillRect(780, 13, 160, 8);
-      g.fillStyle(f.boss!.phase === 2 ? PALETTE.neonPhase2 : PALETTE.printer).fillRect(780, 13, (160 * Math.max(0, boss.hp)) / boss.maxHp, 8);
+      g.fillStyle(f.boss!.phase === 2 ? PALETTE.neonPhase2 : PALETTE.gumihoFire).fillRect(780, 13, (160 * Math.max(0, boss.hp)) / boss.maxHp, 8);
     }
     this.top.setText(`${floorText}   ${t('rift.loot', { value: f.loot })}${p.bare > 0 ? `   ${t('rift.bare')}` : ''}`);
     this.focusLabel.setColor(p.focus >= f.stats.focusMax ? PALETTE.healText : PALETTE.text);

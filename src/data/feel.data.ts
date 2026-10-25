@@ -82,7 +82,8 @@ export const PALETTE = {
   dalgyal: 0xf4f0d8,
   subway: 0x7fb7ff,
   dokkaebibul: 0x6ad8ff,
-  printer: 0xc77dff,
+  gumiho: 0xf4f1ff, // white fur
+  gumihoFire: 0x6fe3ff, // tail-tip fox fire (phase 2 uses neonPhase2)
   neonPhase2: 0xff3cac,
   nightAmbient: 0x9a8cd0, // multiply colour for the whole floor at night
   text: '#f6e7c1',

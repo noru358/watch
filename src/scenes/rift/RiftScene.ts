@@ -77,7 +77,7 @@ export class RiftScene extends Phaser.Scene {
     this.acc = 0;
     this.freezeLeft = 0;
     this.rng = new SeededRNG(store.takeRunSeed());
-    this.run = startRun({ contractId: 'euljiro_printer', level: 1, weapon: 'newspaper_sword' });
+    this.run = startRun({ contractId: 'lights_out', level: 1, weapon: 'newspaper_sword' });
 
     // Two cameras: the zoomed world camera follows the director; the UI camera stays 1:1.
     this.worldLayer = this.add.layer();

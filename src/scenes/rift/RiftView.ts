@@ -88,7 +88,7 @@ export class RiftView {
     // y-sort: whoever stands lower on screen is drawn in front.
     const draws: { y: number; fn: () => void }[] = f.enemies.map((e) => ({
       y: e.y,
-      fn: () => drawGhost(g, e, alpha, this.clock, this.flashing(e.id, dt)),
+      fn: () => drawGhost(g, e, alpha, this.clock, this.flashing(e.id, dt), f.boss?.phase === 2),
     }));
     draws.push({ y: f.player.y, fn: () => drawDirector(g, f.player, f, alpha, this.clock, (n) => pixelSprite(this.scene, directorKey(n))) });
     draws.sort((a, b) => a.y - b.y).forEach((d) => d.fn());

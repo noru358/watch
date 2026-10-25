@@ -44,7 +44,7 @@ function roomTile(room: Room, rng: SeededRNG, margin = 1): Pos {
 }
 
 export function makeEnemy(f: Floor, kind: EnemyId, at: Pos): Enemy {
-  const boss = kind === 'printer';
+  const boss = kind === 'gumiho';
   const hp = boss ? BOSSES[kind].hp : GHOSTS[kind].hp;
   const e: Enemy = {
     id: f.nextId++,

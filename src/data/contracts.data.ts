@@ -23,14 +23,14 @@ export interface ContractData {
 }
 
 export const CONTRACTS: Record<ContractId, ContractData> = {
-  // 을지로3가 정성당 인쇄소 지하: 「찍히지 못한 글자들」 (docs/design/2-night/contract.md)
-  euljiro_printer: {
+  // 불 꺼지는 골목: 구미호 「월하」 (docs/design/2-night/contract.md)
+  lights_out: {
     fee: 300,
     floors: [
       { kind: 'normal', enemies: 6, pool: ['cheonyeo', 'dalgyal'], payphone: false, swarm: wisps(6, 4, 12) },
       { kind: 'normal', enemies: 8, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: true, swarm: wisps(5, 5, 16) },
       { kind: 'normal', enemies: 9, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: false, swarm: wisps(4, 6, 22) },
-      { kind: 'boss', boss: 'printer', swarm: wisps(7, 4, 10) },
+      { kind: 'boss', boss: 'gumiho', swarm: wisps(7, 4, 10) },
     ],
   },
 };

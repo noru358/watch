@@ -46,14 +46,14 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
     bus.on('enemyHit', (e) => {
       hooks.view.flash(e.entityId);
       hooks.freeze(e.empowered ? FEEL.hitStopHeavy : FEEL.hitStopHit);
-      const fodder = e.kind !== 'printer' && GHOSTS[e.kind].fodder;
+      const fodder = e.kind !== 'gumiho' && GHOSTS[e.kind].fodder;
       const size = e.empowered ? FEEL.popupSizeBig : fodder ? FEEL.popupSizeSmall : FEEL.popupSize;
       popup(scene, e.x, e.y, String(Math.max(1, Math.round(e.amount))), e.empowered ? PALETTE.healText : PALETTE.damageText, size);
       playSfx('hit');
     }),
     bus.on('enemyKilled', (e) => {
       // Swarm fodder pops without freezing the screen, or packs would stutter the game.
-      const fodder = e.kind !== 'printer' && GHOSTS[e.kind].fodder;
+      const fodder = e.kind !== 'gumiho' && GHOSTS[e.kind].fodder;
       if (!fodder) {
         hooks.freeze(FEEL.hitStopKill);
         cam.shake(FEEL.shakeKill.duration, FEEL.shakeKill.intensity);

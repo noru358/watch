@@ -10,8 +10,8 @@ function band(f: Floor, axis: 'row' | 'col', data: BossData, time: number): Tele
   return { shape: 'band', x: p.x, y: p.y, angle: 0, range: 0, width: data.sweepWidth, axis, t: time, total: time, damage: data.sweepDamage, parriable: false, darkness: 0 };
 }
 
-// 활자귀 「미발송」 (id printer): paper-roller sweep across the room (cannot be countered — dodge it),
-// close-range slam (counter it with 발도), summons maidens. Phase 2 sweeps row + column, faster.
+// 구미호 「월하」: nine-tail sweep across the room (cannot be countered — dodge it),
+// close-range pounce (counter it with 발도), scatters fox-fire wisps. Phase 2 sweeps row + column, faster.
 export function updateBoss(f: Floor, e: Enemy, dt: number, rng: SeededRNG, data: BossData): void {
   const b = f.boss;
   if (!b) return;
@@ -42,11 +42,12 @@ export function updateBoss(f: Floor, e: Enemy, dt: number, rng: SeededRNG, data:
   }
   if (b.summonTimer <= 0) {
     b.summonTimer = data.summonEvery * mult;
-    for (let i = 0; i < 6; i++) {
+    let placed = 0;
+    for (let i = 0; i < 6 * data.summonCount && placed < data.summonCount; i++) {
       const spot = { x: e.x + rng.range(-data.summonSpread, data.summonSpread), y: e.y + rng.range(...data.summonBelow) };
       if (isFloor(f, Math.floor(spot.x), Math.floor(spot.y))) {
         makeEnemy(f, data.summon, spot).state = 'chase';
-        break;
+        placed++;
       }
     }
   }

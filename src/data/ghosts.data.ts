@@ -45,15 +45,16 @@ export interface BossData {
   speed: number;
   radius: number;
   drop: number;
-  slamRange: number; // close-range slam (parriable circle)
+  slamRange: number; // close-range pounce (parriable circle)
   slamTrigger: number; // starts a slam when the director is this close (edge to edge)
   slamWindup: number;
-  sweepEvery: number; // paper-roller band across the room (cannot be countered)
+  sweepEvery: number; // tail sweep: a band across the room (cannot be countered)
   sweepWindup: number;
   sweepWidth: number;
   sweepDamage: number;
   summonEvery: number;
   summon: GhostId;
+  summonCount: number; // ghosts per summon
   summonSpread: number; // ± tiles sideways from the boss
   summonBelow: readonly [number, number]; // tiles below the boss
   recover: number;
@@ -62,8 +63,8 @@ export interface BossData {
 }
 
 export const BOSSES: Record<BossId, BossData> = {
-  // 활자귀 「미발송」 (id printer): sweeps a row (phase 2: row + column) with paper rollers, slams up close, summons maidens.
-  printer: {
+  // 구미호 「월하」: nine tails sweep a row (phase 2: row + column), pounces up close, scatters fox-fire wisps.
+  gumiho: {
     hp: 120,
     damage: 3,
     speed: 1.1,
@@ -77,7 +78,8 @@ export const BOSSES: Record<BossId, BossData> = {
     sweepWidth: 1.3,
     sweepDamage: 3,
     summonEvery: 8,
-    summon: 'cheonyeo',
+    summon: 'dokkaebibul',
+    summonCount: 3,
     summonSpread: 2,
     summonBelow: [1, 2.5],
     recover: 0.9,
