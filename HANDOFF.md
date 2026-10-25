@@ -1,6 +1,6 @@
 # HANDOFF
 
-Branch: all work is on `claude/admiring-keller-rdwk4w` (not `main`). Read `ARCHITECTURE.md` first, then this file. The human's map is `GUIDE.md` (Korean, keep in sync).
+Branch: work continues on `claude/vigilant-turing-c8w4ga` (fast-forwarded from `claude/admiring-keller-rdwk4w`, which holds everything up to `e500602`; `main` is still only the first docs commit). Read `ARCHITECTURE.md` first, then this file. The human's map is `GUIDE.md` (Korean, keep in sync).
 
 ## Status (2026-10-25, session 2) — Gate 2 started; Gate 1 art/feel polish continues in parallel
 User decision this session: start Gate 2 now and keep finishing Gate 1 alongside ("병행"). CLAUDE.md scope line and ARCHITECTURE v1.2 updated accordingly (pending changes a/b/c applied).
