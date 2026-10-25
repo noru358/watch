@@ -66,7 +66,13 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 - Raw generated sheets are kept in `assets/source/gemini/` (v1 in use, v2 rejected), cleaned frames in `assets/sprites/`; rules in `assets/README.md`. Personal reference photos and third-party game screenshots (Soul Knight) are NOT committed.
 - All work lives on branch `claude/admiring-keller-rdwk4w` (not `main`).
 
+### Round 8 (2026-10-25): director attack / 발도 poses
+- Gemini sheet v3 (extra frames) cleaned into `assets/sprites/director-gemini-v3/`; `clean_sheet.py` now drops magenta-key fringe pixels.
+- `sprites.data.ts`: frames are "set:number" (`DIRECTOR_SETS` v1/v3); anims idle/walk/attack/draw/dash/hurt/ko; attack shows for `attackShow` after a swing, 발도 for `drawShow`; `handReach` moves the sword grip forward on extended-arm frames; sword grip lowered to the hip. `draw/directorFrames.ts` globs every `director-gemini-*` folder.
+- Gemini common rules now require the game screenshot + same chibi proportions / pixel size / muted colours (first ghost/sword attempts were off-style). Those images were pasted in chat only, not received as files.
+
 ## Verified
+- Round 8: `npm run check` 47 tests pass; Playwright: idle / attack / 발도 / dash poses switch, sword at hip height, no page errors.
 - Round 6: `npm run check` 46 tests pass; Playwright: new scale renders, Esc opens/closes pause, 3 = give up → end screen, no page errors.
 - Art pass: `npm run check` 45 tests pass; Playwright: director faces ↘/↙ (mirror)/↑ and dashes correctly, staged ghosts render with lighting, no page errors. Not human-played yet.
 - Round 4: `npm run check` 45 tests pass. Playwright: new game writes a v1 save on 출동; a hand-written v1 save (money 777, solved 4) shows in the office after reload; keyboard run after the view split renders as before, no page errors.

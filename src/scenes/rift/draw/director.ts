@@ -1,19 +1,33 @@
 import { FEEL, PALETTE } from '../../../data/feel.data';
 import { EXORCISTS } from '../../../data/protagonist.data';
-import { DIRECTOR_SPRITE, type DirectorAnim } from '../../../data/sprites.data';
+import { DIRECTOR_SPRITE, type DirectorAnim, type DirectorFrame } from '../../../data/sprites.data';
 import { WEAPONS } from '../../../data/weapons.data';
 import type { Floor, Player } from '../../../systems/rift';
 import { lerp, shadow, T, type G } from './common';
 import { drawPixelSprite, type PixelSprite } from './pixelSprite';
 
-type FrameLookup = (frame: number) => PixelSprite | null;
+type FrameLookup = (frame: DirectorFrame) => PixelSprite | null;
 
 // Which animation and frame to show, from the player's render hints.
-function pickFrame(p: Player, clock: number): { anim: DirectorAnim; frame: number } {
-  const hurt = p.iframes > EXORCISTS.director.hurtIframes - DIRECTOR_SPRITE.hurtShow && p.dashT <= 0;
-  const anim: DirectorAnim = p.hp <= 0 ? 'ko' : hurt ? 'hurt' : p.dashT > 0 ? 'dash' : p.moving ? 'walk' : 'idle';
-  const list = DIRECTOR_SPRITE.frames[anim];
-  return { anim, frame: list[Math.floor(clock * DIRECTOR_SPRITE.fps) % list.length] ?? list[0] ?? 0 };
+// `reach`: the arm is extended (attack / 발도 follow-through), so the sword sits further forward.
+const nth = (list: readonly [DirectorFrame, ...DirectorFrame[]], i: number): DirectorFrame => list[i] ?? list[0];
+
+function pickFrame(p: Player, clock: number): { anim: DirectorAnim; frame: DirectorFrame; reach: boolean } {
+  const S = DIRECTOR_SPRITE;
+  const hurt = p.iframes > EXORCISTS.director.hurtIframes - S.hurtShow && p.dashT <= 0;
+  if (p.hp <= 0) return { anim: 'ko', frame: S.frames.ko[0], reach: false };
+  if (hurt) return { anim: 'hurt', frame: S.frames.hurt[0], reach: false };
+  if (p.drawFx < S.drawShow) {
+    const lunge = p.drawFx >= S.drawShow * 0.4;
+    return { anim: 'draw', frame: nth(S.frames.draw, lunge ? 1 : 0), reach: lunge };
+  }
+  if (p.swingFx < S.attackShow) {
+    const swung = p.swingFx >= S.attackShow / 2;
+    return { anim: 'attack', frame: nth(S.frames.attack, swung ? 1 : 0), reach: swung };
+  }
+  const anim: DirectorAnim = p.dashT > 0 ? 'dash' : p.moving ? 'walk' : 'idle';
+  const list = S.frames[anim];
+  return { anim, frame: nth(list, Math.floor(clock * S.fps) % list.length), reach: false };
 }
 
 // The director: body (pixel sprite when loaded, shapes otherwise), the separately drawn
@@ -21,7 +35,7 @@ function pickFrame(p: Player, clock: number): { anim: DirectorAnim; frame: numbe
 export function drawDirector(g: G, p: Player, f: Floor, alpha: number, clock: number, frames: FrameLookup): void {
   const x = lerp(p.prevX, p.x, alpha) * T;
   const y = lerp(p.prevY, p.y, alpha) * T;
-  const { anim, frame } = pickFrame(p, clock);
+  const { anim, frame, reach } = pickFrame(p, clock);
   const sprite = frames(frame);
   if (sprite) {
     shadow(g, x, y, 7);
@@ -29,8 +43,9 @@ export function drawDirector(g: G, p: Player, f: Floor, alpha: number, clock: nu
     const flip = Math.cos(p.aim) < 0;
     const behind = Math.sin(p.aim) < -0.3;
     const breathe = anim === 'idle' ? Math.round((Math.sin(clock * DIRECTOR_SPRITE.breathe * Math.PI) + 1) / 2) : 0;
-    const hx = x + (flip ? -DIRECTOR_SPRITE.hand.x : DIRECTOR_SPRITE.hand.x);
-    const hy = y + DIRECTOR_SPRITE.hand.y;
+    const hand = reach ? DIRECTOR_SPRITE.handReach : DIRECTOR_SPRITE.hand;
+    const hx = x + (flip ? -hand.x : hand.x);
+    const hy = y + hand.y;
     if (behind) drawSword(g, p, f, hx, hy);
     if (!blink) drawPixelSprite(g, sprite, x, y + 1 + breathe, flip);
     if (!behind) drawSword(g, p, f, hx, hy);

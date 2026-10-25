@@ -3,7 +3,7 @@
 ← [아트 모듈](art.md) · 2026-10-25. 주인공 명세는 [director-sprite-spec.md](director-sprite-spec.md).
 
 ## 쓰는 법
-- 대화를 시작할 때 **주인공 1차 시트**(`assets/source/gemini/director-sheet-v1.png`)를 그림체 기준으로 같이 첨부한다. 모든 그림이 그 시트와 같은 픽셀 굵기·외곽선·색감이어야 한다.
+- 대화를 시작할 때 **주인공 1차 시트**(`assets/source/gemini/director-sheet-v1.png`)와 **게임 스크린샷 한 장**(주인공·귀신·바닥이 같이 보이는 화면)을 그림체 기준으로 같이 첨부한다. 첫 시도(지하철 망령·처녀귀신·칼)는 비율(8등신), 픽셀 굵기(더 잘음), 색(밝은 스티커 톤)이 따로 놀아서 이 세 조건을 공통 규칙에 넣었다. 모든 그림이 그 시트와 같은 픽셀 굵기·외곽선·색감이어야 한다.
 - 아래 "공통 규칙"을 한 번 붙여 넣고, 그다음 그림마다 프롬프트를 하나씩 보낸다(한 번에 하나).
 - 받은 원본은 `assets/source/gemini/`에 보관하고, `tools/spritekit/clean_sheet.py`로 정리해서 `assets/sprites/`에 넣는다(→ `assets/README.md`). 배경이 단색 분홍이어야 깨끗하게 지워진다.
 
@@ -18,7 +18,11 @@
 ## 공통 규칙 (먼저 한 번 붙여 넣기)
 
 ```
-We are making pixel-art sprites for a top-down action game set in a fantasy version of Seoul at night (urban folklore ghosts, comedic tone). The attached sprite sheet is the STYLE MASTER: match its pixel size, outline thickness, shading and color mood exactly.
+We are making pixel-art sprites for a top-down action game set in a fantasy version of Seoul at night (urban folklore ghosts, comedic tone). Two images are attached: (1) the main character's sprite sheet, the STYLE MASTER, and (2) a screenshot of the game.
+Everything you draw must look like it was made by the same artist as (1) and belongs in (2):
+- the same chibi proportions as the main character (big head, about 2 heads tall), never realistic tall proportions;
+- the same pixel size (one art pixel as big as the main character's pixels), not finer;
+- muted, slightly desaturated colors that fit the dark purple night of the screenshot, not bright sticker-like colors or smooth gradients.
 Rules for every image I ask for:
 - Background: one flat solid color #FF00FF everywhere. No checkerboard, no gradient, no shadow on the background.
 - Pixel grid: draw at the stated art size, then upscale by exactly 8x with nearest neighbor (each art pixel = one 8x8 block). No anti-aliasing, no blur, no noise.

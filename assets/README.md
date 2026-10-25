@@ -8,6 +8,8 @@
 지금 들어 있는 것:
 - `source/gemini/director-sheet-v1.png` — 주인공 1차(사용 중, 디자인 기준)
 - `source/gemini/director-sheet-v2-rejected.png` — 주인공 2차(톤이 달라 폐기, 기록용)
-- `sprites/director-gemini-v1/` — 1차를 정리한 프레임 22장 + `palette.txt`. 동작별 번호는 `src/data/sprites.data.ts`
+- `source/gemini/director-sheet-v3-extra.png` — 주인공 추가 프레임(빈손 서 있기·걷기·베기·발도·피격, 사용 중)
+- `sprites/director-gemini-v1/` — 1차를 정리한 프레임 22장 + `palette.txt`(지금은 쓰러짐 21번만 사용)
+- `sprites/director-gemini-v3/` — 추가 프레임 정리본 17장. 동작별 번호는 `src/data/sprites.data.ts`
 
 새 그림을 받으면: 원본을 `source/<도구>/`에 넣고 → `python3 tools/spritekit/clean_sheet.py 원본 결과폴더` → 결과를 `sprites/<이름>/`에 → `src/data/sprites.data.ts`(또는 해당 그림 파일)에 연결.
