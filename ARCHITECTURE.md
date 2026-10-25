@@ -71,9 +71,9 @@ src/
  ├── registry/    # Behaviour by ID: cardEffects.ts (upgrade-card hooks); later companion skills
  ├── store/       # GameStore (single source of truth) + actions
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
- │                #   rift/ (one floor: map gen, tile physics, player, enemies, boss, telegraphs), run/ (a night: floors, cards, stats, settlement),
+ │                #   rift/ (one floor: map gen, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement),
  │                #   later: recruit/, economy/, dispatch/, rental/, shop/
- ├── scenes/      # Phaser, one folder per screen: rift/ (night), shared/ (Overlay panels, vfx, sfx), later hub/
+ ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view, HUD), shared/ (Overlay panels, vfx, sfx, crisp text), later hub/
  └── ui/          # React: OfficeApp (Gate 1 placeholder), later features/<featureId>/
 tests/            # Vitest specs mirroring src/systems and src/store
 maps/             # Tiled source maps (.tmx/.json) and tilesets

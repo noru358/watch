@@ -69,7 +69,7 @@ export function makeEnemy(f: Floor, kind: EnemyId, at: Pos): Enemy {
   return e;
 }
 
-function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry): Floor {
+function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, plan: FloorPlan): Floor {
   const d = EXORCISTS.director;
   return {
     index,
@@ -105,6 +105,8 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry):
     enemies: [],
     pickups: [],
     boss: null,
+    swarm: plan.swarm,
+    swarmTimer: plan.swarm ? plan.swarm.every / 2 : 0,
     weapon: carry.weapon,
     stats: carry.stats,
     cards: [...carry.cards],
@@ -155,7 +157,7 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
     return roomTile(rng.pick(from), rng);
   };
   const others = rooms.length > 1 ? rooms.slice(1) : rooms;
-  const f = baseFloor(index, tiles, start, carry);
+  const f = baseFloor(index, tiles, start, carry, plan);
   f.stairs = free([rooms[rooms.length - 1]!]);
   if (plan.payphone) f.payphone = free(others);
   for (let i = 0; i < plan.enemies; i++) makeEnemy(f, rng.pick(plan.pool), free(others));
@@ -170,7 +172,7 @@ function bossFloor(index: number, plan: Extract<FloorPlan, { kind: 'boss' }>, ca
   const room = { x: Math.floor((cols - bossRoom.w) / 2), y: Math.floor((rows - bossRoom.h) / 2), w: bossRoom.w, h: bossRoom.h };
   carveRoom(tiles, room);
   const cx = room.x + Math.floor(room.w / 2);
-  const f = baseFloor(index, tiles, centre(cx, room.y + room.h - 2), carry);
+  const f = baseFloor(index, tiles, centre(cx, room.y + room.h - 2), carry, plan);
   const boss = makeEnemy(f, plan.boss, centre(cx, room.y + 2));
   const data = BOSSES[plan.boss];
   f.boss = { id: boss.id, phase: 1, sweepTimer: data.sweepEvery, summonTimer: data.summonEvery };

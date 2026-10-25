@@ -3,7 +3,7 @@ import { WEAPONS } from '../../data/weapons.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import { hitEnemy } from './combat';
 import { angleDiff, dist, inTelegraph, moveBody } from './physics';
-import type { Floor, RiftInput } from './types';
+import type { Enemy, Floor, RiftInput } from './types';
 
 const dirOf = (a: number) => ({ x: Math.cos(a), y: Math.sin(a) });
 
@@ -30,19 +30,26 @@ function swing(f: Floor, rng: SeededRNG): void {
   f.events.push({ type: 'slash', x: p.x, y: p.y });
 }
 
-// 발도: counters melee telegraphs about to land on the director (last parryWindow seconds,
-// enemy within drawReach). With a full focus gauge it is a free strike all around.
-// Otherwise it whiffs and leaves the director open for a moment.
-function draw(f: Floor, rng: SeededRNG): void {
+// Enemies whose melee telegraph would be countered by a 발도 right now
+// (in its last parryWindow seconds, aimed at the director, within drawReach).
+export function counterable(f: Floor): Enemy[] {
   const p = f.player;
   const w = WEAPONS[f.weapon];
-  const s = f.stats;
-  const countered = f.enemies.filter(
+  return f.enemies.filter(
     (e) =>
       e.hp > 0 &&
       dist(e, p) - e.r <= w.drawReach &&
       e.teles.some((t) => t.parriable && t.t <= w.parryWindow && inTelegraph(t, p, p.r)),
   );
+}
+
+// 발도: counters melee telegraphs about to land on the director. With a full focus
+// gauge it is a free strike all around. Otherwise it whiffs and leaves the director open.
+function draw(f: Floor, rng: SeededRNG): void {
+  const p = f.player;
+  const w = WEAPONS[f.weapon];
+  const s = f.stats;
+  const countered = counterable(f);
   if (countered.length > 0) {
     for (const e of countered) {
       e.teles = e.teles.filter((t) => !t.parriable);
@@ -95,14 +102,15 @@ export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: Seeded
 
   if (p.dashT > 0) {
     p.dashT -= dt;
-    moveBody(f, p, p.dashX * d.dashSpeed * dt, p.dashY * d.dashSpeed * dt);
+    moveBody(f, p, p.dashX * d.dashSpeed * dt, p.dashY * d.dashSpeed * dt, d.cornerNudge);
     p.moving = true;
   } else {
     const len = Math.hypot(input.moveX, input.moveY);
     p.moving = len > 0;
     if (len > 0) {
-      const speed = d.moveSpeed * (p.swingT > 0 || busy ? d.swingMoveMult : 1);
-      moveBody(f, p, (input.moveX / len) * speed * dt, (input.moveY / len) * speed * dt);
+      const slowed = busy || p.swingFx < d.swingSlowTime;
+      const speed = d.moveSpeed * (slowed ? d.swingMoveMult : 1);
+      moveBody(f, p, (input.moveX / len) * speed * dt, (input.moveY / len) * speed * dt, d.cornerNudge);
     }
   }
 

@@ -3,6 +3,7 @@ import type { SeededRNG } from '../../core/SeededRNG';
 import { updateEnemies } from './enemies';
 import { dist, savePrev, updateFlow } from './physics';
 import { updatePlayer } from './player';
+import { updateSwarm } from './spawner';
 import type { Floor, RiftInput } from './types';
 
 function updatePickups(f: Floor, dt: number): void {
@@ -45,6 +46,7 @@ export function stepFloor(f: Floor, input: RiftInput, dt: number, rng: SeededRNG
   updatePlayer(f, input, dt, rng);
   updateEnemies(f, dt, rng);
   if (f.status !== 'playing') return;
+  updateSwarm(f, dt, rng);
   updatePickups(f, dt);
   updateExits(f);
 }

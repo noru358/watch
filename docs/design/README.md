@@ -20,8 +20,9 @@ contract   party·protagonist   combat·contract   run-result·recruit   economy
 |------|------|------|----------|------|----------------|
 | 기준 | 세계관·톤 | [world.md](world.md) | — (모든 모듈이 따름) | 📝 | — |
 | 기준 | 플레이 흐름 (종합) | [playflow.md](playflow.md) | — (여러 모듈을 엮은 설명) | 📝 | — |
-| 기준 | 플랫폼·입력 | [platform.md](platform.md) | `core/InputManager.ts`, `core/platform.ts`(예정) | 🟢 키보드만 | 1 |
+| 기준 | 플랫폼·입력 | [platform.md](platform.md) | `core/InputManager.ts`, `data/input.data.ts` | 🟢 키보드+마우스 | 1 |
 | 밤 | **전투 방식** | [combat.md](combat.md) | `systems/rift/`, `systems/run/`, `scenes/rift/` | 🟢 코어키퍼식 실시간 | 1 |
+| 밤 | 괴이 도감 (강적·잡몹·보스) | [enemies.md](enemies.md) | `data/ghosts.data.ts`, `systems/rift/enemies.ts`·`boss.ts`·`spawner.ts` | 🟢 강적 3 · 잡몹 1 · 보스 1 | 1 |
 | 밤 | 주인공·무기 | [protagonist.md](protagonist.md) | `data/protagonist.data.ts`, `data/weapons.data.ts`, `systems/run/stats.ts` | 🟢 무기 A | 1 |
 | 밤 | 의뢰·현장 | [contract.md](contract.md) | `data/contracts.data.ts`, `data/dungeon.data.ts`, `systems/rift/mapgen.ts` | 🟢 을지로 1건 | 1 |
 | 밤 | 실패·정산 | [run-result.md](run-result.md) | `data/penalties.data.ts`, `systems/run/` | 🟢 | 1 |

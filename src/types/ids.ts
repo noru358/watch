@@ -2,7 +2,7 @@
 
 export type ExorcistId = 'director';
 export type WeaponId = 'newspaper_sword'; // weapon B 'label_gun' arrives in Gate 2
-export type GhostId = 'cheonyeo' | 'dalgyal' | 'subway';
+export type GhostId = 'cheonyeo' | 'dalgyal' | 'subway' | 'dokkaebibul';
 export type BossId = 'printer';
 export type EnemyId = GhostId | BossId;
 export type BaseCardId = 'tough' | 'medicine' | 'salt_ward' | 'grudge_drain' | 'spirit_nose';

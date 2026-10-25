@@ -20,18 +20,42 @@ function blockedBox(f: Floor, x: number, y: number, r: number): boolean {
 }
 
 // Moves a body against the tile grid, one axis at a time so it slides along walls.
+// With `nudge` > 0, a body pushing straight into a wall corner is slid sideways
+// (up to `nudge` tiles) toward the open lane instead of stopping dead.
 // Returns true if any axis was blocked.
-export function moveBody(f: Floor, b: Body, dx: number, dy: number): boolean {
+export function moveBody(f: Floor, b: Body, dx: number, dy: number, nudge = 0): boolean {
   let hit = false;
   if (dx !== 0) {
     if (!blockedBox(f, b.x + dx, b.y, b.r)) b.x += dx;
-    else hit = true;
+    else {
+      hit = true;
+      if (dy === 0 && nudge > 0) slideAround(f, b, 'y', dx, nudge);
+    }
   }
   if (dy !== 0) {
     if (!blockedBox(f, b.x, b.y + dy, b.r)) b.y += dy;
-    else hit = true;
+    else {
+      hit = true;
+      if (dx === 0 && nudge > 0) slideAround(f, b, 'x', dy, nudge);
+    }
   }
   return hit;
+}
+
+// Corner correction: find the nearest sideways offset that lets the move through, then step toward it.
+function slideAround(f: Floor, b: Body, side: 'x' | 'y', step: number, nudge: number): void {
+  for (let k = 1; k <= 4; k++) {
+    for (const s of [1, -1]) {
+      const off = (s * nudge * k) / 4;
+      const nx = side === 'x' ? b.x + off : b.x + step;
+      const ny = side === 'y' ? b.y + off : b.y + step;
+      if (blockedBox(f, nx, ny, b.r)) continue;
+      const move = Math.sign(off) * Math.min(Math.abs(step), Math.abs(off));
+      if (side === 'x' && !blockedBox(f, b.x + move, b.y, b.r)) b.x += move;
+      if (side === 'y' && !blockedBox(f, b.x, b.y + move, b.r)) b.y += move;
+      return;
+    }
+  }
 }
 
 // Straight line clear of walls (sampled every losStep tiles).

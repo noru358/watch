@@ -21,8 +21,16 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 | Screens | `src/scenes/rift/` (RiftScene: fixed step, hit-stop, world camera ×2.5 following the director + 1:1 UI camera via layers, mouse→world aim; RiftView: 3/4 walls, shadows, y-sort, separate sword, telegraph shapes), `src/scenes/shared/` (Overlay on UI layer, vfx on world layer, sfx) |
 | Tests | `tests/core`, `tests/rift` (rules), `tests/run`, `tests/balance` (+ `bots.ts`, `helpers.ts`) |
 
+### This session's follow-up (user feedback on the real-time build)
+- User: "much better, go with this". Added swarm fodder: `dokkaebibul` (2 HP, contact 1 dmg, no telegraph, `fodder: true`), waves from `src/systems/rift/spawner.ts` driven by `swarm` in each floor plan (`contracts.data.ts`), spawned 7–12 tiles away on reachable tiles, capped. Fodder kills don't hit-stop.
+- Feel ("sticky"): swing slowdown only for the first 0.1 s at 70% (was the whole swing at 45%), small hit-stops 0.012 s with a 0.15 s cooldown in `RiftScene.freeze`, corner correction in `physics.moveBody(…, nudge)`.
+- Keyboard-only: Z/X/C and Shift added; keyboard aim = move direction, or nearest ghost within 3 tiles when standing still.
+- HUD split into `src/scenes/rift/RiftHud.ts`: top info + bottom key bar (dash cooldown, 발도 "지금!" cue from `counterable()` in `systems/rift/player.ts`, "일섬 가능"). UI text rendered via `scenes/shared/text.ts` `crisp()` (resolution 3) — fixes blurry text when the canvas is scaled.
+- New design module `docs/design/enemies.md` (roles: strong / swarm / boss).
+
 ## Verified
-- `npm run check`: tsc clean, 37 tests pass (incl. balance). `vite build` OK.
+- `npm run check`: tsc clean, 40 tests pass (incl. balance: naive 0/8, skilled 8/8 with swarm). `vite build` OK.
+- Keyboard-only browser run (Playwright, DPR 2): swarm waves appear, HUD bar readable and sharp, no page errors.
 - Playwright (scratchpad scripts, not committed): day → night start, camera/walls render, staged close fight (yellow telegraph, swing, parry → "검신 노출", darkness after a dalgyal hit), boss floor row sweep. No page errors.
 
 ## Known issues / unverified

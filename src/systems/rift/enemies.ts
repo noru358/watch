@@ -79,7 +79,10 @@ function updateGhost(f: Floor, e: Enemy, dt: number, rng: SeededRNG): void {
       return;
     }
   }
-  if (data.attack === 'line') {
+  if (data.attack === 'none') {
+    // Swarm fodder: just rushes in; touching the director burns.
+    if (d <= e.r + p.r) hurtPlayer(f, data.contactDamage, 0);
+  } else if (data.attack === 'line') {
     if (d <= data.attackRange && lineOfSight(f, e, p)) {
       e.teles = [tele('line', e, toP, data.attackRange, data.attackSize, data.windup, data.damage, false, data.darkness)];
       e.state = 'windup';

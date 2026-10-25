@@ -8,13 +8,17 @@ export const FEEL = {
   zoom: 2.5, // world camera zoom
   wallFace: 9, // px height of a wall's front face (3/4 view)
   cameraLerp: 10, // camera follow speed per second
-  mouseAimTimeout: 1.5, // seconds without mouse movement before aim falls back to facing
+  mouseAimTimeout: 1.5, // seconds without mouse movement before aim falls back to keyboard aim
+  keyboardSnapRange: 3, // keyboard aim: when standing still, face the nearest ghost within this many tiles
+  uiTextResolution: 3, // UI text is rendered at this resolution so it stays crisp when the canvas is scaled
   bobHeight: 1.5, // px hop while walking
   ghostFloat: 2, // px ghost float amplitude
-  hitStopHit: 0.035, // seconds the screen holds on a hit
-  hitStopKill: 0.07,
-  hitStopHurt: 0.1,
+  hitStopHit: 0.012, // seconds the screen holds on a normal hit (short: frequent hits must not stutter)
+  hitStopHeavy: 0.04, // 3rd combo hit / draw strike
+  hitStopKill: 0.03, // strong ghosts only; swarm kills don't freeze
+  hitStopHurt: 0.06,
   hitStopParry: 0.12,
+  hitStopCooldown: 0.15, // a new small hit-stop is ignored this soon after the last one
   shakeHurt: { duration: 160, intensity: 0.012 },
   shakeKill: { duration: 90, intensity: 0.005 },
   shakeBossPhase: { duration: 500, intensity: 0.02 },
@@ -48,6 +52,7 @@ export const PALETTE = {
   cheonyeo: 0xe8e8ff,
   dalgyal: 0xf4f0d8,
   subway: 0x7fb7ff,
+  dokkaebibul: 0x6ad8ff,
   printer: 0xc77dff,
   neonPhase2: 0xff3cac,
   text: '#f6e7c1',

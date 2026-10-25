@@ -42,7 +42,7 @@ describe('floor generation', () => {
   });
 
   it('the boss floor is one room with the boss and no stairs', () => {
-    const f = generateFloor(3, { kind: 'boss', boss: 'printer' }, new SeededRNG(1), carry());
+    const f = generateFloor(3, { kind: 'boss', boss: 'printer', swarm: null }, new SeededRNG(1), carry());
     expect(f.stairs).toBeNull();
     expect(f.enemies.map((e) => e.kind)).toEqual(['printer']);
   });
@@ -56,6 +56,16 @@ describe('movement', () => {
     run(f, rng, 2, { moveX: 1, moveY: 0.3 });
     expect(f.player.x).toBeLessThan(12 - f.player.r + 0.01);
     expect(f.player.y).toBeGreaterThan(10.6);
+  });
+
+  it('pushing into a wall corner slides the director around it', () => {
+    const { f, rng } = duel();
+    f.enemies = [];
+    // A wall tile right in front, with open floor just above it.
+    f.tiles[10 * f.cols + 11] = 'wall';
+    Object.assign(f.player, { x: 10.5, y: 10.05 }); // overlaps the wall's row by less than the nudge
+    run(f, rng, 0.6, { moveX: 1 });
+    expect(f.player.x).toBeGreaterThan(11.2);
   });
 
   it('a dash moves fast and grants brief invulnerability', () => {
@@ -120,6 +130,29 @@ describe('ghost telegraphs', () => {
     stepFloor(b.f, NO_INPUT, DT, b.rng);
     run(b.f, b.rng, GHOSTS.subway.windup, { moveY: 1 });
     expect(b.f.player.hp).toBe(MAX);
+  });
+});
+
+describe('swarm', () => {
+  it('fodder arrive out of sight on a timer and never exceed the cap', () => {
+    const { f, rng } = duel();
+    f.enemies = [];
+    f.swarm = { kind: 'dokkaebibul', every: 1, group: 5, cap: 7, near: 4, far: 8 };
+    f.swarmTimer = 0;
+    stepFloor(f, NO_INPUT, DT, rng);
+    expect(f.enemies.length).toBe(5);
+    for (const e of f.enemies) expect(Math.hypot(e.x - f.player.x, e.y - f.player.y)).toBeGreaterThan(3);
+    run(f, rng, 1.1);
+    expect(f.enemies.length).toBeLessThanOrEqual(7);
+  });
+
+  it('fodder hurt on touch and die in one or two hits', () => {
+    const { f, rng, e } = duel('dokkaebibul', 0.4);
+    stepFloor(f, NO_INPUT, DT, rng);
+    expect(f.player.hp).toBe(MAX - GHOSTS.dokkaebibul.contactDamage);
+    run(f, rng, 1);
+    stepFloor(f, { ...NO_INPUT, attack: true, aim: Math.atan2(e.y - f.player.y, e.x - f.player.x) }, DT, rng);
+    expect(f.enemies.length).toBe(0);
   });
 });
 
@@ -197,7 +230,7 @@ describe('floor exits and cards', () => {
 describe('boss', () => {
   function bossFloor() {
     const rng = new SeededRNG(4);
-    const f = generateFloor(3, { kind: 'boss', boss: 'printer' }, rng, carry());
+    const f = generateFloor(3, { kind: 'boss', boss: 'printer', swarm: null }, rng, carry());
     return { f, rng, boss: f.enemies[0]! };
   }
 

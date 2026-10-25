@@ -1,11 +1,14 @@
 import Phaser from 'phaser';
 import { PALETTE, SCREEN } from '../../data/feel.data';
 import { t } from '../../i18n';
+import { crisp } from './text';
 import type { RunResult, Settlement } from '../../systems/run';
 
 const W = SCREEN.width;
 const H = SCREEN.height;
 const TEXT = { fontFamily: PALETTE.font, color: PALETTE.text };
+
+const crispText = (scene: Phaser.Scene, ...args: Parameters<Phaser.GameObjects.GameObjectFactory['text']>) => crisp(scene.add.text(...args));
 
 // Canvas panels shown over the night: trait choice, run end, banners.
 export class Overlay {
@@ -37,7 +40,7 @@ export class Overlay {
   // Up to three numbered cards (강화 카드 or a choice prompt). Select with 1/2/3 or A/D + J.
   showCards(title: string, offer: readonly { name: string; desc: string }[]): void {
     this.reset();
-    this.layer.add(this.scene.add.text(W / 2, 90, title, { ...TEXT, fontSize: '24px' }).setOrigin(0.5));
+    this.layer.add(crispText(this.scene, W / 2, 90, title, { ...TEXT, fontSize: '24px' }).setOrigin(0.5));
     const cardW = 250;
     const gap = 24;
     const startX = W / 2 - (offer.length * cardW + (offer.length - 1) * gap) / 2;
@@ -46,10 +49,10 @@ export class Overlay {
       const box = this.scene.add.rectangle(x, 150, cardW, 230, PALETTE.panel).setOrigin(0).setStrokeStyle(2, PALETTE.wall);
       this.cards.push(box);
       this.layer.add(box);
-      this.layer.add(this.scene.add.text(x + 16, 166, `${i + 1}`, { ...TEXT, fontSize: '28px', color: PALETTE.damageText }));
-      this.layer.add(this.scene.add.text(x + 16, 214, card.name, { ...TEXT, fontSize: '20px' }));
+      this.layer.add(crispText(this.scene, x + 16, 166, `${i + 1}`, { ...TEXT, fontSize: '28px', color: PALETTE.damageText }));
+      this.layer.add(crispText(this.scene, x + 16, 214, card.name, { ...TEXT, fontSize: '20px' }));
       this.layer.add(
-        this.scene.add.text(x + 16, 254, card.desc, {
+        crispText(this.scene, x + 16, 254, card.desc, {
           ...TEXT,
           fontSize: '15px',
           color: PALETTE.textDim,
@@ -73,9 +76,9 @@ export class Overlay {
       `${t('result.total')}  ${s.moneyDelta}`,
     ];
     if (s.traumaDelta > 0) lines.push(`${t('result.trauma')}  +${s.traumaDelta}`);
-    this.layer.add(this.scene.add.text(W / 2, 150, title, { ...TEXT, fontSize: '36px' }).setOrigin(0.5));
-    this.layer.add(this.scene.add.text(W / 2, 270, lines.join('\n'), { ...TEXT, fontSize: '20px', align: 'center', lineSpacing: 10 }).setOrigin(0.5));
-    this.layer.add(this.scene.add.text(W / 2, 410, t('end.continue'), { ...TEXT, fontSize: '16px', color: PALETTE.textDim }).setOrigin(0.5));
+    this.layer.add(crispText(this.scene, W / 2, 150, title, { ...TEXT, fontSize: '36px' }).setOrigin(0.5));
+    this.layer.add(crispText(this.scene, W / 2, 270, lines.join('\n'), { ...TEXT, fontSize: '20px', align: 'center', lineSpacing: 10 }).setOrigin(0.5));
+    this.layer.add(crispText(this.scene, W / 2, 410, t('end.continue'), { ...TEXT, fontSize: '16px', color: PALETTE.textDim }).setOrigin(0.5));
   }
 
   banner(text: string): void {

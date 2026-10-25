@@ -10,12 +10,12 @@ import type { CardId } from '../../types/ids';
 import { answerPayphone, stepFloor, type Floor, type RiftInput } from '../../systems/rift';
 import { enterFloor, leaveFloor, offerCards, pickCard, runResult, startRun, totalFloors, type RunState } from '../../systems/run';
 import { Overlay } from '../shared/Overlay';
+import { RiftHud } from './RiftHud';
 import { attachVfx } from '../shared/vfx';
 import { RiftView, tileToPx } from './RiftView';
 
 type Mode = 'play' | 'cards' | 'payphone' | 'end';
 const END_INPUT_DELAY = 0.6; // seconds before the end panel accepts input
-const TEXT = { fontFamily: PALETTE.font, fontSize: '15px', color: PALETTE.text };
 
 function cardText(id: CardId): { name: string; desc: string } {
   const c = CARDS[id];
@@ -50,12 +50,11 @@ export class RiftScene extends Phaser.Scene {
   private worldLayer!: Phaser.GameObjects.Layer;
   private uiLayer!: Phaser.GameObjects.Layer;
   private uiCam!: Phaser.Cameras.Scene2D.Camera;
-  private hud!: Phaser.GameObjects.Text;
-  private focusLabel!: Phaser.GameObjects.Text;
-  private hudG!: Phaser.GameObjects.Graphics;
+  private hud!: RiftHud;
   private mode: Mode = 'play';
   private acc = 0;
   private freezeLeft = 0;
+  private sinceFreeze = 99; // seconds since the last hit-stop started
   private offer: CardId[] = [];
   private selected = 0;
   private endDelay = 0;
@@ -84,14 +83,10 @@ export class RiftScene extends Phaser.Scene {
 
     this.view = new RiftView(this, this.worldLayer);
     this.overlay = new Overlay(this, this.uiLayer);
-    this.hudG = this.add.graphics();
-    this.hud = this.add.text(12, 8, '', TEXT);
-    this.focusLabel = this.add.text(636, 8, t('rift.focus'), TEXT).setOrigin(1, 0);
-    const hint = this.add.text(SCREEN.width / 2, SCREEN.height - 16, t('rift.controlsHint'), { ...TEXT, fontSize: '12px', color: PALETTE.textDim }).setOrigin(0.5);
-    this.uiLayer.add([this.hudG, this.hud, this.focusLabel, hint]);
+    this.hud = new RiftHud(this, this.uiLayer);
 
     const off = attachVfx(this, eventBus, {
-      freeze: (s) => (this.freezeLeft = Math.max(this.freezeLeft, s)),
+      freeze: (s) => this.freeze(s),
       view: this.view,
       layer: this.worldLayer,
     });
@@ -99,6 +94,14 @@ export class RiftScene extends Phaser.Scene {
     this.loadFloor();
     // Dev-only read access for automated play-testing; stripped from production builds.
     if (import.meta.env.DEV) (window as unknown as { __rift?: unknown }).__rift = this;
+  }
+
+  // Hit-stop with a cooldown: frequent small hits must not make movement feel sticky.
+  // Big moments (hurt, parry, heavy hits) always freeze.
+  private freeze(seconds: number): void {
+    if (seconds <= FEEL.hitStopHit && this.sinceFreeze < FEEL.hitStopCooldown) return;
+    this.sinceFreeze = 0;
+    this.freezeLeft = Math.max(this.freezeLeft, seconds);
   }
 
   private loadFloor(): void {
@@ -127,6 +130,18 @@ export class RiftScene extends Phaser.Scene {
       const p = this.floor.player;
       this.aim = Math.atan2(world.y / FEEL.tile - (p.y - 0.5), world.x / FEEL.tile - p.x);
     } else if (moveX || moveY) this.aim = Math.atan2(moveY, moveX);
+    else {
+      // Keyboard play, standing still: face the nearest ghost in range.
+      const p = this.floor.player;
+      let best: number = FEEL.keyboardSnapRange;
+      for (const e of this.floor.enemies) {
+        const d = Math.hypot(e.x - p.x, e.y - p.y);
+        if (d < best) {
+          best = d;
+          this.aim = Math.atan2(e.y - p.y, e.x - p.x);
+        }
+      }
+    }
   }
 
   private readInput(): RiftInput {
@@ -143,6 +158,7 @@ export class RiftScene extends Phaser.Scene {
 
   update(_time: number, deltaMs: number): void {
     const dt = Math.min(deltaMs / 1000, 0.1);
+    this.sinceFreeze += dt;
     if (this.mode === 'end') {
       this.endDelay -= dt;
       if (this.endDelay > 0) input.clearPressed();
@@ -156,7 +172,8 @@ export class RiftScene extends Phaser.Scene {
     else this.simulate(dt);
     this.followCamera(dt);
     this.view.render(this.floor, this.acc / FEEL.fixedStep, dt);
-    this.renderHud();
+    const f = this.floor;
+    this.hud.render(f, f.boss ? t('rift.bossFloor') : t('rift.floor', { current: f.index + 1, total: totalFloors(this.run) - 1 }), dt);
   }
 
   private simulate(dt: number): void {
@@ -248,20 +265,4 @@ export class RiftScene extends Phaser.Scene {
     if (this.floor.status !== 'playing') this.afterFloorChange();
   }
 
-  private renderHud(): void {
-    const f = this.floor;
-    const p = f.player;
-    const g = this.hudG;
-    g.clear();
-    for (let i = 0; i < f.stats.maxHp; i++) g.fillStyle(i < p.hp ? PALETTE.hpBar : PALETTE.hpBarBack).fillRect(300 + i * 12, 11, 9, 12);
-    for (let i = 0; i < f.stats.focusMax; i++) g.fillStyle(i < p.focus ? PALETTE.focus : PALETTE.hpBarBack).fillRect(640 + i * 16, 11, 13, 12);
-    const boss = f.boss && f.enemies.find((e) => e.id === f.boss!.id);
-    if (boss) {
-      g.fillStyle(PALETTE.hpBarBack).fillRect(780, 13, 160, 8);
-      g.fillStyle(f.boss!.phase === 2 ? PALETTE.neonPhase2 : PALETTE.printer).fillRect(780, 13, (160 * Math.max(0, boss.hp)) / boss.maxHp, 8);
-    }
-    const floorText = f.boss ? t('rift.bossFloor') : t('rift.floor', { current: f.index + 1, total: totalFloors(this.run) - 1 });
-    this.hud.setText(`${floorText}   ${t('rift.loot', { value: f.loot })}${p.bare > 0 ? `   ${t('rift.bare')}` : ''}`);
-    this.focusLabel.setColor(p.focus >= f.stats.focusMax ? PALETTE.healText : PALETTE.text);
-  }
 }

@@ -183,6 +183,14 @@ export class RiftView {
         g.fillStyle(col, fade).fillRect(x - r, fy - r, r * 2, r * 1.6);
         g.fillStyle(0xfff3b0, fade * 0.8).fillRect(x - r * 0.7, fy - r * 0.6, r * 0.5, r * 0.4).fillRect(x + r * 0.2, fy - r * 0.6, r * 0.5, r * 0.4);
         break;
+      case 'dokkaebibul': {
+        // A will-o'-wisp: flickering blue flame, no body.
+        const flick = 0.75 + 0.25 * Math.sin(this.clock * 18 + e.id);
+        g.fillStyle(col, 0.35 * flick).fillCircle(x, fy, r * 1.6);
+        g.fillStyle(col, flick).fillTriangle(x - r, fy + r * 0.6, x + r, fy + r * 0.6, x, fy - r * 1.6);
+        g.fillStyle(0xffffff, 0.8 * flick).fillCircle(x, fy + r * 0.1, r * 0.4);
+        break;
+      }
       case 'printer': {
         g.fillStyle(col, 1).fillRoundedRect(x - r * 1.2, fy - r * 0.9, r * 2.4, r * 1.6, 4);
         const roll = (this.clock * 6) % 1;

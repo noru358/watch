@@ -1,3 +1,4 @@
+import type { SwarmPlan } from '../../data/contracts.data';
 import type { AttackShape } from '../../data/ghosts.data';
 import type { CardId, EnemyId, WeaponId } from '../../types/ids';
 import type { GameEvent } from '../../types/events';
@@ -30,7 +31,7 @@ export const NO_INPUT: RiftInput = { moveX: 0, moveY: 0, aim: 0, attack: false, 
 
 // A floor marking that strikes when its timer runs out.
 export interface Telegraph {
-  shape: AttackShape | 'band';
+  shape: Exclude<AttackShape, 'none'> | 'band';
   x: number; // origin
   y: number;
   angle: number; // cone/line direction
@@ -115,6 +116,8 @@ export interface Floor {
   enemies: Enemy[];
   pickups: (Pos & { value: number })[];
   boss: BossState | null;
+  swarm: SwarmPlan | null;
+  swarmTimer: number; // seconds to the next swarm wave
   weapon: WeaponId;
   stats: Stats;
   cards: CardId[];

@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
 import type { EventBus } from '../../core/EventBus';
 import { FEEL, PALETTE } from '../../data/feel.data';
+import { GHOSTS } from '../../data/ghosts.data';
 import { playSfx } from './sfx';
 
 interface VfxHooks {
-  freeze(seconds: number): void; // hit-stop: pauses the simulation clock briefly
+  freeze(seconds: number): void; // hit-stop: pauses the simulation clock briefly (the scene rate-limits small ones)
   view: { flash(entityId: number): void; setNeon(on: boolean): void };
   layer: Phaser.GameObjects.Layer; // world layer: popups live in world space under the zoomed camera
 }
@@ -43,13 +44,17 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
   const offs = [
     bus.on('enemyHit', (e) => {
       hooks.view.flash(e.entityId);
-      hooks.freeze(FEEL.hitStopHit);
+      hooks.freeze(e.empowered ? FEEL.hitStopHeavy : FEEL.hitStopHit);
       popup(scene, e.x, e.y, String(Math.max(1, Math.round(e.amount))), e.empowered ? PALETTE.healText : PALETTE.damageText, e.empowered ? 26 : 18);
       playSfx('hit');
     }),
     bus.on('enemyKilled', (e) => {
-      hooks.freeze(FEEL.hitStopKill);
-      cam.shake(FEEL.shakeKill.duration, FEEL.shakeKill.intensity);
+      // Swarm fodder pops without freezing the screen, or packs would stutter the game.
+      const fodder = e.kind !== 'printer' && GHOSTS[e.kind].fodder;
+      if (!fodder) {
+        hooks.freeze(FEEL.hitStopKill);
+        cam.shake(FEEL.shakeKill.duration, FEEL.shakeKill.intensity);
+      }
       ring(scene, e.x, e.y, 14, PALETTE.pickup);
       playSfx('kill');
     }),
