@@ -54,8 +54,42 @@ const SWORD_HAND = [
   '.OO.',
 ];
 
+
+// v6: long straight hair (user photo), drawn in the 3/4 front-diagonal facing down-right.
+// Plan: 2 drawings (front-diagonal, back-diagonal) + horizontal flips = 4 facings.
+const V6 = [
+  '........OOOOOO........',
+  '......OOhhhhhhOO......',
+  '.....OhhhhhhhiihO.....',
+  '....OhhiiiiihhhihO....',
+  '....OhhhhhhiiiihihO...',
+  '....OhhhhhhhhhhhiihO..',
+  '...OHhhhhhhhhhhhhhihO.',
+  '...OHhhhhhhhhhhhhhihO.',
+  '...OHhhhhhhhhhSSSShhO.',
+  '...OHhhhhhhSSSSSSSShO.',
+  '...OHhhhhhSOOSSOOOShO.',
+  '...OHhhihhSwESSEEwShO.',
+  '...OHhhihhSSeSSeeSShO.',
+  '...OHhhihhSpSSmSppShO.',
+  '...OHhhihhOSSSSSSOhhO.',
+  '...OHhhihhOOTTTTOhhO..',
+  '...OHhihOJJ1TT1JJhhO..',
+  '...OHhihOkJJ11JJJhhO..',
+  '..OHhihOkJJJ22JJJhO...',
+  '...OhihOSjJJJJJJjSO...',
+  '....OhOOjjjjjjjjO.....',
+  '........O889O988O.....',
+  '........O889O988O.....',
+  '........OaaaOaaaO.....',
+  '........OgggOgggO.....',
+  '.........OOO.OOO......',
+];
+
 export const V5_SPRITES = {
   v5: { pal: PAL5, rows: V5 },
   swordHand: { pal: PAL5, rows: SWORD_HAND },
   v5s: { base: 'v5', over: [['swordHand', 19, 13]] },
+  v6: { pal: { ...PAL5, H: '#1f1716', h: '#3a2a26', i: '#5e463d' }, rows: V6 },
+  v6s: { base: 'v6', over: [['swordHand', 18, 14]] },
 };
