@@ -1,6 +1,6 @@
 # 🧥 주인공·퇴마 도구 모듈
 
-**담당 코드:** `src/data/weapons.data.ts`(무기 숫자), `src/data/protagonist.data.ts`(체력 등), `src/systems/rift/turn.ts`(베기·발도 규칙), `src/systems/run/stats.ts`(능력치 계산)
+**담당 코드:** `src/data/weapons.data.ts`(무기 숫자), `src/data/protagonist.data.ts`(체력 등), `src/systems/rift/player.ts`(베기·발도·돌진 규칙), `src/systems/run/stats.ts`(능력치 계산)
 
 ## ✅ 결정
 - **사무소장 1명 고정.** 허름한 을지로 사무소, 귀찮아하지만 수임·의뢰 해결엔 천부적인 해결사.
@@ -16,11 +16,11 @@
 
 - 근접(A) ↔ 원거리·누적(B)로 대비. 무기마다 **무기 덱**(전용 강화 카드)을 가짐 → [party.md](party.md)
 - C(염주 맨주먹)는 보류.
-- A는 칸 턴제 규칙으로 구현됨. B(타카: 딱지 쌓기 → 점화)는 Gate 2.
+- A는 실시간으로 구현됨. B(타카: 딱지 쌓기 → 점화)는 Gate 2.
 
 ## 새 도구 추가하는 법
-`weapons.data.ts`에 숫자 한 줄 + `cards.data.ts`에 그 무기 덱 카드 몇 장. 새 행동이 필요하면 `systems/rift/turn.ts`에 추가.
+`weapons.data.ts`에 숫자 한 줄 + `cards.data.ts`에 그 무기 덱 카드 몇 장. 새 행동이 필요하면 `systems/rift/player.ts`에 추가.
 
 ## 지금 들어 있는 것 (무기 A)
-신문지째 베기 · 연속 3타째 강타 · 진심 게이지 · 발도(근접 공격 받아치기 / 게이지 일섬) · 발도 후 검신 노출(베기 피해 ↑).
-숫자는 `src/data/weapons.data.ts`, 규칙은 `src/systems/rift/turn.ts` → [combat.md](combat.md)
+실시간: 마우스 조준 부채꼴 베기 · 콤보 3타째 강타 · 진심 게이지 · 발도(근접 예고를 맞기 직전에 받아치기 / 게이지 일섬) · 발도 후 검신 노출 · 돌진.
+숫자는 `src/data/weapons.data.ts`·`protagonist.data.ts`, 규칙은 `src/systems/rift/player.ts` → [combat.md](combat.md)

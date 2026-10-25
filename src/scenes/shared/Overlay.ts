@@ -12,8 +12,13 @@ export class Overlay {
   private layer: Phaser.GameObjects.Container;
   private cards: Phaser.GameObjects.Rectangle[] = [];
 
-  constructor(private scene: Phaser.Scene) {
+  // `parent`: the UI layer (drawn by the unzoomed UI camera).
+  constructor(
+    private scene: Phaser.Scene,
+    private parent: Phaser.GameObjects.Layer,
+  ) {
     this.layer = scene.add.container(0, 0).setDepth(100).setVisible(false);
+    parent.add(this.layer);
   }
 
   private reset(): void {
@@ -78,6 +83,7 @@ export class Overlay {
       .text(W / 2, H / 2, text, { ...TEXT, fontSize: '34px', stroke: '#000000', strokeThickness: 4 })
       .setOrigin(0.5)
       .setDepth(90);
+    this.parent.add(label);
     this.scene.tweens.add({ targets: label, alpha: 0, delay: 900, duration: 600, onComplete: () => label.destroy() });
   }
 }

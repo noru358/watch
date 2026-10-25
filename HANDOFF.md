@@ -1,51 +1,40 @@
 # HANDOFF
 
-## Status (2026-10-25) — Gate 1: combat model decided (grid turn-based), full night playable
-Day placeholder → 출동 → Euljiro contract: 3 random floors (☎ payphone on floor 2) → boss room (윤전기 귀신) → settlement → Day.
+## Status (2026-10-25) — Gate 1: Core Keeper–style real-time night, full contract playable
+Day placeholder → 출동 → Euljiro contract: 3 random floors (rooms + 2-tile corridors, ☎ payphone on floor 2) → boss room (윤전기 귀신) → settlement → Day.
 
-### Decision this session (user delegated it)
-Compared the two prototypes with identical bots, 8 seeds each:
-- Action: a bot that stands still holding attack won 6/8 → skill barely mattered.
-- Grid: a bump-only bot won 1/8; a bot that reads telegraphs and uses 발도 won 8/8 → skill matters.
-Plus cost / mobile / party fit → **grid turn-based (Mystery Dungeon style)**. Action prototype deleted; recoverable from commit `d170e4b`.
+### How we got here (read `docs/design/combat.md`)
+1. Action prototype (auto-aim) lost: a stand-still bot won 6/8 → switched to grid turn-based.
+2. User played the turn-based greybox: felt flat, and turn-based isn't their taste; Argon proposed Core Keeper style → real-time on a tile grid, keeping the lessons: mouse aim (no auto-aim), every enemy attack is a floor telegraph, only melee telegraphs can be countered (발도 in the last 0.22 s), dashes/sweeps must be dodged, no contact damage.
+3. Acceptance test `tests/balance.test.ts` (8 seeds): stand-and-swing bot ≤ 2 wins (now 0/8), telegraph-reading bot ≥ 6 (now 7/8).
+Old code: action prototype `d170e4b`, turn-based `0278d77`.
 
-### What changed
-- Removed: `systems/combat`, `scenes/rift` (action), `registry/traitHooks.ts`, `registry/skillEffects.ts`, placeholder companions, tools/traits/combat data, `systems/contract`.
-- `systems/grid` → `systems/rift` (one floor: `mapgen.ts`, `turn.ts`, `boss.ts`, `space.ts`, `hooks.ts`); `systems/run` now = a night (`run.ts` floors + cards, `stats.ts` computeExorcistStats, `settle.ts`).
-- Weapon A (newspaper sword) in `data/weapons.data.ts`: slash, every 3rd consecutive hit heavy, focus gauge, 발도 (parry adjacent MELEE telegraphs only, or free 8-neighbour strike at full focus), bared blade for N turns after a draw (+slash).
-- Upgrade cards renamed in code: `CardId`, `data/cards.data.ts` (`source` = base | weapon deck), `registry/cardEffects.ts` (fixed hook points). Offer = base deck + equipped weapon deck.
-- Contract floors in `data/contracts.data.ts`; map numbers in `data/dungeon.data.ts`; ghosts + boss in `data/ghosts.data.ts`.
-- Boss 윤전기 귀신: row sweep (phase 2: row + column), summons, adjacent strike. Sweeps and subway dashes are unparriable (`windupParriable`) — fixed after a bot trivialised the boss by hugging it.
-- Payphone: stepping on it pauses the floor (`status: 'payphone'`); overlay 1 = go home (extract), 2 = keep going.
-- Input actions renamed: `wait` (K/Space), `draw` (L). Night-mode switch removed.
-
-## Code map
+### Code map
 | Area | Path |
 |------|------|
-| Wiring / singletons | `src/app/services.ts`, `src/main.ts` |
-| Infrastructure | `src/core/` (InputManager, EventBus, SeededRNG, PhaseController) |
-| Numbers & text | `src/data/*.data.ts`, `src/i18n/` |
+| Wiring | `src/app/services.ts`, `src/main.ts` |
+| Infrastructure | `src/core/` (InputManager now also reads mouse buttons as `Mouse0`/`Mouse2` + pointer position; EventBus, SeededRNG, PhaseController) |
+| Numbers & text | `src/data/*.data.ts` (units: tiles, seconds), `src/i18n/` |
 | Card behaviour | `src/registry/cardEffects.ts` |
-| One floor | `src/systems/rift/` |
-| One night | `src/systems/run/` |
-| State | `src/store/gameStore.ts` |
-| Screens | `src/scenes/rift/` (RiftScene, RiftView), `src/scenes/shared/` (Overlay, vfx, sfx), `src/ui/OfficeApp.tsx` |
-| Tests | `tests/core.test.ts`, `tests/rift.test.ts`, `tests/run.test.ts` (+ `helpers.ts`) |
+| One floor | `src/systems/rift/`: `types.ts`, `mapgen.ts`, `physics.ts` (tile collision, LOS, flow field, telegraph geometry), `player.ts` (move/dash/swing/draw), `enemies.ts` (ghost AI + telegraph resolution), `boss.ts`, `combat.ts` (damage), `step.ts` (fixed tick, pickups, exits), `hooks.ts` |
+| One night | `src/systems/run/` (floors, cards, `stats.ts`, `settle.ts`) |
+| Screens | `src/scenes/rift/` (RiftScene: fixed step, hit-stop, world camera ×2.5 following the director + 1:1 UI camera via layers, mouse→world aim; RiftView: 3/4 walls, shadows, y-sort, separate sword, telegraph shapes), `src/scenes/shared/` (Overlay on UI layer, vfx on world layer, sfx) |
+| Tests | `tests/core`, `tests/rift` (rules), `tests/run`, `tests/balance` (+ `bots.ts`, `helpers.ts`) |
 
 ## Verified
-- `npm run check`: tsc clean, 34 tests pass. `vite build` OK.
-- Playwright bot (session scratchpad, not committed): full night cleared twice (boss now costs the bot HP); payphone prompt → go home → extracted result, no page errors. Floor label during card pick fixed (`f.index`).
+- `npm run check`: tsc clean, 37 tests pass (incl. balance). `vite build` OK.
+- Playwright (scratchpad scripts, not committed): day → night start, camera/walls render, staged close fight (yellow telegraph, swing, parry → "검신 노출", darkness after a dalgyal hit), boss floor row sweep. No page errors.
 
 ## Known issues / unverified
-- **No human has played it yet.** Tempo (`FEEL.moveRepeat`) and difficulty are bot-tuned only.
-- No SaveManager (refresh resets), keyboard only, shapes + synth beeps, no Tiled maps (floors are random rooms+corridors — Tiled may not be needed).
+- **No human has played the real-time version.** Parry window 0.22 s, move speed, teleport frequency are bot-tuned only. Bot clears a night in ~1 min of game time; a human will be slower — check run length.
+- Visuals are shapes; cheonyeo looks crude. Walls are not y-sorted with bodies (bodies always draw over raised wall tops).
+- No SaveManager, keyboard+mouse only (no gamepad/touch), synth SFX.
 - Dev-only `window.__rift` handle for bots (stripped in production builds).
-- `docs/design/playflow.md` controls table is the pre-decision action draft (marked as such).
 
 ## Pending ARCHITECTURE changes (apply when Gate 2 hub work starts)
-(a) Day hub = walkable Phaser scene (souls-style, `E` to talk) with React panels → §1 and Rule 4 wording; (b) touch context in InputManager; (c) keep ≤4 combat buttons (now: move, slash, wait, draw).
+(a) Day hub = walkable Phaser scene (souls-style, `E` to talk) with React panels → §1 and Rule 4 wording; (b) touch context in InputManager; (c) keep ≤4 combat buttons (now: move, slash, dash, draw + mouse aim).
 
 ## Next step
-1. User plays and gives feedback (tempo, 발도 feel, difficulty, boss).
-2. Tune `src/data/`; then SaveManager (schemaVersion 1) and Gate 1 polish (hit feel for grid: lunge on attack, blade-tear effect on 발도).
-3. Gate 2 prep: walkable rooftop hub, bookkeeper/cat, companions with one party slot.
+1. User plays and reports feel (movement, swing, 발도 timing, dash, boss).
+2. Tune `src/data/`; add hit feel (lunge/knockback visuals, slash trail polish), y-sort walls.
+3. SaveManager (schemaVersion 1); then Gate 2: walkable rooftop hub (bookkeeper, cat), companions with one party slot, weapon B.

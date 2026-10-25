@@ -1,52 +1,82 @@
 import type { BossId, GhostId } from '../types/ids';
 
+// Distances are in TILES, times in SECONDS. Every enemy attack is telegraphed on
+// the floor; only 'cone'/'circle' melee attacks can be countered with 발도.
+export type AttackShape = 'cone' | 'circle' | 'line';
+
 export interface GhostData {
   hp: number;
   damage: number;
-  moveEvery: number; // acts every N turns (2 = slow)
-  sight: number; // manhattan tiles at which it notices the director
+  speed: number;
+  radius: number;
+  sight: number;
   drop: number; // spirit gained on kill
+  attack: AttackShape;
+  attackRange: number; // starts an attack when this close (line: dash length)
+  attackSize: number; // cone/circle radius, or line width
+  attackArc: number; // cone width in radians (0 for other shapes)
+  windup: number; // telegraph time
+  recover: number; // helpless time after attacking
   teleportEvery: number; // 0 = never
-  dashRange: number; // 0 = no dash
-  darknessTurns: number; // vision loss on hit
+  teleportWarn: number;
+  teleportBehind: number; // tiles behind the director it reappears
+  teleportJitter: number; // random extra seconds between blinks
+  dashSpeed: number;
+  darkness: number; // seconds of darkened vision on hit
 }
 
 export const GHOSTS: Record<GhostId, GhostData> = {
-  // 처녀귀신: walks toward the director and periodically blinks next to them.
-  cheonyeo: { hp: 7, damage: 2, moveEvery: 1, sight: 9, drop: 3, teleportEvery: 6, dashRange: 0, darknessTurns: 0 },
-  // 달걀귀신: slow and tanky; a hit darkens vision.
-  dalgyal: { hp: 14, damage: 2, moveEvery: 2, sight: 7, drop: 5, teleportEvery: 0, dashRange: 0, darknessTurns: 8 },
-  // 지하철 망령: telegraphs a straight-line dash (cannot be parried from afar).
-  subway: { hp: 9, damage: 3, moveEvery: 1, sight: 9, drop: 4, teleportEvery: 0, dashRange: 6, darknessTurns: 0 },
+  // 처녀귀신: floats in, swipes with her hair (cone), sometimes blinks behind the director.
+  cheonyeo: { hp: 9, damage: 2, speed: 2.4, radius: 0.38, sight: 9, drop: 3, attack: 'cone', attackRange: 1.1, attackSize: 1.5, attackArc: 1.6, windup: 0.6, recover: 0.6, teleportEvery: 6, teleportWarn: 0.6, teleportBehind: 1.3, teleportJitter: 1, dashSpeed: 0, darkness: 0 },
+  // 달걀귀신: slow and tanky, a body slam around itself (circle); a hit darkens vision.
+  dalgyal: { hp: 18, damage: 2, speed: 1.3, radius: 0.48, sight: 7, drop: 5, attack: 'circle', attackRange: 1.1, attackSize: 1.6, attackArc: 0, windup: 0.9, recover: 0.9, teleportEvery: 0, teleportWarn: 0, teleportBehind: 0, teleportJitter: 0, dashSpeed: 0, darkness: 4 },
+  // 지하철 망령: telegraphs a straight dash (line) — cannot be countered, only dodged.
+  subway: { hp: 11, damage: 3, speed: 1.8, radius: 0.42, sight: 10, drop: 4, attack: 'line', attackRange: 6, attackSize: 0.9, attackArc: 0, windup: 0.7, recover: 1.0, teleportEvery: 0, teleportWarn: 0, teleportBehind: 0, teleportJitter: 0, dashSpeed: 14, darkness: 0 },
 };
 
 export interface BossData {
   hp: number;
-  damage: number; // adjacent strike (parriable)
-  moveEvery: number;
+  damage: number;
+  speed: number;
+  radius: number;
   drop: number;
-  lineEvery: number; // turns between paper-roller line attacks (must be dodged)
-  lineDamage: number;
+  slamRange: number; // close-range slam (parriable circle)
+  slamTrigger: number; // starts a slam when the director is this close (edge to edge)
+  slamWindup: number;
+  sweepEvery: number; // paper-roller band across the room (cannot be countered)
+  sweepWindup: number;
+  sweepWidth: number;
+  sweepDamage: number;
   summonEvery: number;
   summon: GhostId;
-  phase2Ratio: number; // HP ratio that triggers phase 2
-  phase2LineEvery: number;
-  phase2SummonEvery: number;
+  summonSpread: number; // ± tiles sideways from the boss
+  summonBelow: readonly [number, number]; // tiles below the boss
+  recover: number;
+  phase2Ratio: number;
+  phase2Mult: number; // phase 2 timers × this (faster)
 }
 
 export const BOSSES: Record<BossId, BossData> = {
-  // 윤전기 귀신: sweeps a row (phase 2: row + column) with paper rollers, summons maidens.
+  // 윤전기 귀신: sweeps a row (phase 2: row + column) with paper rollers, slams up close, summons maidens.
   printer: {
-    hp: 90,
+    hp: 120,
     damage: 3,
-    moveEvery: 2,
+    speed: 1.1,
+    radius: 0.9,
     drop: 40,
-    lineEvery: 4,
-    lineDamage: 3,
-    summonEvery: 7,
+    slamRange: 1.9,
+    slamTrigger: 1.3,
+    slamWindup: 0.8,
+    sweepEvery: 4.5,
+    sweepWindup: 1.0,
+    sweepWidth: 1.3,
+    sweepDamage: 3,
+    summonEvery: 8,
     summon: 'cheonyeo',
+    summonSpread: 2,
+    summonBelow: [1, 2.5],
+    recover: 0.9,
     phase2Ratio: 0.5,
-    phase2LineEvery: 3,
-    phase2SummonEvery: 5,
+    phase2Mult: 0.7,
   },
 };

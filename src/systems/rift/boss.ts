@@ -1,53 +1,62 @@
-import { BOSSES } from '../../data/ghosts.data';
+import type { BossData } from '../../data/ghosts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
-import { isFloor, makeEnemy } from './mapgen';
-import { dist, freeNeighbours, stepToward } from './space';
-import type { Enemy, Floor, Pos } from './types';
+import { resolveTelegraphs } from './enemies';
+import { makeEnemy } from './mapgen';
+import { dist, isFloor, moveBody, steer } from './physics';
+import type { Enemy, Floor, Telegraph } from './types';
 
-// Called after the boss takes damage.
-export function checkBossPhase(f: Floor, e: Enemy): void {
-  const b = f.boss;
-  if (!b || b.id !== e.id || b.phase === 2) return;
-  if (e.hp <= e.maxHp * BOSSES.printer.phase2Ratio) {
-    b.phase = 2;
-    f.events.push({ type: 'bossPhase', phase: 2 });
-  }
-}
-
-function lineTiles(f: Floor, phase: 1 | 2): Pos[] {
+function band(f: Floor, axis: 'row' | 'col', data: BossData, time: number): Telegraph {
   const p = f.player;
-  const tiles: Pos[] = [];
-  for (let x = 0; x < f.cols; x++) if (isFloor(f, x, p.y)) tiles.push({ x, y: p.y });
-  if (phase === 2) for (let y = 0; y < f.rows; y++) if (y !== p.y && isFloor(f, p.x, y)) tiles.push({ x: p.x, y });
-  return tiles;
+  return { shape: 'band', x: p.x, y: p.y, angle: 0, range: 0, width: data.sweepWidth, axis, t: time, total: time, damage: data.sweepDamage, parriable: false, darkness: 0 };
 }
 
-// 윤전기 귀신: paper-roller line sweep (cannot be parried — dodge it) > adjacent strike (parriable)
-// > summon > slow walk. The sweep comes even when the director hugs the boss.
-export function updateBoss(f: Floor, e: Enemy, rng: SeededRNG): void {
+// 윤전기 귀신: paper-roller sweep across the room (cannot be countered — dodge it),
+// close-range slam (counter it with 발도), summons maidens. Phase 2 sweeps row + column, faster.
+export function updateBoss(f: Floor, e: Enemy, dt: number, rng: SeededRNG, data: BossData): void {
   const b = f.boss;
   if (!b) return;
-  const data = BOSSES.printer;
-  b.lineTimer -= 1;
-  b.summonTimer -= 1;
-  if (b.lineTimer <= 0) {
-    e.windup = lineTiles(f, b.phase);
-    e.windupDamage = data.lineDamage;
-    e.windupParriable = false;
-    b.lineTimer = b.phase === 2 ? data.phase2LineEvery : data.lineEvery;
-    return;
+  const mult = b.phase === 2 ? data.phase2Mult : 1;
+  b.sweepTimer -= dt;
+  b.summonTimer -= dt;
+  switch (e.state) {
+    case 'stun':
+    case 'recover':
+      e.timer -= dt;
+      if (e.timer <= 0) e.state = 'chase';
+      return;
+    case 'windup':
+      if (resolveTelegraphs(f, e, dt)) {
+        e.state = 'recover';
+        e.timer = data.recover * mult;
+      }
+      return;
+    default:
+      break;
   }
-  if (dist(e, f.player) === 1) {
-    e.windup = [{ x: f.player.x, y: f.player.y }];
-    e.windupDamage = data.damage;
-    e.windupParriable = true;
+  if (b.sweepTimer <= 0) {
+    const time = data.sweepWindup * mult;
+    e.teles = b.phase === 2 ? [band(f, 'row', data, time), band(f, 'col', data, time)] : [band(f, 'row', data, time)];
+    e.state = 'windup';
+    b.sweepTimer = data.sweepEvery * mult;
     return;
   }
   if (b.summonTimer <= 0) {
-    const spots = freeNeighbours(f, e);
-    if (spots.length > 0) makeEnemy(f, data.summon, rng.pick(spots)).awake = true;
-    b.summonTimer = b.phase === 2 ? data.phase2SummonEvery : data.summonEvery;
+    b.summonTimer = data.summonEvery * mult;
+    for (let i = 0; i < 6; i++) {
+      const spot = { x: e.x + rng.range(-data.summonSpread, data.summonSpread), y: e.y + rng.range(...data.summonBelow) };
+      if (isFloor(f, Math.floor(spot.x), Math.floor(spot.y))) {
+        makeEnemy(f, data.summon, spot).state = 'chase';
+        break;
+      }
+    }
+  }
+  if (dist(e, f.player) - e.r - f.player.r <= data.slamTrigger) {
+    const time = data.slamWindup * mult;
+    e.teles = [{ shape: 'circle', x: e.x, y: e.y, angle: 0, range: data.slamRange, width: 0, axis: 'row', t: time, total: time, damage: data.damage, parriable: true, darkness: 0 }];
+    e.state = 'windup';
     return;
   }
-  if (f.turn % data.moveEvery === 0) stepToward(f, e);
+  const dir = steer(f, e);
+  moveBody(f, e, dir.x * data.speed * dt, dir.y * data.speed * dt);
+  if (dir.x !== 0) e.face = dir.x > 0 ? 1 : -1;
 }

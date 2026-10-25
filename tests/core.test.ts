@@ -68,8 +68,8 @@ describe('InputManager', () => {
     input.resetContext('night');
     w.fire('keydown', 'KeyK');
     w.fire('keydown', 'KeyK', true);
-    expect(input.consume('wait', 'night')).toBe(true);
-    expect(input.consume('wait', 'night')).toBe(false);
+    expect(input.consume('dash', 'night')).toBe(true);
+    expect(input.consume('dash', 'night')).toBe(false);
   });
   it('keys work immediately after closing a modal (no click needed)', () => {
     const w = new FakeWindow();
@@ -80,6 +80,18 @@ describe('InputManager', () => {
     w.fire('keydown', 'KeyJ');
     expect(input.consume('attack', 'night')).toBe(true);
   });
+  it('mouse buttons act like keys and the pointer is tracked', () => {
+    const w = new FakeWindow();
+    const input = new InputManager(w);
+    input.resetContext('night');
+    w.handlers['mousemove']?.forEach((fn) => fn({ clientX: 12, clientY: 34 }));
+    w.handlers['mousedown']?.forEach((fn) => fn({ button: 2, clientX: 12, clientY: 34, preventDefault() {} }));
+    expect(input.consume('draw', 'night')).toBe(true);
+    expect(input.pointer()).toMatchObject({ x: 12, y: 34, moves: 1 });
+    w.handlers['mouseup']?.forEach((fn) => fn({ button: 2 }));
+    expect(input.isDown('draw', 'night')).toBe(false);
+  });
+
   it('clears held keys on window blur', () => {
     const w = new FakeWindow();
     const input = new InputManager(w);

@@ -4,25 +4,27 @@ import { CARDS } from '../src/data/cards.data';
 import { BOSSES, GHOSTS } from '../src/data/ghosts.data';
 import { EXORCISTS } from '../src/data/protagonist.data';
 import { WEAPONS } from '../src/data/weapons.data';
-import { answerPayphone, generateFloor, isFloor, takeTurn, type Floor } from '../src/systems/rift';
-import { computeExorcistStats } from '../src/systems/run';
-import { duel, floorWith } from './helpers';
+import { answerPayphone, generateFloor, isFloor, NO_INPUT, stepFloor, type Floor, type RiftInput } from '../src/systems/rift';
+import { carry, DT, duel, floorWith } from './helpers';
 
 const W = WEAPONS.newspaper_sword;
 const MAX = EXORCISTS.director.maxHp;
-const right = { kind: 'move', dir: { x: 1, y: 0 } } as const;
+const run = (f: Floor, rng: SeededRNG, seconds: number, input: Partial<RiftInput> = {}) => {
+  for (let i = 0; i < Math.round(seconds / DT); i++) stepFloor(f, { ...NO_INPUT, ...input }, DT, rng);
+};
 
 function reachable(f: Floor, from: { x: number; y: number }, to: { x: number; y: number }): boolean {
-  const seen = new Set<string>();
-  const q = [from];
+  const key = (x: number, y: number) => `${x},${y}`;
+  const start = { x: Math.floor(from.x), y: Math.floor(from.y) };
+  const seen = new Set([key(start.x, start.y)]);
+  const q = [start];
   while (q.length) {
     const p = q.shift()!;
-    if (p.x === to.x && p.y === to.y) return true;
-    for (const d of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
-      const n = { x: p.x + d[0], y: p.y + d[1] };
-      const k = `${n.x},${n.y}`;
-      if (!seen.has(k) && isFloor(f, n.x, n.y)) {
-        seen.add(k);
+    if (p.x === Math.floor(to.x) && p.y === Math.floor(to.y)) return true;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+      const n = { x: p.x + dx, y: p.y + dy };
+      if (!seen.has(key(n.x, n.y)) && isFloor(f, n.x, n.y)) {
+        seen.add(key(n.x, n.y));
         q.push(n);
       }
     }
@@ -36,179 +38,189 @@ describe('floor generation', () => {
       const { f } = floorWith(seed);
       expect(reachable(f, f.player, f.stairs!)).toBe(true);
       for (const e of f.enemies) expect(reachable(f, f.player, e)).toBe(true);
-      expect(f.enemies).toHaveLength(4);
     }
   });
 
   it('the boss floor is one room with the boss and no stairs', () => {
-    const stats = computeExorcistStats('director', 1, [], 'newspaper_sword');
-    const f = generateFloor(3, { kind: 'boss', boss: 'printer' }, new SeededRNG(1), { hp: MAX, focus: 0, loot: 0, weapon: 'newspaper_sword', stats, cards: [] });
+    const f = generateFloor(3, { kind: 'boss', boss: 'printer' }, new SeededRNG(1), carry());
     expect(f.stairs).toBeNull();
     expect(f.enemies.map((e) => e.kind)).toEqual(['printer']);
-    expect(reachable(f, f.player, f.enemies[0]!)).toBe(true);
   });
 });
 
-describe('turns', () => {
-  it('walking into a wall does not spend a turn', () => {
-    const { f, rng } = floorWith();
-    f.tiles.fill('wall');
-    f.tiles[f.player.y * f.cols + f.player.x] = 'floor';
-    expect(takeTurn(f, right, rng)).toBe(false);
-    expect(f.turn).toBe(0);
+describe('movement', () => {
+  it('walls block movement and the director slides along them', () => {
+    const { f, rng } = duel();
+    f.enemies = [];
+    for (let y = 0; y < f.rows; y++) f.tiles[y * f.cols + 12] = 'wall';
+    run(f, rng, 2, { moveX: 1, moveY: 0.3 });
+    expect(f.player.x).toBeLessThan(12 - f.player.r + 0.01);
+    expect(f.player.y).toBeGreaterThan(10.6);
   });
 
-  it('an adjacent ghost telegraphs, then hits if the director stays', () => {
-    const { f, rng, e } = duel();
-    takeTurn(f, { kind: 'wait' }, rng);
-    expect(e.windup).toEqual([{ x: 10, y: 8 }]);
-    takeTurn(f, { kind: 'wait' }, rng);
+  it('a dash moves fast and grants brief invulnerability', () => {
+    const { f, rng } = duel();
+    f.enemies = [];
+    stepFloor(f, { ...NO_INPUT, moveX: 1, dash: true }, DT, rng);
+    expect(f.player.iframes).toBeGreaterThan(0);
+    run(f, rng, EXORCISTS.director.dashTime);
+    expect(f.player.x - 10.5).toBeGreaterThan(EXORCISTS.director.dashSpeed * EXORCISTS.director.dashTime * 0.7);
+  });
+});
+
+describe('ghost telegraphs', () => {
+  it('a ghost in range telegraphs and the hit lands when the windup ends', () => {
+    const { f, rng, e } = duel('cheonyeo');
+    stepFloor(f, NO_INPUT, DT, rng);
+    expect(e.state).toBe('windup');
+    expect(e.teles[0]?.parriable).toBe(true);
+    run(f, rng, GHOSTS.cheonyeo.windup);
     expect(f.player.hp).toBe(MAX - GHOSTS.cheonyeo.damage);
   });
 
-  it('stepping off the marked tile dodges the hit', () => {
-    const { f, rng } = duel();
-    takeTurn(f, { kind: 'wait' }, rng);
-    takeTurn(f, { kind: 'move', dir: { x: 0, y: 1 } }, rng);
+  it('walking out of the telegraph dodges the hit', () => {
+    const { f, rng } = duel('cheonyeo');
+    stepFloor(f, NO_INPUT, DT, rng);
+    run(f, rng, GHOSTS.cheonyeo.windup, { moveX: -1 });
     expect(f.player.hp).toBe(MAX);
   });
 
-  it('발도 on an adjacent telegraph parries it, deals draw damage and bares the blade', () => {
-    const { f, rng, e } = duel('dalgyal');
-    takeTurn(f, { kind: 'wait' }, rng);
-    takeTurn(f, { kind: 'draw' }, rng);
+  it('발도 inside the parry window counters, stuns and bares the blade', () => {
+    const { f, rng, e, hp } = duel('dalgyal');
+    stepFloor(f, NO_INPUT, DT, rng);
+    run(f, rng, GHOSTS.dalgyal.windup - W.parryWindow / 2);
+    stepFloor(f, { ...NO_INPUT, draw: true, aim: 0 }, DT, rng);
+    expect(e.hp).toBe(hp - W.draw);
+    expect(e.state).toBe('stun');
+    expect(f.player.bare).toBeGreaterThan(0);
+    run(f, rng, 0.5);
     expect(f.player.hp).toBe(MAX);
-    expect(e.hp).toBe(GHOSTS.dalgyal.hp - W.draw);
-    expect(f.player.bare).toBe(W.bareTurns);
   });
 
-  it('a bare blade adds slash damage and wears off', () => {
-    const { f, rng, e } = duel('dalgyal');
-    e.hp = 999;
-    f.player.bare = 2;
-    takeTurn(f, right, rng);
-    expect(e.hp).toBe(999 - W.slash - W.bareSlashBonus);
-    takeTurn(f, { kind: 'wait' }, rng);
-    expect(f.player.bare).toBe(0);
+  it('발도 too early whiffs and leaves the director open', () => {
+    const { f, rng, e, hp } = duel('dalgyal');
+    stepFloor(f, NO_INPUT, DT, rng);
+    stepFloor(f, { ...NO_INPUT, draw: true }, DT, rng);
+    expect(e.hp).toBe(hp);
+    expect(f.player.recoverT).toBeGreaterThan(0);
+    run(f, rng, GHOSTS.dalgyal.windup);
+    expect(f.player.hp).toBeLessThan(MAX);
   });
 
-  it('every 3rd consecutive hit is heavy; a miss resets the combo', () => {
-    const { f, rng, e } = duel('dalgyal');
-    e.hp = 999;
-    for (let i = 0; i < W.comboEvery; i++) takeTurn(f, right, rng);
-    expect(e.hp).toBe(999 - W.slash * W.comboEvery - W.comboBonus);
-    takeTurn(f, { kind: 'wait' }, rng);
-    expect(f.player.combo).toBe(0);
-  });
-
-  it('a full focus gauge allows a free draw strike', () => {
-    const { f, rng, e } = duel('dalgyal');
-    e.hp = 999;
-    f.player.focus = f.stats.focusMax;
-    takeTurn(f, { kind: 'draw' }, rng);
-    expect(e.hp).toBe(999 - W.draw);
-    expect(f.player.focus).toBe(0);
-  });
-
-  it('a dash from afar cannot be parried, only side-stepped', () => {
-    const a = duel('subway');
-    a.e.x = 14;
-    takeTurn(a.f, { kind: 'wait' }, a.rng);
-    takeTurn(a.f, { kind: 'draw' }, a.rng);
+  it('a subway dash cannot be countered, only dodged', () => {
+    const a = duel('subway', 4);
+    stepFloor(a.f, NO_INPUT, DT, a.rng);
+    expect(a.e.teles[0]?.shape).toBe('line');
+    run(a.f, a.rng, GHOSTS.subway.windup - W.parryWindow / 2);
+    stepFloor(a.f, { ...NO_INPUT, draw: true }, DT, a.rng);
+    run(a.f, a.rng, 0.3);
     expect(a.f.player.hp).toBe(MAX - GHOSTS.subway.damage);
-    expect(a.e.x).toBe(11); // stopped right before the director
 
-    const b = duel('subway');
-    b.e.x = 14;
-    takeTurn(b.f, { kind: 'wait' }, b.rng);
-    takeTurn(b.f, { kind: 'move', dir: { x: 0, y: 1 } }, b.rng);
+    const b = duel('subway', 4);
+    stepFloor(b.f, NO_INPUT, DT, b.rng);
+    run(b.f, b.rng, GHOSTS.subway.windup, { moveY: 1 });
     expect(b.f.player.hp).toBe(MAX);
-  });
-
-  it('kills drop spirit; reaching the stairs ends the floor', () => {
-    const { f, rng, e } = duel();
-    e.hp = 1;
-    takeTurn(f, right, rng);
-    expect(f.enemies).toHaveLength(0);
-    expect(f.loot).toBe(GHOSTS.cheonyeo.drop);
-    f.stairs = { x: 10, y: 9 };
-    takeTurn(f, { kind: 'move', dir: { x: 0, y: 1 } }, rng);
-    expect(f.status).toBe('stairs');
-  });
-
-  it('the payphone pauses the floor until the director chooses', () => {
-    const { f, rng } = duel();
-    f.enemies = [];
-    f.payphone = { x: 10, y: 9 };
-    takeTurn(f, { kind: 'move', dir: { x: 0, y: 1 } }, rng);
-    expect(f.status).toBe('payphone');
-    expect(takeTurn(f, { kind: 'wait' }, rng)).toBe(false);
-    answerPayphone(f, false);
-    expect(f.status).toBe('playing');
-    answerPayphone(f, true); // not on prompt: ignored
-    expect(f.status).toBe('playing');
   });
 });
 
-describe('cards (registry hooks)', () => {
-  it('salt_ward blocks one hit per floor', () => {
-    const { f, rng } = duel('cheonyeo', ['salt_ward']);
-    f.player.shield = CARDS.salt_ward.amount; // duel() replaced the floor after onRoomEnter
-    takeTurn(f, { kind: 'wait' }, rng);
-    takeTurn(f, { kind: 'wait' }, rng);
-    expect(f.player.hp).toBe(f.stats.maxHp);
-    expect(f.player.shield).toBe(0);
+describe('sword', () => {
+  it('a swing hits enemies in the cone in front only', () => {
+    const { f, rng, e, hp } = duel('dalgyal');
+    stepFloor(f, { ...NO_INPUT, attack: true, aim: Math.PI }, DT, rng); // facing away
+    expect(e.hp).toBe(hp);
+    run(f, rng, W.swingTime + 0.01);
+    stepFloor(f, { ...NO_INPUT, attack: true, aim: 0 }, DT, rng);
+    expect(e.hp).toBe(hp - W.slash);
+    expect(f.player.focus).toBe(1);
   });
 
-  it('spirit_nose adds spirit per kill', () => {
-    const { f, rng, e } = duel('cheonyeo', ['spirit_nose']);
+  it('every 3rd swing of a combo is heavy', () => {
+    const { f, rng, e } = duel('dalgyal');
+    e.hp = 999;
+    e.state = 'stun';
+    e.timer = 99;
+    for (let i = 0; i < W.comboEvery; i++) {
+      stepFloor(f, { ...NO_INPUT, attack: true, aim: 0 }, DT, rng);
+      Object.assign(e, { x: 11.7, y: 10.5, knockX: 0, knockY: 0 });
+      run(f, rng, W.swingTime);
+    }
+    expect(999 - e.hp).toBe(W.slash * W.comboEvery + W.comboBonus);
+  });
+
+  it('a full focus gauge allows a free draw strike all around', () => {
+    const { f, rng, e, hp } = duel('dalgyal');
+    f.player.focus = f.stats.focusMax;
+    stepFloor(f, { ...NO_INPUT, draw: true, aim: Math.PI }, DT, rng);
+    expect(e.hp).toBe(hp - W.draw);
+    expect(f.player.focus).toBe(0);
+  });
+});
+
+describe('floor exits and cards', () => {
+  it('kills drop spirit that flies to the director; stairs end the floor', () => {
+    const { f, rng, e } = duel('cheonyeo');
     e.hp = 1;
-    takeTurn(f, right, rng);
-    expect(f.loot).toBe(GHOSTS.cheonyeo.drop + CARDS.spirit_nose.amount);
+    stepFloor(f, { ...NO_INPUT, attack: true, aim: 0 }, DT, rng);
+    run(f, rng, 1);
+    expect(f.loot).toBe(GHOSTS.cheonyeo.drop);
+    f.stairs = { x: f.player.x, y: f.player.y + 1 };
+    run(f, rng, 0.5, { moveY: 1 });
+    expect(f.status).toBe('stairs');
+  });
+
+  it('the payphone pauses the floor until answered, and re-arms after walking away', () => {
+    const { f, rng } = duel();
+    f.enemies = [];
+    f.payphone = { x: 10.5, y: 11.5 };
+    run(f, rng, 0.4, { moveY: 1 });
+    expect(f.status).toBe('payphone');
+    answerPayphone(f, false);
+    run(f, rng, 0.2);
+    expect(f.status).toBe('playing');
+    run(f, rng, 0.6, { moveY: -1 });
+    run(f, rng, 0.6, { moveY: 1 });
+    expect(f.status).toBe('payphone');
+    answerPayphone(f, true);
+    expect(f.status).toBe('extracted');
+  });
+
+  it('salt_ward blocks one hit per floor', () => {
+    const { f, rng } = duel('cheonyeo', 1.2, ['salt_ward']);
+    f.player.shield = CARDS.salt_ward.amount;
+    stepFloor(f, NO_INPUT, DT, rng);
+    run(f, rng, GHOSTS.cheonyeo.windup + 0.05);
+    expect(f.player.hp).toBe(f.stats.maxHp);
+    expect(f.player.shield).toBe(0);
   });
 });
 
 describe('boss', () => {
-  function bossDuel() {
-    const stats = computeExorcistStats('director', 1, [], 'newspaper_sword');
+  function bossFloor() {
     const rng = new SeededRNG(4);
-    const f = generateFloor(3, { kind: 'boss', boss: 'printer' }, rng, { hp: MAX, focus: 0, loot: 0, weapon: 'newspaper_sword', stats, cards: [] });
+    const f = generateFloor(3, { kind: 'boss', boss: 'printer' }, rng, carry());
     return { f, rng, boss: f.enemies[0]! };
   }
 
-  it('telegraphs a row sweep that hits unless dodged', () => {
-    const { f, rng, boss } = bossDuel();
-    for (let i = 0; i < BOSSES.printer.lineEvery; i++) takeTurn(f, { kind: 'wait' }, rng);
-    expect(boss.windup?.some((t) => t.y === f.player.y)).toBe(true);
-    expect(boss.windup!.length).toBeGreaterThan(5);
-    takeTurn(f, { kind: 'move', dir: { x: 0, y: -1 } }, rng); // leave the row
+  it('sweeps the director\'s row; it cannot be countered, leaving the row dodges it', () => {
+    const { f, rng, boss } = bossFloor();
+    f.boss!.sweepTimer = 0;
+    stepFloor(f, NO_INPUT, DT, rng);
+    expect(boss.teles[0]?.shape).toBe('band');
+    expect(boss.teles[0]?.parriable).toBe(false);
+    run(f, rng, BOSSES.printer.sweepWindup, { moveY: -1 });
     expect(f.player.hp).toBe(MAX);
   });
 
-  it('the sweep also comes when hugging the boss, and 발도 cannot parry it', () => {
-    const { f, rng, boss } = bossDuel();
-    f.player.x = boss.x;
-    f.player.y = boss.y + 1;
-    const b = f.boss!;
-    b.lineTimer = 1;
-    takeTurn(f, { kind: 'wait' }, rng);
-    expect(boss.windup!.length).toBeGreaterThan(1);
-    takeTurn(f, { kind: 'draw' }, rng);
-    expect(f.player.hp).toBe(MAX - BOSSES.printer.lineDamage);
-  });
-
   it('enters phase 2 at half HP and its death ends the floor', () => {
-    const { f, rng, boss } = bossDuel();
-    f.player.x = boss.x;
-    f.player.y = boss.y + 1;
-    f.player.facing = { x: 0, y: -1 };
+    const { f, rng, boss } = bossFloor();
+    Object.assign(f.player, { x: boss.x, y: boss.y + 1.6 });
+    boss.state = 'stun';
+    boss.timer = 99;
     boss.hp = boss.maxHp * BOSSES.printer.phase2Ratio + 1;
-    takeTurn(f, { kind: 'slash' }, rng);
+    stepFloor(f, { ...NO_INPUT, attack: true, aim: -Math.PI / 2 }, DT, rng);
     expect(f.boss?.phase).toBe(2);
     boss.hp = 1;
-    boss.windup = null;
-    takeTurn(f, { kind: 'slash' }, rng);
+    run(f, rng, W.swingTime + 0.02, { attack: true, aim: -Math.PI / 2 });
     expect(f.status).toBe('bossDefeated');
-    expect(f.loot).toBeGreaterThanOrEqual(BOSSES.printer.drop);
   });
 });

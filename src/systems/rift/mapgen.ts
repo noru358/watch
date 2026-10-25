@@ -1,10 +1,14 @@
 import { BOSSES, GHOSTS } from '../../data/ghosts.data';
 import { DUNGEON } from '../../data/dungeon.data';
+import { EXORCISTS } from '../../data/protagonist.data';
 import type { FloorPlan } from '../../data/contracts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import type { CardId, EnemyId, WeaponId } from '../../types/ids';
 import { runCardHooks } from './hooks';
+import { isFloor } from './physics';
 import type { Enemy, Floor, Pos, Stats, Tile } from './types';
+
+export { isFloor };
 
 interface Room {
   x: number;
@@ -23,41 +27,50 @@ export interface FloorCarry {
 }
 
 const overlaps = (a: Room, b: Room) =>
-  a.x - 1 < b.x + b.w && b.x - 1 < a.x + a.w && a.y - 1 < b.y + b.h && b.y - 1 < a.y + a.h;
+  a.x - 2 < b.x + b.w && b.x - 2 < a.x + a.w && a.y - 2 < b.y + b.h && b.y - 2 < a.y + a.h;
+
+function carve(tiles: Tile[], x: number, y: number): void {
+  if (x > 0 && y > 0 && x < DUNGEON.cols - 1 && y < DUNGEON.rows - 1) tiles[y * DUNGEON.cols + x] = 'floor';
+}
 
 function carveRoom(tiles: Tile[], r: Room): void {
-  for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) tiles[y * DUNGEON.cols + x] = 'floor';
+  for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) carve(tiles, x, y);
 }
 
-function roomTile(room: Room, rng: SeededRNG): Pos {
-  return { x: rng.int(room.x, room.x + room.w - 1), y: rng.int(room.y, room.y + room.h - 1) };
-}
+const centre = (x: number, y: number): Pos => ({ x: x + 0.5, y: y + 0.5 });
 
-export function isFloor(f: Pick<Floor, 'cols' | 'rows' | 'tiles'>, x: number, y: number): boolean {
-  return x >= 0 && y >= 0 && x < f.cols && y < f.rows && f.tiles[y * f.cols + x] === 'floor';
+function roomTile(room: Room, rng: SeededRNG, margin = 1): Pos {
+  return centre(rng.int(room.x + margin, room.x + room.w - 1 - margin), rng.int(room.y + margin, room.y + room.h - 1 - margin));
 }
 
 export function makeEnemy(f: Floor, kind: EnemyId, at: Pos): Enemy {
   const boss = kind === 'printer';
-  const hp = boss ? BOSSES.printer.hp : GHOSTS[kind].hp;
+  const hp = boss ? BOSSES[kind].hp : GHOSTS[kind].hp;
   const e: Enemy = {
     id: f.nextId++,
     kind,
-    ...at,
+    x: at.x,
+    y: at.y,
+    prevX: at.x,
+    prevY: at.y,
+    r: boss ? BOSSES[kind].radius : GHOSTS[kind].radius,
     hp,
     maxHp: hp,
-    awake: boss,
-    windup: null,
-    windupDamage: 0,
-    windupParriable: false,
-    dashTo: null,
-    timer: boss ? 0 : GHOSTS[kind].teleportEvery,
+    state: boss ? 'chase' : 'idle',
+    timer: 0,
+    teles: [],
+    warpTimer: boss ? 0 : GHOSTS[kind].teleportEvery,
+    warpTo: null,
+    knockX: 0,
+    knockY: 0,
+    face: 1,
   };
   f.enemies.push(e);
   return e;
 }
 
 function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry): Floor {
+  const d = EXORCISTS.director;
   return {
     index,
     cols: DUNGEON.cols,
@@ -65,29 +78,54 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry):
     tiles,
     stairs: null,
     payphone: null,
-    player: { ...start, hp: carry.hp, facing: { x: 0, y: -1 }, focus: carry.focus, combo: 0, bare: 0, shield: 0, darkness: 0 },
+    payphoneArmed: true,
+    player: {
+      ...start,
+      prevX: start.x,
+      prevY: start.y,
+      r: d.radius,
+      hp: carry.hp,
+      aim: -Math.PI / 2,
+      moving: false,
+      swingT: 0,
+      swingFx: 99,
+      combo: 0,
+      comboT: 0,
+      dashT: 0,
+      dashCd: 0,
+      dashX: 0,
+      dashY: 0,
+      iframes: 0,
+      recoverT: 0,
+      focus: carry.focus,
+      bare: 0,
+      shield: 0,
+      darkness: 0,
+    },
     enemies: [],
     pickups: [],
     boss: null,
     weapon: carry.weapon,
     stats: carry.stats,
     cards: [...carry.cards],
-    turn: 0,
+    time: 0,
     loot: carry.loot,
     status: 'playing',
     nextId: 1,
+    flow: new Int16Array(DUNGEON.cols * DUNGEON.rows).fill(-1),
+    flowFrom: -1,
     events: [],
   };
 }
 
 // Random rooms joined in sequence by L-shaped corridors, so every room is reachable.
 function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>, rng: SeededRNG, carry: FloorCarry): Floor {
-  const { cols, rows } = DUNGEON;
+  const { cols, rows, corridorWidth: cw } = DUNGEON;
   const tiles: Tile[] = new Array(cols * rows).fill('wall');
   const rooms: Room[] = [];
   for (let i = 0; i < DUNGEON.roomAttempts && rooms.length < DUNGEON.roomCount; i++) {
     const w = rng.int(DUNGEON.roomMin, DUNGEON.roomMax);
-    const h = rng.int(DUNGEON.roomMin - 1, DUNGEON.roomMax - 2);
+    const h = rng.int(DUNGEON.roomMin, DUNGEON.roomMax - 2);
     const room = { x: rng.int(1, cols - w - 1), y: rng.int(1, rows - h - 1), w, h };
     if (!rooms.some((r) => overlaps(r, room))) rooms.push(room);
   }
@@ -95,12 +133,16 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
   for (let i = 1; i < rooms.length; i++) {
     const a = roomTile(rooms[i - 1]!, rng);
     const b = roomTile(rooms[i]!, rng);
-    for (let x = Math.min(a.x, b.x); x <= Math.max(a.x, b.x); x++) tiles[a.y * cols + x] = 'floor';
-    for (let y = Math.min(a.y, b.y); y <= Math.max(a.y, b.y); y++) tiles[y * cols + b.x] = 'floor';
+    const ax = Math.floor(a.x);
+    const ay = Math.floor(a.y);
+    const bx = Math.floor(b.x);
+    const by = Math.floor(b.y);
+    for (let x = Math.min(ax, bx); x <= Math.max(ax, bx) + cw - 1; x++) for (let k = 0; k < cw; k++) carve(tiles, x, ay + k);
+    for (let y = Math.min(ay, by); y <= Math.max(ay, by) + cw - 1; y++) for (let k = 0; k < cw; k++) carve(tiles, bx + k, y);
   }
 
   const first = rooms[0]!;
-  const start = { x: first.x + Math.floor(first.w / 2), y: first.y + Math.floor(first.h / 2) };
+  const start = centre(first.x + Math.floor(first.w / 2), first.y + Math.floor(first.h / 2));
   const used = new Set<string>([`${start.x},${start.y}`]);
   const free = (from: Room[]): Pos => {
     for (let i = 0; i < 50; i++) {
@@ -128,10 +170,10 @@ function bossFloor(index: number, plan: Extract<FloorPlan, { kind: 'boss' }>, ca
   const room = { x: Math.floor((cols - bossRoom.w) / 2), y: Math.floor((rows - bossRoom.h) / 2), w: bossRoom.w, h: bossRoom.h };
   carveRoom(tiles, room);
   const cx = room.x + Math.floor(room.w / 2);
-  const f = baseFloor(index, tiles, { x: cx, y: room.y + room.h - 1 }, carry);
-  const boss = makeEnemy(f, plan.boss, { x: cx, y: room.y + 1 });
+  const f = baseFloor(index, tiles, centre(cx, room.y + room.h - 2), carry);
+  const boss = makeEnemy(f, plan.boss, centre(cx, room.y + 2));
   const data = BOSSES[plan.boss];
-  f.boss = { id: boss.id, phase: 1, lineTimer: data.lineEvery, summonTimer: data.summonEvery };
+  f.boss = { id: boss.id, phase: 1, sweepTimer: data.sweepEvery, summonTimer: data.summonEvery };
   return f;
 }
 

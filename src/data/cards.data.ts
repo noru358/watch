@@ -8,13 +8,13 @@ export interface CardData {
   slash: number;
   draw: number;
   focusMax: number; // negative = gauge fills sooner
-  bareTurns: number;
+  bareTime: number; // seconds
   comboBonus: number;
   chance: number;
   amount: number;
 }
 
-const NONE = { maxHp: 0, heal: 0, slash: 0, draw: 0, focusMax: 0, bareTurns: 0, comboBonus: 0, chance: 0, amount: 0 };
+const NONE = { maxHp: 0, heal: 0, slash: 0, draw: 0, focusMax: 0, bareTime: 0, comboBonus: 0, chance: 0, amount: 0 };
 
 export const CARDS: Record<CardId, CardData> = {
   // Base deck
@@ -27,7 +27,7 @@ export const CARDS: Record<CardId, CardData> = {
   double_newspaper: { ...NONE, source: 'newspaper_sword', slash: 1 },
   blue_lightning: { ...NONE, source: 'newspaper_sword', draw: 4 },
   lazy_but_serious: { ...NONE, source: 'newspaper_sword', focusMax: -1 },
-  torn_paper: { ...NONE, source: 'newspaper_sword', bareTurns: 2 },
+  torn_paper: { ...NONE, source: 'newspaper_sword', bareTime: 2 },
   third_strike: { ...NONE, source: 'newspaper_sword', comboBonus: 2 },
 };
 

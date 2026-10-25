@@ -1,5 +1,6 @@
-// Public API of the rift module (one floor of a night run, grid turn-based).
-export { takeTurn, answerPayphone } from './turn';
-export { generateFloor, isFloor, type FloorCarry } from './mapgen';
-export { enemyAt } from './space';
-export type { Floor, RiftAction, Enemy, Player, Stats, Pos, Dir, FloorStatus } from './types';
+// Public API of the rift module (one floor of a night run, real-time on a tile grid).
+export { stepFloor, answerPayphone } from './step';
+export { generateFloor, type FloorCarry } from './mapgen';
+export { isFloor, inTelegraph, dist } from './physics';
+export { NO_INPUT } from './types';
+export type { Floor, RiftInput, Enemy, Player, Stats, Pos, Telegraph, FloorStatus } from './types';

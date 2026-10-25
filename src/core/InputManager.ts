@@ -8,18 +8,32 @@ interface KeyEventLike {
   preventDefault(): void;
 }
 
-interface KeySource {
-  addEventListener(type: 'keydown' | 'keyup' | 'blur', fn: (e: KeyEventLike) => void): void;
+interface MouseEventLike {
+  button: number;
+  clientX: number;
+  clientY: number;
+  preventDefault(): void;
 }
 
-// Single owner of keyboard input, read from `window` (Rule 4). Only the top of
-// the context stack receives actions; everything else reads as idle.
+type InputEventType = 'keydown' | 'keyup' | 'blur' | 'mousedown' | 'mouseup' | 'mousemove' | 'contextmenu';
+
+interface KeySource {
+  addEventListener(type: InputEventType, fn: (e: KeyEventLike & MouseEventLike) => void): void;
+}
+
+// Mouse buttons are bound like keys: 'Mouse0' = left, 'Mouse2' = right.
+const mouseCode = (button: number) => `Mouse${button}`;
+
+// Single owner of keyboard and mouse input, read from `window` (Rule 4). Only the
+// top of the context stack receives actions; everything else reads as idle.
 export class InputManager {
   private stack: InputContext[] = ['day'];
   private down = new Set<string>();
   private pressed = new Set<Action>();
   private codeToActions = new Map<string, Action[]>();
   private actionListeners = new Set<(action: Action, context: InputContext) => void>();
+  private pointerPos = { x: 0, y: 0 }; // client (CSS) pixels
+  private pointerMoves = 0; // increments on every mouse move, so callers can tell the mouse is in use
 
   constructor(source: KeySource) {
     for (const [action, codes] of Object.entries(KEY_BINDINGS) as [Action, readonly string[]][]) {
@@ -33,6 +47,24 @@ export class InputManager {
     source.addEventListener('keyup', (e) => this.down.delete(e.code));
     // Prevents stuck keys when the window loses focus mid-press.
     source.addEventListener('blur', () => this.down.clear());
+    source.addEventListener('mousemove', (e) => {
+      this.pointerPos = { x: e.clientX, y: e.clientY };
+      this.pointerMoves += 1;
+    });
+    source.addEventListener('mousedown', (e) => {
+      this.pointerPos = { x: e.clientX, y: e.clientY };
+      this.onKeyDown({ code: mouseCode(e.button), preventDefault: () => e.preventDefault() });
+    });
+    source.addEventListener('mouseup', (e) => this.down.delete(mouseCode(e.button)));
+    // Right-click is a game action at night, not a browser menu.
+    source.addEventListener('contextmenu', (e) => {
+      if (this.context !== 'day') e.preventDefault();
+    });
+  }
+
+  // Last known pointer position in client pixels, and a counter of mouse moves.
+  pointer(): { x: number; y: number; moves: number } {
+    return { ...this.pointerPos, moves: this.pointerMoves };
   }
 
   get context(): InputContext {

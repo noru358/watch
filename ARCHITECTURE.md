@@ -35,7 +35,7 @@
 ### Rule 4 — Unified input & focus safety (`src/core/InputManager.ts`)
 - Never attach keyboard/gamepad listeners to the Phaser canvas or to React components directly. All input is read from `window` through `InputManager`.
 - `InputManager` holds a context stack: `night` / `day` / `modal`. Only the top context receives input.
-- Night: React overlay is unmounted, Phaser has input. Day: Phaser scene is paused and its input disabled. Switching phase goes through one function (`setPhase`) — never toggle visibility ad hoc.
+- Night: React overlay is unmounted, Phaser renders; keyboard and mouse are still read only through `InputManager` (mouse buttons bind like keys: `Mouse0`, `Mouse2`). Day: Phaser scene is paused and its input disabled. Switching phase goes through one function (`setPhase`) — never toggle visibility ad hoc.
 - Regression to prevent: "after closing a window, the game needs a click before keys work." Any UI change must be checked against this.
 
 ### Rule 5 — File size & responsibility
@@ -44,7 +44,7 @@
 
 ### Rule 6 — Determinism & save safety
 - No `Math.random()` in gameplay. Use `SeededRNG` (`src/core/SeededRNG.ts`), passed in explicitly.
-- Night combat is grid turn-based (one director action = one turn, then every enemy acts; decided 2026-10-25, see `docs/design/combat.md`). Rendering only animates between tiles.
+- Night combat is real-time on a tile grid (Core Keeper style, decided 2026-10-25, see `docs/design/combat.md`). Simulation runs on a fixed timestep in tile units; rendering interpolates. Every enemy attack is a floor telegraph.
 - Saves carry `schemaVersion: number` and pass through `SaveManager.migrate()` on load. Any change to the save shape bumps the version and adds a migration + test.
 
 ### Rule 7 — Server-authoritative economy (design for it now, build it in Gate 4)
@@ -71,7 +71,7 @@ src/
  ├── registry/    # Behaviour by ID: cardEffects.ts (upgrade-card hooks); later companion skills
  ├── store/       # GameStore (single source of truth) + actions
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
- │                #   rift/ (one floor: map gen, turns, boss), run/ (a night: floors, cards, stats, settlement),
+ │                #   rift/ (one floor: map gen, tile physics, player, enemies, boss, telegraphs), run/ (a night: floors, cards, stats, settlement),
  │                #   later: recruit/, economy/, dispatch/, rental/, shop/
  ├── scenes/      # Phaser, one folder per screen: rift/ (night), shared/ (Overlay panels, vfx, sfx), later hub/
  └── ui/          # React: OfficeApp (Gate 1 placeholder), later features/<featureId>/
@@ -101,7 +101,7 @@ React reads `GameStore` via `useSyncExternalStore`. Phaser reads it via `GameSto
 
 Each gate must be fun on its own before the next starts. If a gate fails, change the loop — do not polish.
 
-- **Gate 1 — Night combat prototype (CURRENT):** one Euljiro contract as grid turn-based floors (Mystery Dungeon style), the director alone (weapon A: newspaper-wrapped sword with combo, bared blade and the 발도 draw/parry), base + weapon upgrade-card decks, a few ghost types, 1 boss, hit-stop / damage popups / drop sounds, payphone extraction. Day screen = a single placeholder menu. No backend, no idle dispatch, no furniture.
+- **Gate 1 — Night combat prototype (CURRENT):** one Euljiro contract as real-time top-down floors on a tile grid (Core Keeper style), the director alone (weapon A: newspaper-wrapped sword with combo, bared blade and the 발도 timed parry), dash with front-loaded i-frames, base + weapon upgrade-card decks, a few ghost types, 1 boss, hit-stop / damage popups / drop sounds, payphone extraction. Day screen = a single placeholder menu. No backend, no idle dispatch, no furniture.
 - **Gate 2 — Roster & growth:** office hub (bookkeeper + spirit cat, story-unlocked), companions with 1 party slot (call skill + companion card deck, see `docs/design/party.md`), weapon B (talisman label gun), traits/traumas persisting across runs, recovery.
 - **Gate 3 — Seoul map & 2nd squad:** multiple districts, purification progress, capped idle dispatch.
 - **Gate 4 — Rental market:** NPC offices first (works fully offline), then Supabase with server-side stat recompute and fee settlement (Rule 7). Popularity-based fee diminishing applied per office account, not per exorcist.

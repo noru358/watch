@@ -3,11 +3,11 @@ import { input, requestPhase, store } from '../../app/services';
 import { eventBus } from '../../core/EventBus';
 import { SeededRNG } from '../../core/SeededRNG';
 import { CARDS } from '../../data/cards.data';
-import { FEEL, PALETTE } from '../../data/feel.data';
+import { FEEL, PALETTE, SCREEN } from '../../data/feel.data';
 import { t } from '../../i18n';
 import type { GameEvent } from '../../types/events';
 import type { CardId } from '../../types/ids';
-import { answerPayphone, takeTurn, type Dir, type Floor, type RiftAction } from '../../systems/rift';
+import { answerPayphone, stepFloor, type Floor, type RiftInput } from '../../systems/rift';
 import { enterFloor, leaveFloor, offerCards, pickCard, runResult, startRun, totalFloors, type RunState } from '../../systems/run';
 import { Overlay } from '../shared/Overlay';
 import { attachVfx } from '../shared/vfx';
@@ -17,13 +17,6 @@ type Mode = 'play' | 'cards' | 'payphone' | 'end';
 const END_INPUT_DELAY = 0.6; // seconds before the end panel accepts input
 const TEXT = { fontFamily: PALETTE.font, fontSize: '15px', color: PALETTE.text };
 
-const DIR_ACTIONS = [
-  ['up', { x: 0, y: -1 }],
-  ['down', { x: 0, y: 1 }],
-  ['left', { x: -1, y: 0 }],
-  ['right', { x: 1, y: 0 }],
-] as const satisfies readonly (readonly ['up' | 'down' | 'left' | 'right', Dir])[];
-
 function cardText(id: CardId): { name: string; desc: string } {
   const c = CARDS[id];
   const params = {
@@ -32,7 +25,7 @@ function cardText(id: CardId): { name: string; desc: string } {
     slash: c.slash,
     draw: c.draw,
     focus: -c.focusMax,
-    bare: c.bareTurns,
+    bare: c.bareTime,
     combo: c.comboBonus,
     chance: Math.round(c.chance * 100),
     amount: c.amount,
@@ -41,27 +34,34 @@ function cardText(id: CardId): { name: string; desc: string } {
   return { name: t(`card.${id}.name`), desc: `${t(`card.${id}.desc`, params)}\n\n[${deck}]` };
 }
 
-// Simulation events use tile coordinates; the presentation layer wants pixels.
+// Simulation events use tile coordinates; the presentation layer wants world pixels.
 function toPixels(e: GameEvent): GameEvent {
   return 'x' in e ? { ...e, ...tileToPx(e.x, e.y) } : e;
 }
 
-// Night: one contract run, Mystery-Dungeon style (one action = one turn).
+// Night: one contract run, real-time top-down on a tile grid (Core Keeper style).
+// Simulation runs on a fixed step; rendering interpolates (Rule 6).
 export class RiftScene extends Phaser.Scene {
   private run!: RunState;
   private floor!: Floor;
   private rng!: SeededRNG;
   private view!: RiftView;
   private overlay!: Overlay;
+  private worldLayer!: Phaser.GameObjects.Layer;
+  private uiLayer!: Phaser.GameObjects.Layer;
+  private uiCam!: Phaser.Cameras.Scene2D.Camera;
   private hud!: Phaser.GameObjects.Text;
   private focusLabel!: Phaser.GameObjects.Text;
   private hudG!: Phaser.GameObjects.Graphics;
   private mode: Mode = 'play';
-  private repeat = 0;
+  private acc = 0;
   private freezeLeft = 0;
   private offer: CardId[] = [];
   private selected = 0;
   private endDelay = 0;
+  private aim = -Math.PI / 2;
+  private mouseMoves = -1;
+  private mouseIdle = 99;
 
   constructor() {
     super('rift');
@@ -69,15 +69,32 @@ export class RiftScene extends Phaser.Scene {
 
   create(): void {
     this.mode = 'play';
+    this.acc = 0;
     this.freezeLeft = 0;
     this.rng = new SeededRNG(store.takeRunSeed());
     this.run = startRun({ contractId: 'euljiro_printer', level: 1, weapon: 'newspaper_sword' });
-    this.view = new RiftView(this);
-    this.overlay = new Overlay(this);
-    this.hudG = this.add.graphics().setDepth(50);
-    this.hud = this.add.text(12, 6, '', TEXT).setDepth(51);
-    this.focusLabel = this.add.text(636, 6, t('rift.focus'), TEXT).setOrigin(1, 0).setDepth(51);
-    const off = attachVfx(this, eventBus, { freeze: (s) => (this.freezeLeft = Math.max(this.freezeLeft, s)), view: this.view });
+
+    // Two cameras: the zoomed world camera follows the director; the UI camera stays 1:1.
+    this.worldLayer = this.add.layer();
+    this.uiLayer = this.add.layer().setDepth(100);
+    this.uiCam = this.cameras.add(0, 0, SCREEN.width, SCREEN.height);
+    this.cameras.main.setZoom(FEEL.zoom).setBackgroundColor(PALETTE.gridWall);
+    this.cameras.main.ignore(this.uiLayer);
+    this.uiCam.ignore(this.worldLayer);
+
+    this.view = new RiftView(this, this.worldLayer);
+    this.overlay = new Overlay(this, this.uiLayer);
+    this.hudG = this.add.graphics();
+    this.hud = this.add.text(12, 8, '', TEXT);
+    this.focusLabel = this.add.text(636, 8, t('rift.focus'), TEXT).setOrigin(1, 0);
+    const hint = this.add.text(SCREEN.width / 2, SCREEN.height - 16, t('rift.controlsHint'), { ...TEXT, fontSize: '12px', color: PALETTE.textDim }).setOrigin(0.5);
+    this.uiLayer.add([this.hudG, this.hud, this.focusLabel, hint]);
+
+    const off = attachVfx(this, eventBus, {
+      freeze: (s) => (this.freezeLeft = Math.max(this.freezeLeft, s)),
+      view: this.view,
+      layer: this.worldLayer,
+    });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
     this.loadFloor();
     // Dev-only read access for automated play-testing; stripped from production builds.
@@ -87,30 +104,41 @@ export class RiftScene extends Phaser.Scene {
   private loadFloor(): void {
     this.floor = enterFloor(this.run, this.rng);
     this.view.drawMap(this.floor);
+    const cam = this.cameras.main;
+    cam.setBounds(-FEEL.tile * 2, -FEEL.tile * 2, (this.floor.cols + 4) * FEEL.tile, (this.floor.rows + 4) * FEEL.tile);
+    cam.centerOn(this.floor.player.x * FEEL.tile, this.floor.player.y * FEEL.tile);
     if (this.floor.boss) this.overlay.banner(t('rift.bossIntro'));
     input.clearPressed();
+    this.acc = 0;
   }
 
-  private readAction(dt: number): RiftAction | null {
+  // Mouse aim while the mouse is in use; otherwise aim follows movement (keyboard play).
+  private updateAim(dt: number, moveX: number, moveY: number): void {
+    const ptr = input.pointer();
+    if (ptr.moves !== this.mouseMoves) {
+      this.mouseMoves = ptr.moves;
+      this.mouseIdle = 0;
+    } else this.mouseIdle += dt;
+    if (this.mouseIdle < FEEL.mouseAimTimeout) {
+      const rect = this.game.canvas.getBoundingClientRect();
+      const gx = ((ptr.x - rect.left) * SCREEN.width) / rect.width;
+      const gy = ((ptr.y - rect.top) * SCREEN.height) / rect.height;
+      const world = this.cameras.main.getWorldPoint(gx, gy);
+      const p = this.floor.player;
+      this.aim = Math.atan2(world.y / FEEL.tile - (p.y - 0.5), world.x / FEEL.tile - p.x);
+    } else if (moveX || moveY) this.aim = Math.atan2(moveY, moveX);
+  }
+
+  private readInput(): RiftInput {
     const ctx = 'night';
-    if (input.consume('attack', ctx)) return { kind: 'slash' };
-    if (input.consume('draw', ctx)) return { kind: 'draw' };
-    if (input.consume('wait', ctx)) return { kind: 'wait' };
-    for (const [action, dir] of DIR_ACTIONS) {
-      if (input.consume(action, ctx)) {
-        this.repeat = FEEL.moveRepeat * 2; // a short pause before auto-repeat kicks in
-        return { kind: 'move', dir };
-      }
-    }
-    this.repeat -= dt;
-    if (this.repeat > 0) return null;
-    for (const [action, dir] of DIR_ACTIONS) {
-      if (input.isDown(action, ctx)) {
-        this.repeat = FEEL.moveRepeat;
-        return { kind: 'move', dir };
-      }
-    }
-    return null;
+    return {
+      moveX: (input.isDown('right', ctx) ? 1 : 0) - (input.isDown('left', ctx) ? 1 : 0),
+      moveY: (input.isDown('down', ctx) ? 1 : 0) - (input.isDown('up', ctx) ? 1 : 0),
+      aim: this.aim,
+      attack: input.isDown('attack', ctx),
+      dash: input.consume('dash', ctx),
+      draw: input.consume('draw', ctx),
+    };
   }
 
   update(_time: number, deltaMs: number): void {
@@ -124,25 +152,40 @@ export class RiftScene extends Phaser.Scene {
       }
     } else if (this.mode === 'cards') this.updateCards();
     else if (this.mode === 'payphone') this.updatePayphone();
-    else if (this.freezeLeft > 0) this.freezeLeft -= dt;
-    else this.play(dt);
-    this.view.render(this.floor, dt);
+    else if (this.freezeLeft > 0) this.freezeLeft -= dt; // hit-stop
+    else this.simulate(dt);
+    this.followCamera(dt);
+    this.view.render(this.floor, this.acc / FEEL.fixedStep, dt);
     this.renderHud();
   }
 
-  private play(dt: number): void {
-    const action = this.readAction(dt);
-    if (!action || !takeTurn(this.floor, action, this.rng)) return;
-    const events = this.floor.events;
-    this.floor.events = [];
-    events.forEach((e) => eventBus.emitEvent(toPixels(e)));
-    if (events.some((e) => e.type === 'bossPhase')) this.view.setNeon(true);
-    this.afterTurn();
+  private simulate(dt: number): void {
+    this.acc = Math.min(this.acc + dt, FEEL.fixedStep * FEEL.maxStepsPerFrame);
+    while (this.acc >= FEEL.fixedStep && this.mode === 'play') {
+      const frame = this.readInput();
+      this.updateAim(FEEL.fixedStep, frame.moveX, frame.moveY);
+      frame.aim = this.aim;
+      stepFloor(this.floor, frame, FEEL.fixedStep, this.rng);
+      this.acc -= FEEL.fixedStep;
+      const events = this.floor.events;
+      this.floor.events = [];
+      events.forEach((e) => eventBus.emitEvent(toPixels(e)));
+      if (events.some((e) => e.type === 'bossPhase')) this.view.setNeon(true);
+      if (this.floor.status !== 'playing') this.afterFloorChange();
+    }
   }
 
-  private afterTurn(): void {
+  private followCamera(dt: number): void {
+    const cam = this.cameras.main;
+    const p = this.floor.player;
+    const tx = p.x * FEEL.tile;
+    const ty = p.y * FEEL.tile;
+    const k = Math.min(1, FEEL.cameraLerp * dt);
+    cam.centerOn(cam.midPoint.x + (tx - cam.midPoint.x) * k, cam.midPoint.y + (ty - cam.midPoint.y) * k);
+  }
+
+  private afterFloorChange(): void {
     const f = this.floor;
-    if (f.status === 'playing') return;
     if (f.status === 'payphone') {
       this.mode = 'payphone';
       this.selected = 0;
@@ -174,7 +217,7 @@ export class RiftScene extends Phaser.Scene {
     this.overlay.showCards(t('rift.cardPick'), this.offer.map(cardText));
   }
 
-  // Shared 1/2/3 + A/D + J selection for overlay cards. Returns the chosen index or -1.
+  // Shared 1/2/3 + A/D + J/Enter selection for overlay cards. Returns the chosen index or -1.
   private choose(count: number): number {
     const choices = ['choice1', 'choice2', 'choice3'] as const;
     let pick = choices.findIndex((c, i) => i < count && input.consume(c, 'modal'));
@@ -202,7 +245,7 @@ export class RiftScene extends Phaser.Scene {
     input.pop();
     this.mode = 'play';
     answerPayphone(this.floor, pick === 0);
-    this.afterTurn();
+    if (this.floor.status !== 'playing') this.afterFloorChange();
   }
 
   private renderHud(): void {
@@ -210,12 +253,12 @@ export class RiftScene extends Phaser.Scene {
     const p = f.player;
     const g = this.hudG;
     g.clear();
-    for (let i = 0; i < f.stats.maxHp; i++) g.fillStyle(i < p.hp ? PALETTE.hpBar : PALETTE.hpBarBack).fillRect(300 + i * 12, 9, 9, 12);
-    for (let i = 0; i < f.stats.focusMax; i++) g.fillStyle(i < p.focus ? PALETTE.focus : PALETTE.hpBarBack).fillRect(640 + i * 16, 9, 13, 12);
+    for (let i = 0; i < f.stats.maxHp; i++) g.fillStyle(i < p.hp ? PALETTE.hpBar : PALETTE.hpBarBack).fillRect(300 + i * 12, 11, 9, 12);
+    for (let i = 0; i < f.stats.focusMax; i++) g.fillStyle(i < p.focus ? PALETTE.focus : PALETTE.hpBarBack).fillRect(640 + i * 16, 11, 13, 12);
     const boss = f.boss && f.enemies.find((e) => e.id === f.boss!.id);
     if (boss) {
-      g.fillStyle(PALETTE.hpBarBack).fillRect(780, 11, 160, 8);
-      g.fillStyle(f.boss!.phase === 2 ? PALETTE.neonPhase2 : PALETTE.printer).fillRect(780, 11, (160 * Math.max(0, boss.hp)) / boss.maxHp, 8);
+      g.fillStyle(PALETTE.hpBarBack).fillRect(780, 13, 160, 8);
+      g.fillStyle(f.boss!.phase === 2 ? PALETTE.neonPhase2 : PALETTE.printer).fillRect(780, 13, (160 * Math.max(0, boss.hp)) / boss.maxHp, 8);
     }
     const floorText = f.boss ? t('rift.bossFloor') : t('rift.floor', { current: f.index + 1, total: totalFloors(this.run) - 1 });
     this.hud.setText(`${floorText}   ${t('rift.loot', { value: f.loot })}${p.bare > 0 ? `   ${t('rift.bare')}` : ''}`);

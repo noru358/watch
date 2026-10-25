@@ -21,7 +21,7 @@ contract   party·protagonist   combat·contract   run-result·recruit   economy
 | 기준 | 세계관·톤 | [world.md](world.md) | — (모든 모듈이 따름) | 📝 | — |
 | 기준 | 플레이 흐름 (종합) | [playflow.md](playflow.md) | — (여러 모듈을 엮은 설명) | 📝 | — |
 | 기준 | 플랫폼·입력 | [platform.md](platform.md) | `core/InputManager.ts`, `core/platform.ts`(예정) | 🟢 키보드만 | 1 |
-| 밤 | **전투 방식** | [combat.md](combat.md) | `systems/rift/`, `systems/run/`, `scenes/rift/` | 🟢 칸 턴제로 결정 | 1 |
+| 밤 | **전투 방식** | [combat.md](combat.md) | `systems/rift/`, `systems/run/`, `scenes/rift/` | 🟢 코어키퍼식 실시간 | 1 |
 | 밤 | 주인공·무기 | [protagonist.md](protagonist.md) | `data/protagonist.data.ts`, `data/weapons.data.ts`, `systems/run/stats.ts` | 🟢 무기 A | 1 |
 | 밤 | 의뢰·현장 | [contract.md](contract.md) | `data/contracts.data.ts`, `data/dungeon.data.ts`, `systems/rift/mapgen.ts` | 🟢 을지로 1건 | 1 |
 | 밤 | 실패·정산 | [run-result.md](run-result.md) | `data/penalties.data.ts`, `systems/run/` | 🟢 | 1 |
@@ -33,7 +33,8 @@ contract   party·protagonist   combat·contract   run-result·recruit   economy
 | 제작 | 아트·에셋 | [art.md](art.md) | `scenes/shared/`(연출), `assets/`(예정) | 🧪 도형·합성음 | 1 |
 
 ## 참고 게임 역설계 → [`../reference/`](../reference/)
-- [포켓몬 불가사의 던전](../reference/pokemon-mystery-dungeon.md) — 의뢰판 → 던전 → 영입, 칸 턴제
+- [탑다운 실시간 액션](../reference/topdown-action.md) — Core Keeper, Death's Door, Ghostlore, Gungeon, Moonlighter, japda
+- [포켓몬 불가사의 던전](../reference/pokemon-mystery-dungeon.md) — 의뢰판 → 던전 → 영입
 - [소녀전선](../reference/girls-frontline.md) — 편성 칸 버프, 군수 파견, 숙소
 
 ## 모듈끼리 규칙

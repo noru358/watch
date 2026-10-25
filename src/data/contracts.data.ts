@@ -14,9 +14,9 @@ export const CONTRACTS: Record<ContractId, ContractData> = {
   euljiro_printer: {
     fee: 300,
     floors: [
-      { kind: 'normal', enemies: 4, pool: ['cheonyeo', 'dalgyal'], payphone: false },
-      { kind: 'normal', enemies: 6, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: true },
-      { kind: 'normal', enemies: 7, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: false },
+      { kind: 'normal', enemies: 7, pool: ['cheonyeo', 'dalgyal'], payphone: false },
+      { kind: 'normal', enemies: 9, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: true },
+      { kind: 'normal', enemies: 11, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: false },
       { kind: 'boss', boss: 'printer' },
     ],
   },

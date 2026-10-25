@@ -1,6 +1,8 @@
+import type { AttackShape } from '../../data/ghosts.data';
 import type { CardId, EnemyId, WeaponId } from '../../types/ids';
 import type { GameEvent } from '../../types/events';
 
+// Positions are in TILE units (floats); tile (x, y) covers [x, x+1) × [y, y+1).
 export type Tile = 'wall' | 'floor';
 
 export interface Pos {
@@ -8,37 +10,75 @@ export interface Pos {
   y: number;
 }
 
-export type Dir = Pos; // unit step, 4 directions
+export interface Body extends Pos {
+  prevX: number; // position at the previous tick, for render interpolation
+  prevY: number;
+  r: number;
+}
 
-// One player choice = one turn.
-export type RiftAction =
-  | { kind: 'move'; dir: Dir } // bumping into an enemy attacks it
-  | { kind: 'slash' } // hit the faced tile
-  | { kind: 'wait' }
-  | { kind: 'draw' }; // 발도: counter adjacent wound-up enemies, or free strike with full focus
+// One fixed-step tick of player intent.
+export interface RiftInput {
+  moveX: number; // -1..1
+  moveY: number;
+  aim: number; // radians, world space
+  attack: boolean; // held
+  dash: boolean; // pressed this tick
+  draw: boolean; // pressed this tick
+}
 
-export interface Enemy extends Pos {
+export const NO_INPUT: RiftInput = { moveX: 0, moveY: 0, aim: 0, attack: false, dash: false, draw: false };
+
+// A floor marking that strikes when its timer runs out.
+export interface Telegraph {
+  shape: AttackShape | 'band';
+  x: number; // origin
+  y: number;
+  angle: number; // cone/line direction
+  range: number; // cone/circle radius, line length
+  width: number; // line/band thickness
+  axis: 'row' | 'col'; // band orientation
+  t: number; // seconds left
+  total: number;
+  damage: number;
+  parriable: boolean;
+  darkness: number;
+}
+
+export type EnemyState = 'idle' | 'chase' | 'windup' | 'recover' | 'stun' | 'warp';
+
+export interface Enemy extends Body {
   id: number;
   kind: EnemyId;
   hp: number;
   maxHp: number;
-  awake: boolean;
-  // Telegraph: tiles this enemy will hit at the end of the next enemy phase.
-  windup: Pos[] | null;
-  windupDamage: number;
-  windupParriable: boolean; // false for line sweeps and dashes: those must be dodged
-  dashTo: Pos | null; // subway dash marker
-  timer: number; // teleport countdown (cheonyeo)
+  state: EnemyState;
+  timer: number; // time left in the current state
+  teles: Telegraph[]; // active telegraphs (boss may have several)
+  warpTimer: number; // countdown to the next teleport (cheonyeo)
+  warpTo: Pos | null;
+  knockX: number; // knockback velocity, tiles/s
+  knockY: number;
+  face: number; // -1 left, 1 right (render hint)
 }
 
-export interface Player extends Pos {
+export interface Player extends Body {
   hp: number;
-  facing: Dir;
+  aim: number;
+  moving: boolean; // render hint
+  swingT: number; // time until the next swing may start
+  swingFx: number; // render hint: time since the last swing started
+  combo: number; // swings in the current combo
+  comboT: number; // window left to continue the combo
+  dashT: number;
+  dashCd: number;
+  dashX: number;
+  dashY: number;
+  iframes: number;
+  recoverT: number; // 발도 whiff recovery
   focus: number; // 진심 게이지
-  combo: number; // consecutive turns with a landed hit
-  bare: number; // turns left with the sword unwrapped (after a draw)
+  bare: number; // seconds left with the sword unwrapped
   shield: number; // salt_ward charges
-  darkness: number; // turns of reduced vision left
+  darkness: number; // seconds of reduced vision
 }
 
 // Derived from weapon + cards + level (Rule 7); never saved.
@@ -47,7 +87,7 @@ export interface Stats {
   slash: number;
   draw: number;
   focusMax: number;
-  bareTurns: number;
+  bareTime: number;
   bareSlashBonus: number;
   comboEvery: number;
   comboBonus: number;
@@ -56,11 +96,11 @@ export interface Stats {
 export interface BossState {
   id: number;
   phase: 1 | 2;
-  lineTimer: number;
+  sweepTimer: number;
   summonTimer: number;
 }
 
-// 'payphone': the director stepped on the payphone and must choose (extract / continue).
+// 'payphone': the director reached the payphone and must choose (extract / continue).
 export type FloorStatus = 'playing' | 'stairs' | 'payphone' | 'extracted' | 'dead' | 'bossDefeated';
 
 export interface Floor {
@@ -68,8 +108,9 @@ export interface Floor {
   cols: number;
   rows: number;
   tiles: Tile[]; // row-major
-  stairs: Pos | null; // null on the boss floor
+  stairs: Pos | null; // tile centre; null on the boss floor
   payphone: Pos | null;
+  payphoneArmed: boolean; // re-arms once the director walks away
   player: Player;
   enemies: Enemy[];
   pickups: (Pos & { value: number })[];
@@ -77,9 +118,11 @@ export interface Floor {
   weapon: WeaponId;
   stats: Stats;
   cards: CardId[];
-  turn: number;
+  time: number;
   loot: number;
   status: FloorStatus;
   nextId: number;
-  events: GameEvent[]; // x/y are TILE coordinates; the scene converts to pixels
+  flow: Int16Array; // tile distance to the director (enemy pathing)
+  flowFrom: number; // tile index the flow field was built from
+  events: GameEvent[]; // x/y in TILE units; the scene converts to pixels
 }

@@ -13,7 +13,7 @@ export function computeExorcistStats(exorcist: ExorcistId, level: number, cards:
     slash: w.slash,
     draw: w.draw,
     focusMax: w.focusMax,
-    bareTurns: w.bareTurns,
+    bareTime: w.bareTime,
     bareSlashBonus: w.bareSlashBonus,
     comboEvery: w.comboEvery,
     comboBonus: w.comboBonus,
@@ -24,7 +24,7 @@ export function computeExorcistStats(exorcist: ExorcistId, level: number, cards:
     s.slash += c.slash;
     s.draw += c.draw;
     s.focusMax = Math.max(1, s.focusMax + c.focusMax);
-    s.bareTurns += c.bareTurns;
+    s.bareTime += c.bareTime;
     s.comboBonus += c.comboBonus;
   }
   return s;

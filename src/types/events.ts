@@ -12,6 +12,7 @@ export interface GameEventMap {
   shieldBlocked: { x: number; y: number };
   pickupCollected: { x: number; y: number; value: number };
   slash: { x: number; y: number };
+  dash: { x: number; y: number };
   parry: { x: number; y: number }; // 발도 counter / draw strike
   bossPhase: { phase: 2 };
   roomCleared: { boss: boolean };
