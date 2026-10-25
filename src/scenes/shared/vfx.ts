@@ -46,10 +46,9 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
     bus.on('enemyHit', (e) => {
       hooks.view.flash(e.entityId);
       hooks.freeze(e.empowered ? FEEL.hitStopHeavy : FEEL.hitStopHit);
-      // Swarm hits show no number: dozens of numbers made the screen busy.
-      if (e.kind === 'printer' || !GHOSTS[e.kind].fodder) {
-        popup(scene, e.x, e.y, String(Math.max(1, Math.round(e.amount))), e.empowered ? PALETTE.healText : PALETTE.damageText, e.empowered ? FEEL.popupSizeBig : FEEL.popupSize);
-      }
+      const fodder = e.kind !== 'printer' && GHOSTS[e.kind].fodder;
+      const size = e.empowered ? FEEL.popupSizeBig : fodder ? FEEL.popupSizeSmall : FEEL.popupSize;
+      popup(scene, e.x, e.y, String(Math.max(1, Math.round(e.amount))), e.empowered ? PALETTE.healText : PALETTE.damageText, size);
       playSfx('hit');
     }),
     bus.on('enemyKilled', (e) => {

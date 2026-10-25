@@ -5,6 +5,7 @@ import { BOSSES, GHOSTS } from '../src/data/ghosts.data';
 import { EXORCISTS } from '../src/data/protagonist.data';
 import { WEAPONS } from '../src/data/weapons.data';
 import { answerPayphone, generateFloor, isFloor, NO_INPUT, stepFloor, type Floor, type RiftInput } from '../src/systems/rift';
+import { makeEnemy } from '../src/systems/rift/mapgen';
 import { carry, DT, duel, floorWith } from './helpers';
 
 const W = WEAPONS.newspaper_sword;
@@ -105,6 +106,18 @@ describe('ghost telegraphs', () => {
     expect(f.player.bare).toBeGreaterThan(0);
     run(f, rng, 0.5);
     expect(f.player.hp).toBe(MAX);
+  });
+
+  it('a counter also cuts all around (wider than the plain slash), as hard as the focus strike', () => {
+    const { f, rng } = duel('dalgyal');
+    const behind = makeEnemy(f, 'dalgyal', { x: 10.5 - 3, y: 10.5 });
+    stepFloor(f, NO_INPUT, DT, rng);
+    run(f, rng, GHOSTS.dalgyal.windup - W.parryWindow / 2);
+    stepFloor(f, { ...NO_INPUT, draw: true, aim: 0 }, DT, rng);
+    expect(f.player.drawKind).toBe('counter');
+    expect(behind.hp).toBe(GHOSTS.dalgyal.hp - W.draw);
+    expect(W.burstReach).toBeGreaterThan(W.drawReach);
+    expect(W.draw).toBeGreaterThan(W.drawSlash);
   });
 
   it('발도 too early is just a wide slash: no counter, the hit still lands, then a cooldown', () => {

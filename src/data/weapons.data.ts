@@ -15,7 +15,8 @@ export interface WeaponData {
   drawSlash: number; // damage of the plain wide slash
   draw: number; // damage of a counter or a focus strike
   drawArc: number; // width of the plain wide slash (radians)
-  drawReach: number; // reach of every 발도 outcome
+  drawReach: number; // reach of the plain wide slash, and how close a ghost must be to be countered
+  burstReach: number; // radius of the counter and the focus strike (both are full circles)
   drawCooldown: number; // seconds between 발도 uses
   parryWindow: number; // a melee telegraph can be countered in its last N seconds
   drawStun: number; // seconds a countered enemy is stunned
@@ -38,7 +39,8 @@ export const WEAPONS: Record<WeaponId, WeaponData> = {
     drawSlash: 5,
     draw: 10,
     drawArc: 2.6,
-    drawReach: 2.2,
+    drawReach: 2.6,
+    burstReach: 3.4,
     drawCooldown: 1.0,
     parryWindow: 0.22,
     drawStun: 0.9,

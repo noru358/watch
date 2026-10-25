@@ -137,8 +137,9 @@ export class RiftView {
     const g = this.g;
     const w = WEAPONS[f.weapon];
     const reach = w.drawReach * T;
+    const burst = w.burstReach * T;
     if (p.focus >= f.stats.focusMax) {
-      g.lineStyle(1, PALETTE.focus, 0.35 + 0.25 * Math.sin(this.clock * 6)).strokeCircle(x, y - 4, reach);
+      g.lineStyle(1, PALETTE.focus, 0.35 + 0.25 * Math.sin(this.clock * 6)).strokeCircle(x, y - 4, burst);
     }
     const life = 0.3;
     if (p.drawFx >= life) return;
@@ -151,8 +152,8 @@ export class RiftView {
       g.arc(x, y - 4, reach, p.aim - w.drawArc / 2, p.aim + w.drawArc / 2);
       g.strokePath();
     } else {
-      g.fillStyle(PALETTE.bareBlade, 0.3 * k).fillCircle(x, y - 4, reach);
-      g.lineStyle(2, 0xffffff, 0.9 * k).strokeCircle(x, y - 4, reach);
+      g.fillStyle(PALETTE.bareBlade, 0.3 * k).fillCircle(x, y - 4, burst);
+      g.lineStyle(2, 0xffffff, 0.9 * k).strokeCircle(x, y - 4, burst);
     }
   }
 

@@ -81,7 +81,7 @@ export function skilled(f: Floor): RiftInput {
     }
   }
   const e = nearest(f);
-  if (e && p.focus >= f.stats.focusMax && dist(e, p) - e.r <= W.drawReach) return { ...base, draw: true };
+  if (e && p.focus >= f.stats.focusMax && dist(e, p) - e.r <= W.burstReach) return { ...base, draw: true };
   return base;
 }
 

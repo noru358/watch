@@ -16,18 +16,19 @@ export const FEEL = {
   hitStopHit: 0.012, // seconds the screen holds on a normal hit (short: frequent hits must not stutter)
   hitStopHeavy: 0.04, // 3rd combo hit / draw strike
   hitStopKill: 0.03, // strong ghosts only; swarm kills don't freeze
-  hitStopHurt: 0.06,
+  hitStopHurt: 0.035,
   hitStopParry: 0.12,
   hitStopCooldown: 0.15, // a new small hit-stop is ignored this soon after the last one
   // Kept deliberately quiet: the user found hit effects too busy (2026-10-25).
-  shakeHurt: { duration: 100, intensity: 0.004 },
+  shakeHurt: { duration: 70, intensity: 0.0015 },
   shakeKill: { duration: 60, intensity: 0.002 }, // strong ghosts only
   shakeParry: { duration: 80, intensity: 0.004 },
   shakeBossPhase: { duration: 350, intensity: 0.008 },
   hurtFlashAlpha: 0.18, // brief red screen edge on hurt (no full-screen flash)
   popupRise: 24, // px
   popupDuration: 450, // ms
-  popupSize: 12, // px, normal hit numbers (swarm hits show none)
+  popupSize: 12, // px, normal hit numbers
+  popupSizeSmall: 10, // px, hits on swarm fodder
   popupSizeBig: 15, // heavy hits, counters, damage taken
   flashDuration: 70, // ms enemy white flash on hit
   darknessAlpha: 0.82,

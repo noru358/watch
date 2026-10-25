@@ -51,11 +51,11 @@ function draw(f: Floor, rng: SeededRNG): void {
   const p = f.player;
   const w = WEAPONS[f.weapon];
   const s = f.stats;
-  const hitAll = (inArc: (a: number) => boolean, damage: number, empowered: boolean) => {
+  const hitAll = (reach: number, inArc: (a: number) => boolean, damage: number, empowered: boolean, skip: readonly unknown[] = []) => {
     for (const e of [...f.enemies]) {
-      if (e.hp <= 0) continue;
+      if (e.hp <= 0 || skip.includes(e)) continue;
       const a = Math.atan2(e.y - p.y, e.x - p.x);
-      if (dist(e, p) - e.r <= w.drawReach && inArc(a)) hitEnemy(f, e, 'draw', damage, empowered, dirOf(a), rng);
+      if (dist(e, p) - e.r <= reach && inArc(a)) hitEnemy(f, e, 'draw', damage, empowered, dirOf(a), rng);
     }
   };
   p.drawCd = w.drawCooldown;
@@ -70,6 +70,8 @@ function draw(f: Floor, rng: SeededRNG): void {
       f.events.push({ type: 'parry', x: e.x, y: e.y });
       hitEnemy(f, e, 'draw', s.draw, true, dirOf(Math.atan2(e.y - p.y, e.x - p.x)), rng);
     }
+    // The counter also cuts everything around, as wide as the focus strike.
+    hitAll(w.burstReach, () => true, s.draw, true, countered);
     p.bare = s.bareTime;
     p.iframes = Math.max(p.iframes, w.parryWindow);
     return;
@@ -79,12 +81,12 @@ function draw(f: Floor, rng: SeededRNG): void {
     p.focus = 0;
     p.bare = s.bareTime;
     f.events.push({ type: 'parry', x: p.x, y: p.y });
-    hitAll(() => true, s.draw, true);
+    hitAll(w.burstReach, () => true, s.draw, true);
     return;
   }
   p.drawKind = 'slash';
   f.events.push({ type: 'slash', x: p.x, y: p.y });
-  hitAll((a) => angleDiff(a, p.aim) <= w.drawArc / 2, w.drawSlash, false);
+  hitAll(w.drawReach, (a) => angleDiff(a, p.aim) <= w.drawArc / 2, w.drawSlash, false);
 }
 
 export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: SeededRNG): void {
