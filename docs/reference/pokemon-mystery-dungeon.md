@@ -43,8 +43,8 @@
 | 랭크 포인트 → 해금 | 사무소 **평판 등급** → 의뢰·구역 해금 |
 | 걸어다니는 허브, NPC = 가게 | 옥탑방 + 골목. 경리 = 의뢰, 뚱냥이 = 감정·암시장 |
 | 하루 루틴 컷신 | 아침 만담 → 의뢰 → 출동 → 귀가 만담 |
-| 확률 영입 + 스토리 영입 | 이미 결정 ([recruit.md](../design/recruit.md)) |
-| 실패 = 돈·아이템 손실, 경험치 유지 | 이미 비슷 ([run-result.md](../design/run-result.md)) |
+| 확률 영입 + 스토리 영입 | 이미 결정 ([recruit.md](../design/3-growth/recruit.md)) |
+| 실패 = 돈·아이템 손실, 경험치 유지 | 이미 비슷 ([run-result.md](../design/2-night/run-result.md)) |
 | 탈출 구슬 | 공중전화 |
 
 | 버릴 것 | 이유 |

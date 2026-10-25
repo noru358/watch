@@ -51,6 +51,7 @@ export class RiftScene extends Phaser.Scene {
   private uiLayer!: Phaser.GameObjects.Layer;
   private uiCam!: Phaser.Cameras.Scene2D.Camera;
   private hud!: RiftHud;
+  private hurtEdge!: Phaser.GameObjects.Rectangle;
   private mode: Mode = 'play';
   private acc = 0;
   private freezeLeft = 0;
@@ -84,11 +85,18 @@ export class RiftScene extends Phaser.Scene {
     this.view = new RiftView(this, this.worldLayer);
     this.overlay = new Overlay(this, this.uiLayer);
     this.hud = new RiftHud(this, this.uiLayer);
+    // Hurt feedback: a faint red frame around the screen instead of a full-screen flash.
+    this.hurtEdge = this.add.rectangle(0, 0, SCREEN.width, SCREEN.height).setOrigin(0).setStrokeStyle(14, PALETTE.hurtEdge, 1).setAlpha(0);
+    this.uiLayer.add(this.hurtEdge);
 
     const off = attachVfx(this, eventBus, {
       freeze: (s) => this.freeze(s),
       view: this.view,
       layer: this.worldLayer,
+      hurtTint: (alpha) => {
+        this.hurtEdge.setAlpha(alpha);
+        this.tweens.add({ targets: this.hurtEdge, alpha: 0, duration: 260 });
+      },
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, off);
     this.loadFloor();

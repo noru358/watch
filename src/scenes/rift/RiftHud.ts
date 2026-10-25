@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { EXORCISTS } from '../../data/protagonist.data';
+import { WEAPONS } from '../../data/weapons.data';
 import { PALETTE, SCREEN } from '../../data/feel.data';
 import { t, type TKey } from '../../i18n';
 import { counterable, type Floor } from '../../systems/rift';
@@ -68,6 +69,7 @@ export class RiftHud {
 
     // Action bar.
     const d = EXORCISTS.director;
+    const w = WEAPONS[f.weapon];
     g.fillStyle(PALETTE.panel, 0.85).fillRoundedRect(6, this.barY, LEGEND_W, SLOT_H, 6);
     const cue = counterable(f).length > 0;
     const full = p.focus >= f.stats.focusMax;
@@ -76,13 +78,11 @@ export class RiftHud {
       const lit = i === 2 && (cue || full);
       g.fillStyle(PALETTE.panel, 0.85).fillRoundedRect(x, this.barY, SLOT_W, SLOT_H, 6);
       g.lineStyle(cue && i === 2 ? 2 : 1, lit ? (cue ? 0xffffff : PALETTE.focus) : PALETTE.wall, 1).strokeRoundedRect(x, this.barY, SLOT_W, SLOT_H, 6);
-      if (i === 1 && p.dashCd > 0) {
-        const ratio = Math.min(1, p.dashCd / (d.dashCooldown + d.dashTime));
-        g.fillStyle(0x000000, 0.55).fillRoundedRect(x, this.barY, SLOT_W * ratio, SLOT_H, 6);
-      }
+      const cd = i === 1 ? p.dashCd / (d.dashCooldown + d.dashTime) : i === 2 ? p.drawCd / w.drawCooldown : 0;
+      if (cd > 0) g.fillStyle(0x000000, 0.55).fillRoundedRect(x, this.barY, SLOT_W * Math.min(1, cd), SLOT_H, 6);
     });
-    this.drawState.setText(cue ? t('hud.draw.now') : full ? t('hud.draw.full') : '');
-    this.drawState.setColor(cue ? '#ffffff' : PALETTE.healText);
+    this.drawState.setText(cue ? t('hud.draw.now') : full ? t('hud.draw.full') : t('hud.draw.plain'));
+    this.drawState.setColor(cue ? '#ffffff' : full ? PALETTE.healText : PALETTE.textDim);
     this.drawState.setAlpha(cue ? 0.6 + 0.4 * Math.sin(this.clock * 30) : 1);
   }
 }

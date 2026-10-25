@@ -1,4 +1,4 @@
-// Failure / extraction settlement numbers (docs/design/run-result.md).
+// Failure / extraction settlement numbers (docs/design/2-night/run-result.md).
 export const RUN_PENALTIES = {
   deathLootKeepRatio: 0.5, // fraction of run loot kept when the director falls
   deathTrauma: 1, // trauma points gained on death

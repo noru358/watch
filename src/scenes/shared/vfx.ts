@@ -8,6 +8,7 @@ interface VfxHooks {
   freeze(seconds: number): void; // hit-stop: pauses the simulation clock briefly (the scene rate-limits small ones)
   view: { flash(entityId: number): void; setNeon(on: boolean): void };
   layer: Phaser.GameObjects.Layer; // world layer: popups live in world space under the zoomed camera
+  hurtTint?: (alpha: number) => void; // a short red edge on the UI layer
 }
 
 let hooksRef: VfxHooks | null = null;
@@ -45,7 +46,10 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
     bus.on('enemyHit', (e) => {
       hooks.view.flash(e.entityId);
       hooks.freeze(e.empowered ? FEEL.hitStopHeavy : FEEL.hitStopHit);
-      popup(scene, e.x, e.y, String(Math.max(1, Math.round(e.amount))), e.empowered ? PALETTE.healText : PALETTE.damageText, e.empowered ? 26 : 18);
+      // Swarm hits show no number: dozens of numbers made the screen busy.
+      if (e.kind === 'printer' || !GHOSTS[e.kind].fodder) {
+        popup(scene, e.x, e.y, String(Math.max(1, Math.round(e.amount))), e.empowered ? PALETTE.healText : PALETTE.damageText, e.empowered ? FEEL.popupSizeBig : FEEL.popupSize);
+      }
       playSfx('hit');
     }),
     bus.on('enemyKilled', (e) => {
@@ -55,17 +59,17 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
         hooks.freeze(FEEL.hitStopKill);
         cam.shake(FEEL.shakeKill.duration, FEEL.shakeKill.intensity);
       }
-      ring(scene, e.x, e.y, 14, PALETTE.pickup);
+      ring(scene, e.x, e.y, fodder ? 5 : 9, PALETTE.pickup);
       playSfx('kill');
     }),
     bus.on('playerHurt', (e) => {
       hooks.freeze(FEEL.hitStopHurt);
       cam.shake(FEEL.shakeHurt.duration, FEEL.shakeHurt.intensity);
-      cam.flash(120, 255, 60, 100);
-      popup(scene, e.x, e.y, `-${e.amount}`, PALETTE.hurtText, 22);
+      hooks.hurtTint?.(FEEL.hurtFlashAlpha);
+      popup(scene, e.x, e.y, `-${e.amount}`, PALETTE.hurtText, FEEL.popupSizeBig);
       playSfx('hurt');
     }),
-    bus.on('playerHealed', (e) => popup(scene, e.x, e.y, `+${e.amount}`, PALETTE.healText, 22)),
+    bus.on('playerHealed', (e) => popup(scene, e.x, e.y, `+${e.amount}`, PALETTE.healText, FEEL.popupSizeBig)),
     bus.on('shieldBlocked', (e) => {
       ring(scene, e.x, e.y, 12, PALETTE.shield);
       playSfx('block');
@@ -79,15 +83,13 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
     bus.on('enemyTeleport', (e) => ring(scene, e.x, e.y, 10, PALETTE.telegraph)),
     bus.on('bossPhase', () => {
       cam.shake(FEEL.shakeBossPhase.duration, FEEL.shakeBossPhase.intensity);
-      cam.flash(300, 255, 60, 172);
       hooks.view.setNeon(true);
       playSfx('phase');
     }),
     bus.on('roomCleared', () => playSfx('clear')),
     bus.on('parry', (e) => {
       hooks.freeze(FEEL.hitStopParry);
-      cam.flash(90, 160, 220, 255);
-      cam.shake(FEEL.shakeKill.duration, FEEL.shakeKill.intensity * 2);
+      cam.shake(FEEL.shakeParry.duration, FEEL.shakeParry.intensity);
       ring(scene, e.x, e.y, 20, PALETTE.bareBlade);
       playSfx('parry');
     }),

@@ -19,11 +19,16 @@ export const FEEL = {
   hitStopHurt: 0.06,
   hitStopParry: 0.12,
   hitStopCooldown: 0.15, // a new small hit-stop is ignored this soon after the last one
-  shakeHurt: { duration: 160, intensity: 0.012 },
-  shakeKill: { duration: 90, intensity: 0.005 },
-  shakeBossPhase: { duration: 500, intensity: 0.02 },
-  popupRise: 36, // px
-  popupDuration: 600, // ms
+  // Kept deliberately quiet: the user found hit effects too busy (2026-10-25).
+  shakeHurt: { duration: 100, intensity: 0.004 },
+  shakeKill: { duration: 60, intensity: 0.002 }, // strong ghosts only
+  shakeParry: { duration: 80, intensity: 0.004 },
+  shakeBossPhase: { duration: 350, intensity: 0.008 },
+  hurtFlashAlpha: 0.18, // brief red screen edge on hurt (no full-screen flash)
+  popupRise: 24, // px
+  popupDuration: 450, // ms
+  popupSize: 12, // px, normal hit numbers (swarm hits show none)
+  popupSizeBig: 15, // heavy hits, counters, damage taken
   flashDuration: 70, // ms enemy white flash on hit
   darknessAlpha: 0.82,
   neonAlpha: 0.08, // boss phase-2 tint
@@ -64,6 +69,7 @@ export const PALETTE = {
   hurtText: '#ff5d7a',
   healText: '#7dffb0',
   hpBar: 0xff5d7a,
+  hurtEdge: 0xff3b4f,
   hpBarBack: 0x3b2f5c,
   focus: 0x9ff3e6,
   panel: 0x1d1830,

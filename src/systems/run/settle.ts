@@ -9,7 +9,7 @@ export interface Settlement {
   traumaDelta: number;
 }
 
-// Converts a finished run into wallet/trauma changes (docs/design/run-result.md).
+// Converts a finished run into wallet/trauma changes (docs/design/2-night/run-result.md).
 export function settleRun(result: RunResult, wallet: number): Settlement {
   let keepRatio = 1;
   let traumaDelta = 0;

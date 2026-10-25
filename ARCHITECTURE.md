@@ -44,7 +44,7 @@
 
 ### Rule 6 — Determinism & save safety
 - No `Math.random()` in gameplay. Use `SeededRNG` (`src/core/SeededRNG.ts`), passed in explicitly.
-- Night combat is real-time on a tile grid (Core Keeper style, decided 2026-10-25, see `docs/design/combat.md`). Simulation runs on a fixed timestep in tile units; rendering interpolates. Every enemy attack is a floor telegraph.
+- Night combat is real-time on a tile grid (Core Keeper style, decided 2026-10-25, see `docs/design/2-night/combat.md`). Simulation runs on a fixed timestep in tile units; rendering interpolates. Every enemy attack is a floor telegraph.
 - Saves carry `schemaVersion: number` and pass through `SaveManager.migrate()` on load. Any change to the save shape bumps the version and adds a migration + test.
 
 ### Rule 7 — Server-authoritative economy (design for it now, build it in Gate 4)
@@ -78,7 +78,7 @@ src/
 tests/            # Vitest specs mirroring src/systems and src/store
 maps/             # Tiled source maps (.tmx/.json) and tilesets
 assets/           # Sprites, portraits, audio
-docs/design/      # Game design split by module (README.md = module index; human-readable, Korean)
+docs/design/      # Game design in 5 groups: 1-foundation, 2-night, 3-growth, 4-day, 5-business (README.md = module map; each group has its own README)
 docs/reference/   # Reference-game teardowns (Pokémon Mystery Dungeon, Girls' Frontline)
 GUIDE.md          # Plain-Korean map for the human owner — keep in sync with this tree
 ```
@@ -86,7 +86,7 @@ GUIDE.md          # Plain-Korean map for the human owner — keep in sync with t
 ### Module boundaries
 - Each `src/systems/<module>/` exposes its public functions through `index.ts`. Other code imports only from that `index.ts`, never from a module's internal files.
 - Modules talk to each other through `GameStore` actions and shared types in `src/types/`, not by reaching into each other's state.
-- Every module has a matching design doc in `docs/design/`. When a design decision changes, update that doc; when a new module is added, add a row to `docs/design/README.md`.
+- Every module has a matching design doc in `docs/design/`. When a design decision changes, update that doc; when a new module is added, add a row to `docs/design/README.md` and to its group README.
 - Platform differences (PC vs mobile, paid vs F2P) are resolved in one place (`src/core/platform.ts`). Gameplay rules never branch on platform.
 
 React reads `GameStore` via `useSyncExternalStore`. Phaser reads it via `GameStore.subscribe`. Neither owns state.
@@ -101,8 +101,8 @@ React reads `GameStore` via `useSyncExternalStore`. Phaser reads it via `GameSto
 
 Each gate must be fun on its own before the next starts. If a gate fails, change the loop — do not polish.
 
-- **Gate 1 — Night combat prototype (CURRENT):** one Euljiro contract as real-time top-down floors on a tile grid (Core Keeper style), the director alone (weapon A: newspaper-wrapped sword with combo, bared blade and the 발도 timed parry), dash with front-loaded i-frames, base + weapon upgrade-card decks, a few ghost types, 1 boss, hit-stop / damage popups / drop sounds, payphone extraction. Day screen = a single placeholder menu. No backend, no idle dispatch, no furniture.
-- **Gate 2 — Roster & growth:** office hub (bookkeeper + spirit cat, story-unlocked), companions with 1 party slot (call skill + companion card deck, see `docs/design/party.md`), weapon B (talisman label gun), traits/traumas persisting across runs, recovery.
+- **Gate 1 — Night combat prototype (CURRENT):** one Euljiro contract as real-time top-down floors on a tile grid (Core Keeper style), the director alone (weapon A: newspaper-wrapped sword with combo, bared blade and 발도 — one key: wide slash / counter in the flash window / 360° strike on full focus), dash with front-loaded i-frames, base + weapon upgrade-card decks, a few ghost types, 1 boss, hit-stop / damage popups / drop sounds, payphone extraction. Day screen = a single placeholder menu. No backend, no idle dispatch, no furniture.
+- **Gate 2 — Roster & growth:** office hub (bookkeeper + spirit cat, story-unlocked), companions with 1 party slot (call skill + companion card deck, see `docs/design/3-growth/party.md`), weapon B (talisman label gun), traits/traumas persisting across runs, recovery.
 - **Gate 3 — Seoul map & 2nd squad:** multiple districts, purification progress, capped idle dispatch.
 - **Gate 4 — Rental market:** NPC offices first (works fully offline), then Supabase with server-side stat recompute and fee settlement (Rule 7). Popularity-based fee diminishing applied per office account, not per exorcist.
 - **Gate 5 — Steam build:** Electron packaging, Steamworks (achievements, cloud save), English localization pass.

@@ -128,7 +128,32 @@ export class RiftView {
       sword();
     }
     if (p.shield > 0) g.lineStyle(1, PALETTE.shield, 0.9).strokeCircle(x, by - 8, 10);
-    if (p.focus >= f.stats.focusMax) g.lineStyle(1, PALETTE.focus, 0.6 + 0.4 * Math.sin(this.clock * 10)).strokeCircle(x, by - 8, 12);
+    this.drawDrawFx(p, f, x, y);
+  }
+
+  // 발도 readability: show its reach when the focus gauge is full (the next 발도 hits all around),
+  // and draw each 발도 as a big arc/ring so its range is obvious.
+  private drawDrawFx(p: Player, f: Floor, x: number, y: number): void {
+    const g = this.g;
+    const w = WEAPONS[f.weapon];
+    const reach = w.drawReach * T;
+    if (p.focus >= f.stats.focusMax) {
+      g.lineStyle(1, PALETTE.focus, 0.35 + 0.25 * Math.sin(this.clock * 6)).strokeCircle(x, y - 4, reach);
+    }
+    const life = 0.3;
+    if (p.drawFx >= life) return;
+    const k = 1 - p.drawFx / life;
+    if (p.drawKind === 'slash') {
+      g.fillStyle(PALETTE.bareBlade, 0.25 * k);
+      g.slice(x, y - 4, reach, p.aim - w.drawArc / 2, p.aim + w.drawArc / 2).fillPath();
+      g.lineStyle(2, 0xffffff, 0.8 * k);
+      g.beginPath();
+      g.arc(x, y - 4, reach, p.aim - w.drawArc / 2, p.aim + w.drawArc / 2);
+      g.strokePath();
+    } else {
+      g.fillStyle(PALETTE.bareBlade, 0.3 * k).fillCircle(x, y - 4, reach);
+      g.lineStyle(2, 0xffffff, 0.9 * k).strokeCircle(x, y - 4, reach);
+    }
   }
 
   // The sword is a separate "sprite": a newspaper bundle, or a glowing blade while bare.

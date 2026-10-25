@@ -107,12 +107,15 @@ describe('ghost telegraphs', () => {
     expect(f.player.hp).toBe(MAX);
   });
 
-  it('발도 too early whiffs and leaves the director open', () => {
+  it('발도 too early is just a wide slash: no counter, the hit still lands, then a cooldown', () => {
     const { f, rng, e, hp } = duel('dalgyal');
     stepFloor(f, NO_INPUT, DT, rng);
-    stepFloor(f, { ...NO_INPUT, draw: true }, DT, rng);
-    expect(e.hp).toBe(hp);
-    expect(f.player.recoverT).toBeGreaterThan(0);
+    stepFloor(f, { ...NO_INPUT, draw: true, aim: 0 }, DT, rng);
+    expect(e.hp).toBe(hp - W.drawSlash);
+    expect(e.state).toBe('windup');
+    expect(f.player.drawKind).toBe('slash');
+    stepFloor(f, { ...NO_INPUT, draw: true, aim: 0 }, DT, rng); // on cooldown: nothing
+    expect(e.hp).toBe(hp - W.drawSlash);
     run(f, rng, GHOSTS.dalgyal.windup);
     expect(f.player.hp).toBeLessThan(MAX);
   });

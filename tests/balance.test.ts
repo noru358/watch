@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { naive, playNight, skilled } from './bots';
 
-// Acceptance check from docs/design/combat.md: standing and swinging must not be
+// Acceptance check from docs/design/2-night/combat.md: standing and swinging must not be
 // enough; reading telegraphs (dodge / 발도) must be.
 describe('balance (bots, 8 seeds)', () => {
   const seeds = [1, 2, 3, 4, 5, 6, 7, 8];

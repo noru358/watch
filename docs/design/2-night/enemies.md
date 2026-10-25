@@ -20,7 +20,7 @@
 숫자는 `contracts.data.ts`의 `wisps(간격, 무리, 최대)` 한 줄로 바꾼다.
 
 ## 새 괴이 추가하는 법
-강적은 `ghosts.data.ts`에 한 줄을 넣고 `attack`을 `'cone' | 'circle' | 'line'` 중 하나로 정한다. 잡몹은 `attack: 'none'`, `fodder: true`, `contactDamage`를 넣는다. 화면 모양은 `src/scenes/rift/RiftView.ts`의 `drawEnemy`에 한 칸 추가한다. 특별한 행동(괴담 규칙: 예컨대 "머리카락을 자르면 약해진다")이 필요하면 `enemies.ts`에 분기를 둔다. → [세계관 톤](world.md)의 "서울 어디서 튀어나오나" 체크 필수.
+강적은 `ghosts.data.ts`에 한 줄을 넣고 `attack`을 `'cone' | 'circle' | 'line'` 중 하나로 정한다. 잡몹은 `attack: 'none'`, `fodder: true`, `contactDamage`를 넣는다. 화면 모양은 `src/scenes/rift/RiftView.ts`의 `drawEnemy`에 한 칸 추가한다. 특별한 행동(괴담 규칙: 예컨대 "머리카락을 자르면 약해진다")이 필요하면 `enemies.ts`에 분기를 둔다. → [세계관 톤](../1-foundation/world.md)의 "서울 어디서 튀어나오나" 체크 필수.
 
 ## 🤔 남은 것
 잡몹 종류 늘리기(쥐귀신, 종이 인형 등), 엘리트 강적(더 강한 변종), 괴담 규칙 기믹.

@@ -75,7 +75,9 @@ export interface Player extends Body {
   dashX: number;
   dashY: number;
   iframes: number;
-  recoverT: number; // 발도 whiff recovery
+  drawCd: number; // 발도 cooldown left
+  drawFx: number; // render hint: time since the last 발도
+  drawKind: 'slash' | 'counter' | 'strike'; // render hint: what the last 발도 became
   focus: number; // 진심 게이지
   bare: number; // seconds left with the sword unwrapped
   shield: number; // salt_ward charges

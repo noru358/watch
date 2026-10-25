@@ -33,7 +33,7 @@ export function hitEnemy(
   const push = WEAPONS[f.weapon].knockback * (empowered ? 2 : 1) * (e.kind === 'printer' ? 0.2 : 1);
   e.knockX = (dir.x * push) / DUNGEON.knockTime;
   e.knockY = (dir.y * push) / DUNGEON.knockTime;
-  f.events.push({ type: 'enemyHit', x: e.x, y: e.y, amount: atk.damage, entityId: e.id, empowered });
+  f.events.push({ type: 'enemyHit', x: e.x, y: e.y, amount: atk.damage, entityId: e.id, empowered, kind: e.kind });
   runCardHooks(f, 'onHit', { enemy: e, damage: atk.damage, rng });
   checkBossPhase(f, e);
   if (e.hp > 0) return;

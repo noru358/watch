@@ -66,8 +66,8 @@ describe('InputManager', () => {
     const w = new FakeWindow();
     const input = new InputManager(w);
     input.resetContext('night');
-    w.fire('keydown', 'KeyK');
-    w.fire('keydown', 'KeyK', true);
+    w.fire('keydown', 'Space');
+    w.fire('keydown', 'Space', true);
     expect(input.consume('dash', 'night')).toBe(true);
     expect(input.consume('dash', 'night')).toBe(false);
   });

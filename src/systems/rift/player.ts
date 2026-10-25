@@ -43,14 +43,26 @@ export function counterable(f: Floor): Enemy[] {
   );
 }
 
-// 발도: counters melee telegraphs about to land on the director. With a full focus
-// gauge it is a free strike all around. Otherwise it whiffs and leaves the director open.
+// 발도 — one key, three outcomes, always a visible strike:
+// 1) a yellow telegraph is about to land on the director → 받아치기 (counter: cancel, stun, big damage, bared blade);
+// 2) else the focus gauge is full → 일섬 (big damage all around, bared blade);
+// 3) else a wide slash in front.
 function draw(f: Floor, rng: SeededRNG): void {
   const p = f.player;
   const w = WEAPONS[f.weapon];
   const s = f.stats;
+  const hitAll = (inArc: (a: number) => boolean, damage: number, empowered: boolean) => {
+    for (const e of [...f.enemies]) {
+      if (e.hp <= 0) continue;
+      const a = Math.atan2(e.y - p.y, e.x - p.x);
+      if (dist(e, p) - e.r <= w.drawReach && inArc(a)) hitEnemy(f, e, 'draw', damage, empowered, dirOf(a), rng);
+    }
+  };
+  p.drawCd = w.drawCooldown;
+  p.drawFx = 0;
   const countered = counterable(f);
   if (countered.length > 0) {
+    p.drawKind = 'counter';
     for (const e of countered) {
       e.teles = e.teles.filter((t) => !t.parriable);
       e.state = 'stun';
@@ -63,15 +75,16 @@ function draw(f: Floor, rng: SeededRNG): void {
     return;
   }
   if (p.focus >= s.focusMax) {
+    p.drawKind = 'strike';
     p.focus = 0;
     p.bare = s.bareTime;
     f.events.push({ type: 'parry', x: p.x, y: p.y });
-    for (const e of [...f.enemies]) {
-      if (e.hp > 0 && dist(e, p) - e.r <= w.drawReach) hitEnemy(f, e, 'draw', s.draw, true, dirOf(Math.atan2(e.y - p.y, e.x - p.x)), rng);
-    }
+    hitAll(() => true, s.draw, true);
     return;
   }
-  p.recoverT = w.whiffRecover;
+  p.drawKind = 'slash';
+  f.events.push({ type: 'slash', x: p.x, y: p.y });
+  hitAll((a) => angleDiff(a, p.aim) <= w.drawArc / 2, w.drawSlash, false);
 }
 
 export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: SeededRNG): void {
@@ -83,13 +96,13 @@ export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: Seeded
   if (p.comboT <= 0) p.combo = 0;
   p.dashCd = Math.max(0, p.dashCd - dt);
   p.iframes = Math.max(0, p.iframes - dt);
-  p.recoverT = Math.max(0, p.recoverT - dt);
+  p.drawCd = Math.max(0, p.drawCd - dt);
+  p.drawFx += dt;
   p.bare = Math.max(0, p.bare - dt);
   p.darkness = Math.max(0, p.darkness - dt);
   p.aim = input.aim;
 
-  const busy = p.recoverT > 0;
-  if (input.dash && p.dashCd <= 0 && p.dashT <= 0 && !busy) {
+  if (input.dash && p.dashCd <= 0 && p.dashT <= 0) {
     const len = Math.hypot(input.moveX, input.moveY);
     const dir = len > 0 ? { x: input.moveX / len, y: input.moveY / len } : dirOf(p.aim);
     p.dashX = dir.x;
@@ -108,13 +121,13 @@ export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: Seeded
     const len = Math.hypot(input.moveX, input.moveY);
     p.moving = len > 0;
     if (len > 0) {
-      const slowed = busy || p.swingFx < d.swingSlowTime;
+      const slowed = p.swingFx < d.swingSlowTime;
       const speed = d.moveSpeed * (slowed ? d.swingMoveMult : 1);
       moveBody(f, p, (input.moveX / len) * speed * dt, (input.moveY / len) * speed * dt, d.cornerNudge);
     }
   }
 
-  if (p.dashT > 0 || busy) return;
-  if (input.draw) draw(f, rng);
+  if (p.dashT > 0) return;
+  if (input.draw && p.drawCd <= 0) draw(f, rng);
   else if (input.attack && p.swingT <= 0) swing(f, rng);
 }

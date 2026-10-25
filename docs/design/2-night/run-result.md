@@ -11,9 +11,9 @@
 | 고위험 (플레이어가 선택) | 위 + **장비 손실** | 크게 |
 
 - 경험치 손실·보유 재화 손실은 후보로만 보류 (필요하면 `penalties.data.ts`에 한 줄로 켬).
-- 성공: 수임료 + 전리품 + (성공 시) 영입 판정 → [recruit.md](recruit.md)
+- 성공: 수임료 + 전리품 + (성공 시) 영입 판정 → [recruit.md](../3-growth/recruit.md)
 - 탈출(공중전화)은 실패가 아님: 전리품은 지키고 의뢰 보상만 없음.
 
 ## 지킬 것
 - 페널티 계산은 순수 함수 `settleRun(result, state, rng)` — 화면 코드 없음, 테스트 필수.
-- 과금으로 페널티를 없애는 상품은 만들지 않음 (→ [monetization.md](monetization.md))
+- 과금으로 페널티를 없애는 상품은 만들지 않음 (→ [monetization.md](../5-business/monetization.md))

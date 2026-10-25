@@ -3,7 +3,7 @@
 **담당 코드:** 지금 `src/store/gameStore.ts`(잔고·트라우마), `src/systems/run/settle.ts`(정산) / 예정 `src/data/economy.data.ts`(월세·평판 수치), `src/systems/economy/`(월세·평판 계산)
 
 ## ✅ 결정
-- 긴장 장치 = **밀린 월세 / 빚.** 허름한 사무소 컨셉과 맞고 스토리에도 엮음 (→ [contract.md](contract.md) 스토리 의뢰).
+- 긴장 장치 = **밀린 월세 / 빚.** 허름한 사무소 컨셉과 맞고 스토리에도 엮음 (→ [contract.md](../2-night/contract.md) 스토리 의뢰).
 - 일주일(게임 내)마다 월세 마감. Recettear처럼 **가벼운** 압박 — 돈을 벌 이유를 만드는 장치이지 게임오버 장치가 아님.
 - 주 수입 = 밤 플레이. 낮 자동 수입(파견·대여)은 **절대 밤 플레이보다 많이 벌면 안 됨** (ARCHITECTURE §4).
 
@@ -18,7 +18,7 @@
 | 대여 | 대원을 다른 사무소에 빌려줌 | Gate 4 |
 | ❌ 가게 직접 운영 시뮬 | 넣지 않음 (UI 폭발) | — |
 
-참고: [불가사의 던전](../reference/pokemon-mystery-dungeon.md), [소녀전선](../reference/girls-frontline.md)
+참고: [불가사의 던전](../../reference/pokemon-mystery-dungeon.md), [소녀전선](../../reference/girls-frontline.md)
 
 ## 재화 (최대 3개, 필요할 때만 표시)
 🤔 후보: 💰 돈, 🔮 영력/부적 재료, 🧧 굿 비용 재화 — 확정 전.

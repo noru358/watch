@@ -4,7 +4,7 @@ import type { EnemyId, Phase } from './ids';
 // never change game state. The rift simulation emits x/y in TILE coordinates;
 // the scene converts them to pixels before they reach the bus.
 export interface GameEventMap {
-  enemyHit: { x: number; y: number; amount: number; entityId: number; empowered: boolean };
+  enemyHit: { x: number; y: number; amount: number; entityId: number; empowered: boolean; kind: EnemyId };
   enemyKilled: { x: number; y: number; kind: EnemyId; entityId: number };
   enemyTeleport: { x: number; y: number };
   playerHurt: { x: number; y: number; amount: number };

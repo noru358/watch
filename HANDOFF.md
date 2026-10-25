@@ -3,7 +3,7 @@
 ## Status (2026-10-25) — Gate 1: Core Keeper–style real-time night, full contract playable
 Day placeholder → 출동 → Euljiro contract: 3 random floors (rooms + 2-tile corridors, ☎ payphone on floor 2) → boss room (윤전기 귀신) → settlement → Day.
 
-### How we got here (read `docs/design/combat.md`)
+### How we got here (read `docs/design/2-night/combat.md`)
 1. Action prototype (auto-aim) lost: a stand-still bot won 6/8 → switched to grid turn-based.
 2. User played the turn-based greybox: felt flat, and turn-based isn't their taste; Argon proposed Core Keeper style → real-time on a tile grid, keeping the lessons: mouse aim (no auto-aim), every enemy attack is a floor telegraph, only melee telegraphs can be countered (발도 in the last 0.22 s), dashes/sweeps must be dodged, no contact damage.
 3. Acceptance test `tests/balance.test.ts` (8 seeds): stand-and-swing bot ≤ 2 wins (now 0/8), telegraph-reading bot ≥ 6 (now 7/8).
@@ -26,10 +26,18 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 - Feel ("sticky"): swing slowdown only for the first 0.1 s at 70% (was the whole swing at 45%), small hit-stops 0.012 s with a 0.15 s cooldown in `RiftScene.freeze`, corner correction in `physics.moveBody(…, nudge)`.
 - Keyboard-only: Z/X/C and Shift added; keyboard aim = move direction, or nearest ghost within 3 tiles when standing still.
 - HUD split into `src/scenes/rift/RiftHud.ts`: top info + bottom key bar (dash cooldown, 발도 "지금!" cue from `counterable()` in `systems/rift/player.ts`, "일섬 가능"). UI text rendered via `scenes/shared/text.ts` `crisp()` (resolution 3) — fixes blurry text when the canvas is scaled.
-- New design module `docs/design/enemies.md` (roles: strong / swarm / boss).
+- New design module `docs/design/2-night/enemies.md` (roles: strong / swarm / boss).
+
+### Round 3 (2026-10-25): docs grouped, 발도 simplified, one key per action, quieter effects
+- User feedback: docs too fragmented; hit effects too busy; 발도 unclear (range?); "which key counters?"; too many keys per action.
+- Design docs regrouped into `docs/design/1-foundation`, `2-night`, `3-growth`, `4-day`, `5-business`, each with a README; `docs/design/README.md` is the module map (status + code location per sub-module).
+- 발도 (`player.ts draw()`): always does something — wide front slash (2.2 tiles, ~150°, 5 dmg); inside the 0.22 s flash window = counter (cancel, 0.9 s stun, 10 dmg, bare blade); full focus = 360° strike. 1.0 s cooldown, whiff penalty removed. Range flashes on use (0.3 s); faint circle when focus is full; HUD slot says what the next press will do.
+- Keys (`input.data.ts`): WASD, J/left-click slash (hold), Space dash, K/right-click 발도, 1/2/3 choices. Arrow keys, Z/X/C/L/Shift removed.
+- Effects (`feel.data.ts`, `vfx.ts`): weaker shakes, no full-screen flashes (hurt = faint red screen edge), smaller numbers, none on fodder.
 
 ## Verified
-- `npm run check`: tsc clean, 40 tests pass (incl. balance: naive 0/8, skilled 8/8 with swarm). `vite build` OK.
+- `npm run check`: tsc clean, 40 tests pass (incl. balance: naive 0/8, skilled 8/8 after the 발도 rework). All relative links in *.md resolve.
+- Playwright keyboard-only run with the new keys (J/Space/K/WASD): swarm appears, 발도 slot shows "앞 크게 베기" + cooldown, a counter cue appeared once, no page errors.
 - Keyboard-only browser run (Playwright, DPR 2): swarm waves appear, HUD bar readable and sharp, no page errors.
 - Playwright (scratchpad scripts, not committed): day → night start, camera/walls render, staged close fight (yellow telegraph, swing, parry → "검신 노출", darkness after a dalgyal hit), boss floor row sweep. No page errors.
 
@@ -43,6 +51,6 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 (a) Day hub = walkable Phaser scene (souls-style, `E` to talk) with React panels → §1 and Rule 4 wording; (b) touch context in InputManager; (c) keep ≤4 combat buttons (now: move, slash, dash, draw + mouse aim).
 
 ## Next step
-1. User plays and reports feel (movement, swing, 발도 timing, dash, boss).
-2. Tune `src/data/`; add hit feel (lunge/knockback visuals, slash trail polish), y-sort walls.
+1. User plays and reports feel on the new 발도/keys/effects (graybox feel pass — still no art).
+2. Tune `src/data/`; then a vertical-slice art test: one floor with real art for the director, one ghost, one tileset + real SFX, to judge feel with visuals before producing more content.
 3. SaveManager (schemaVersion 1); then Gate 2: walkable rooftop hub (bookkeeper, cat), companions with one party slot, weapon B.
