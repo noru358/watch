@@ -1,3 +1,4 @@
+import { SAVE_VERSION, type SaveData } from '../core/SaveManager';
 import type { Phase } from '../types/ids';
 import { settleRun, type RunResult, type Settlement } from '../systems/run';
 
@@ -46,6 +47,12 @@ export class GameStore {
   private set(patch: Partial<GameState>): void {
     this.state = { ...this.state, ...patch };
     this.listeners.forEach((fn) => fn());
+  }
+
+  // What goes into the save file (long-lived office state only).
+  toSave(): SaveData {
+    const { money, trauma, solved, seedBase, runCounter } = this.state;
+    return { schemaVersion: SAVE_VERSION, money, trauma, solved, seedBase, runCounter };
   }
 
   // ---- actions ----

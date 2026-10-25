@@ -63,7 +63,7 @@
 ```
 src/
  ├── app/         # App wiring: singletons (input, store), phase-switch binding, night-mode choice
- ├── core/        # Infrastructure: InputManager, EventBus, SeededRNG, SaveManager, phase switch
+ ├── core/        # Infrastructure: InputManager, EventBus, SeededRNG, SaveManager (schemaVersion 1, live), phase switch
  ├── types/       # Shared interfaces, ID union types (ids.ts), event map (events.ts)
  ├── i18n/        # ko.ts (source of keys), en.ts, t() helper
  ├── data/        # Static typed tables: protagonist, weapons, cards, ghosts, dungeon, contracts,
@@ -73,7 +73,7 @@ src/
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
  │                #   rift/ (one floor: map gen, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement),
  │                #   later: recruit/, economy/, dispatch/, rental/, shop/
- ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view, HUD), shared/ (Overlay panels, vfx, sfx, crisp text), later hub/
+ ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view = draw order, HUD; draw/ = one file per drawn thing, the art swap points), shared/ (Overlay panels, vfx, sfx, crisp text), later hub/
  └── ui/          # React: OfficeApp (Gate 1 placeholder), later features/<featureId>/
 tests/            # Vitest specs mirroring src/systems and src/store
 maps/             # Tiled source maps (.tmx/.json) and tilesets

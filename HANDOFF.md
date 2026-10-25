@@ -36,7 +36,15 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 - Effects (`feel.data.ts`, `vfx.ts`): weaker shakes, no full-screen flashes (hurt = faint red screen edge), smaller numbers (fodder numbers were removed, then restored at a smaller size after the user clarified that the problem was the hurt shake).
 - Follow-up: 발도 tiers — plain slash 5 dmg / 2.6-tile front arc < counter = focus strike 10 dmg / 3.4-tile full circle (`burstReach`); the counter now also cuts everything around. Hurt shake 0.0015 / hit-stop 0.035 s. Fodder already drops 1 영력 (strong 3–5, boss 40).
 
+### Round 4 (2026-10-25): cleanup + SaveManager, ready for the art slice
+- User accepted the feel as a hypothesis ("가설적으로 ㅇㅋ, 다음 단계").
+- `RiftView.ts` now only owns layers and draw order; each drawn thing has its own file in `src/scenes/rift/draw/` (`tiles`, `director`, `ghosts`, `props`, `telegraph`, `common`). These are the art swap points. Effect timings moved to `FEEL.drawFxTime` / `FEEL.swingTrailTime`.
+- `src/registry/cardEffects.ts` imports rift types via the module index (was reaching into `rift/types`).
+- SaveManager (`src/core/SaveManager.ts`, schemaVersion 1, `migrate()`, unreadable saves kept under `key.bad`), `GameStore.toSave()`, autosave on store change in `src/app/services.ts`, key in `src/data/save.data.ts`. Only office state is saved; a night in progress is not. Tests: `tests/save.test.ts`. Design doc: `docs/design/1-foundation/save.md`.
+- Art vertical-slice asset list and sourcing options: `docs/design/5-business/art.md`.
+
 ## Verified
+- Round 4: `npm run check` 45 tests pass. Playwright: new game writes a v1 save on 출동; a hand-written v1 save (money 777, solved 4) shows in the office after reload; keyboard run after the view split renders as before, no page errors.
 - `npm run check`: tsc clean, 40 tests pass (incl. balance: naive 0/8, skilled 8/8 after the 발도 rework). All relative links in *.md resolve.
 - Playwright keyboard-only run with the new keys (J/Space/K/WASD): swarm appears, 발도 slot shows "앞 크게 베기" + cooldown, a counter cue appeared once, no page errors.
 - Keyboard-only browser run (Playwright, DPR 2): swarm waves appear, HUD bar readable and sharp, no page errors.
@@ -52,6 +60,6 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 (a) Day hub = walkable Phaser scene (souls-style, `E` to talk) with React panels → §1 and Rule 4 wording; (b) touch context in InputManager; (c) keep ≤4 combat buttons (now: move, slash, dash, draw + mouse aim).
 
 ## Next step
-1. User plays and reports feel on the new 발도/keys/effects (graybox feel pass — still no art).
-2. Tune `src/data/`; then a vertical-slice art test: one floor with real art for the director, one ghost, one tileset + real SFX, to judge feel with visuals before producing more content.
-3. SaveManager (schemaVersion 1); then Gate 2: walkable rooftop hub (bookkeeper, cat), companions with one party slot, weapon B.
+1. Feel accepted as a hypothesis (graybox pass done; retune from play reports any time).
+2. Vertical-slice art test (user picks how to source art: asset pack / commission / self+AI): one floor with real art for the director, one ghost, one tileset + real SFX, to judge feel with visuals before producing more content.
+3. Then Gate 2: walkable rooftop hub (bookkeeper, cat), companions with one party slot, weapon B.

@@ -31,6 +31,8 @@ export const FEEL = {
   popupSizeSmall: 10, // px, hits on swarm fodder
   popupSizeBig: 15, // heavy hits, counters, damage taken
   flashDuration: 70, // ms enemy white flash on hit
+  drawFxTime: 0.3, // seconds a 발도's range arc/ring stays visible
+  swingTrailTime: 0.14, // seconds the swing trail sweeps
   darknessAlpha: 0.82,
   neonAlpha: 0.08, // boss phase-2 tint
   telegraphFill: [0.12, 0.4], // telegraph fill alpha from start to strike

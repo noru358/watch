@@ -13,11 +13,11 @@
 
 | 상위 모듈 | 세부 모듈 | 상태 | 주 코드 위치 |
 |-----------|----------|------|-------------|
-| [1 기준](1-foundation/README.md) — 모든 모듈이 따르는 약속 | [세계관·톤](1-foundation/world.md) · [플랫폼·입력](1-foundation/platform.md) · [플레이 흐름](1-foundation/playflow.md) | 🟢 입력 / 📝 나머지 | `core/InputManager.ts`, `data/input.data.ts` |
+| [1 기준](1-foundation/README.md) — 모든 모듈이 따르는 약속 | [세계관·톤](1-foundation/world.md) · [플랫폼·입력](1-foundation/platform.md) · [플레이 흐름](1-foundation/playflow.md) · [저장](1-foundation/save.md) | 🟢 입력·저장 / 📝 나머지 | `core/InputManager.ts`, `core/SaveManager.ts`, `data/input.data.ts` |
 | [2 밤 — 퇴마 현장](2-night/README.md) | [전투 방식](2-night/combat.md) · [주인공·무기](2-night/protagonist.md) · [괴이 도감](2-night/enemies.md) · [의뢰·현장](2-night/contract.md) · [실패·정산](2-night/run-result.md) | 🟢 (Gate 1 본체) | `systems/rift/`, `systems/run/`, `scenes/rift/` |
 | [3 성장](3-growth/README.md) | [강화 카드·조 편성](3-growth/party.md) · [괴이 영입](3-growth/recruit.md) | 🟢 카드 / 📝 편성·영입 | `data/cards.data.ts`, `registry/cardEffects.ts` |
 | [4 낮 — 옥탑방 사무소](4-day/README.md) | [허브](4-day/hub.md) · [경제·경영](4-day/economy.md) | 🧪 임시 화면 | `ui/OfficeApp.tsx`, `store/gameStore.ts` |
-| [5 사업·제작](5-business/README.md) | [과금](5-business/monetization.md) · [아트·에셋](5-business/art.md) | 📝 / 🧪 도형 | `scenes/shared/` |
+| [5 사업·제작](5-business/README.md) | [과금](5-business/monetization.md) · [아트·에셋](5-business/art.md) | 📝 / 🧪 도형 | `scenes/rift/draw/`(그림 자리), `scenes/shared/` |
 
 참고 게임 역설계는 [`../reference/`](../reference/)에 있다: [탑다운 실시간 액션](../reference/topdown-action.md)(Core Keeper, Death's Door, Ghostlore, Gungeon, Moonlighter, japda), [포켓몬 불가사의 던전](../reference/pokemon-mystery-dungeon.md), [소녀전선](../reference/girls-frontline.md).
 

@@ -1,7 +1,7 @@
 import type { SeededRNG } from '../core/SeededRNG';
 import type { CardData } from '../data/cards.data';
 import type { CardId } from '../types/ids';
-import type { Enemy, Floor } from '../systems/rift/types';
+import type { Enemy, Floor } from '../systems/rift';
 
 // Fixed hook points (Rule 2). Adding one is an architecture change.
 export interface CardHookArgs {
