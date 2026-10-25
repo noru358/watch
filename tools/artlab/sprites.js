@@ -19,6 +19,10 @@ export const PAL = {
   Q: '#f4f1e6', q: '#c8c2b4',
   // director v2: cheollik (철릭) coat
   I: '#3a3f73', i: '#2a2d55', j: '#5a61a6', G: '#e0b04e', Y: '#2c2230',
+  // director v3: office worker by day (ink jacket, turtleneck, beige wide slacks, ID badge, crossbag)
+  J: '#2e3148', k: '#4a4f75', t: '#1a1822', y: '#8f95ad',
+  1: '#3f7fe0', 2: '#f2f2ee', 3: '#e8c84a', 4: '#5d6270', 5: '#474b57', 6: '#d0473f',
+  8: '#dccbaa', 9: '#b49f7e', a: '#ebe6dc', g: '#8a8478',
 };
 
 export const SPRITES = {
@@ -93,6 +97,33 @@ export const SPRITES = {
     '..OOOPPOOOPPOOO...',
     '....OYYO.OYYO.....',
     '....OOOO.OOOO.....',
+  ],
+  directorW: [
+    '......OOOOO.......',
+    '....OOHhHHHOO.....',
+    '...OHHHHhHHHHO....',
+    '..OHHhHHHHHhHHO...',
+    '..OHHHHHHHHHHHO...',
+    '..OHHSHSHHSHSHO...',
+    '..OHSSSSSSSSSHO...',
+    '..OHSOOSSSOOSHO...',
+    '..OHSOwSSSOwSHO...',
+    '..OHSsSSSSSsSHO...',
+    '..OHHOSSSSSOHHO...',
+    '.OHHHOOtttOOHHHO..',
+    '.OHhOJtttttJOhHO..',
+    '.OHOJJ1ttt1J4JOHO.',
+    '..OJkJJ1t1J4JJkO..',
+    '..OJkJJJ1J4JJkJO..',
+    '..OJkJ3224JyJkJO..',
+    '..OJkJJ24JJyJkJO..',
+    '..O55554JJJJJJSO..',
+    '..O555588888898O..',
+    '..OOGOO88889888O..',
+    '..O868898888988O..',
+    '..O868988O88988O..',
+    '..OOaaagOOaaagOO..',
+    '...OOOOO..OOOOO...',
   ],
   sword: [
     '.OO.',

@@ -15,6 +15,6 @@ python3 -m http.server 8765
 node tools/artlab/render.cjs docs/design/5-business/img
 ```
 
-장면의 주인공은 주소 뒤 `?who=directorM` 또는 `?who=directorF`로 바꾼다. 뽑으면 남·여 장면 두 장과 그림 모음 한 장이 나온다.
+장면의 주인공은 주소 뒤 `?who=directorW`(기본), `directorM`, `directorF`로 바꾼다.
 
 그림체가 확정되면 이 격자들을 게임의 `src/scenes/rift/draw/`로 옮긴다.

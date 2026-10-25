@@ -9,7 +9,7 @@ const { chromium } = require('playwright');
   const errs = [];
   p.on('pageerror', (e) => errs.push(e.message));
   p.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
-  for (const who of ['directorM', 'directorF']) {
+  for (const who of ['directorW']) {
     await p.goto(`http://localhost:${port}/lab.html?who=${who}`);
     await p.waitForSelector('body[data-ready="1"]', { timeout: 10000 });
     await (await p.$('#scene')).screenshot({ path: `${out}/artlab-scene-${who}.png` });
