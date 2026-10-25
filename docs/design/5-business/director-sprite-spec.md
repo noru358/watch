@@ -73,3 +73,35 @@ Output: one sprite sheet, 4 columns x 10 rows of 32x32 cells, each pixel a crisp
 ```
 
 같이 붙일 것: 소울나이트 레퍼런스 1·3·4번, 헤어·옷 사진, 밤 장면 견본.
+
+## 11. 1차 결과 검토 (제미나이, 2026-10-25)
+
+![1차 시트](img/gemini/sheet-v1.webp)
+![1차 정리 시험: 서 있기·돌진·뒷모습을 원래 픽셀로 줄이고 20색으로](img/gemini/sheet-v1-clean-test.png)
+
+살릴 것: 머리색·옷 조합·사원증·얼굴 인상이 우리 의도대로 읽힘. 돌진 프레임의 비스듬한 옆 시점이 가장 좋음 → 앞-대각선은 이 각도로.
+
+고칠 것:
+- 명세 위반: 칼·칼날 궤적·속도선·별 같은 효과가 그려짐(게임이 따로 그림), 칸 배치가 5열로 섞이고 동작 수가 다름.
+- 배경이 투명이 아니라 어두운 체크무늬로 칠해짐. 검정 자켓과 색이 거의 같아서 배경을 지우면 몸까지 같이 지워짐(정리 시험에서 자켓이 사라짐).
+- 픽셀 격자가 맞지 않음: 한 픽셀이 4~5px로 들쭉날쭉하고, 한 칸 안 색이 5천 개 넘음(흐린 경계·압축 잡티). 원래 크기로 줄이면 얼룩이 생김. 캐릭터 키도 명세(27px)보다 큰 약 35px.
+- 시점: 서 있기·걷기는 여전히 정면, 뒷모습은 완전 뒤. 3/4는 돌진 프레임뿐.
+- 머리: 앞머리가 여전히 무거운 덩어리, 길이가 어깨 정도(명세는 가슴께), 뒷모습은 짧은 단발 버섯 모양이라 앞모습과 안 맞음.
+- 프레임마다 머리 크기·얼굴이 조금씩 다름(모델 일관성).
+- 눈이 너무 졸림.
+
+## 12. 2차 요청 프롬프트 (1차에 덧붙여 보내기)
+
+```
+Revise the sprite sheet with these fixes:
+1. Background: one flat solid color #FF00FF (magenta) everywhere, no checkerboard, no texture. Everything that is not magenta is the character.
+2. Strict pixel grid: the art must be exactly 32x32 pixels per frame, then upscaled by exactly 8x with nearest neighbor (each art pixel = one 8x8 block). No anti-aliasing, no blur, no noise. Max 24 colors.
+3. No weapon, no slash arcs, no speed lines, no particles, no stars. Character only.
+4. Layout: exactly 4 columns x 10 rows, one animation per row, empty cells left magenta.
+   Rows 1-5 = facing down-right, rows 6-10 = facing up-right.
+   Each block of 5 rows: idle(2), walk(4), dash(1), attack pose(2), hurt(1).
+5. Angle: use the same 3/4 side angle as the dash frames for every down-right frame (body and face turned to the right). Up-right frames: the same angle from behind, the cheek line barely visible.
+6. Hair: long straight hair reaching the chest in ALL frames including the back view (back view shows long hair covering the back, not a short bob). Light see-through bangs made of a few thin strands with the forehead visible. Gentle waves near the ends.
+7. Eyes: normal open eyes with a calm look and faint dark circles, not sleepy.
+8. Keep the same head size and face in every frame (on-model).
+```
