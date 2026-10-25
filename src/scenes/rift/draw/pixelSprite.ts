@@ -7,6 +7,7 @@ export interface PixelSprite {
   w: number;
   h: number;
   runs: { x: number; y: number; len: number; color: number }[];
+  anchorX?: number; // body column the feet point sits on (default: w / 2)
 }
 
 const cache = new Map<string, PixelSprite>();
@@ -65,14 +66,44 @@ export function gridSprite(rows: readonly string[], pal: Record<string, number>)
   return sprite;
 }
 
-// Draws with the feet (bottom centre) at (fx, fy), each sprite pixel `scale` px wide.
-// `white` paints every pixel white (hit flash).
-export function drawPixelSprite(g: G, s: PixelSprite, fx: number, fy: number, flip: boolean, alpha = 1, white = false, scale = 1): void {
-  const x0 = Math.round(fx - (s.w * scale) / 2);
+// Centre column of the opaque pixels in rows [from, to] counted up from the bottom row.
+// Used as the anchor so frames of different widths keep the body in place.
+export function bodyColumn(s: PixelSprite, from: number, to: number): number {
+  let sum = 0;
+  let n = 0;
+  for (const r of s.runs) {
+    const up = s.h - 1 - r.y;
+    if (up < from || up > to) continue;
+    sum += (r.x + r.len / 2) * r.len;
+    n += r.len;
+  }
+  return n > 0 ? sum / n : s.w / 2;
+}
+
+// The top `rows` of `top` over the rest of `body`, bottom-aligned and lined up on their anchors.
+// Lets several frames share one head so only the limbs change between them.
+export function stackSprites(top: PixelSprite, body: PixelSprite, rows: number): PixelSprite {
+  const dy = body.h - top.h;
+  const dx = Math.round((body.anchorX ?? body.w / 2) - (top.anchorX ?? top.w / 2));
+  const runs = [
+    ...body.runs.filter((r) => r.y >= rows + dy),
+    ...top.runs.filter((r) => r.y < rows).map((r) => ({ ...r, x: r.x + dx, y: r.y + dy })),
+  ];
+  return { w: body.w, h: body.h, runs, anchorX: body.anchorX };
+}
+
+// Draws with the feet (anchor column, bottom row) at (fx, fy), each sprite pixel `scale` px wide.
+// `white` paints every pixel white (hit flash). `lift` raises the top `liftRows` rows by that many px.
+export function drawPixelSprite(g: G, s: PixelSprite, fx: number, fy: number, flip: boolean, alpha = 1, white = false, scale = 1, liftRows = 0, lift = 0): void {
+  const ax = s.anchorX ?? s.w / 2;
+  const x0 = Math.round(fx - (flip ? s.w - ax : ax) * scale);
   const y0 = Math.round(fy - s.h * scale);
   for (const r of s.runs) {
     g.fillStyle(white ? 0xffffff : r.color, alpha);
     const x = flip ? s.w - r.x - r.len : r.x;
-    g.fillRect(x0 + x * scale, y0 + r.y * scale, r.len * scale, scale);
+    const lifted = r.y < liftRows;
+    // The seam row also stretches down so the lift leaves no gap.
+    const h = lifted && r.y === liftRows - 1 ? 1 + lift : 1;
+    g.fillRect(x0 + x * scale, y0 + (lifted ? r.y - lift : r.y) * scale, r.len * scale, h * scale);
   }
 }

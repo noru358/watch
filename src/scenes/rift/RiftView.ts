@@ -4,8 +4,7 @@ import { FEEL, PALETTE } from '../../data/feel.data';
 import type { Floor } from '../../systems/rift';
 import { T } from './draw/common';
 import { drawDirector } from './draw/director';
-import { directorKey } from './draw/directorFrames';
-import { pixelSprite } from './draw/pixelSprite';
+import { directorSprite } from './draw/directorFrames';
 import { drawGhost } from './draw/ghosts';
 import { drawProps } from './draw/props';
 import { drawTelegraph } from './draw/telegraph';
@@ -90,7 +89,7 @@ export class RiftView {
       y: e.y,
       fn: () => drawGhost(g, e, alpha, this.clock, this.flashing(e.id, dt), f.boss?.phase === 2),
     }));
-    draws.push({ y: f.player.y, fn: () => drawDirector(g, f.player, f, alpha, this.clock, (n) => pixelSprite(this.scene, directorKey(n))) });
+    draws.push({ y: f.player.y, fn: () => drawDirector(g, f.player, f, alpha, this.clock, (anim, n) => directorSprite(this.scene, anim, n)) });
     draws.sort((a, b) => a.y - b.y).forEach((d) => d.fn());
 
     this.drawLights(f, alpha);

@@ -6,28 +6,23 @@ import type { Floor, Player } from '../../../systems/rift';
 import { lerp, shadow, T, type G } from './common';
 import { drawPixelSprite, type PixelSprite } from './pixelSprite';
 
-type FrameLookup = (frame: DirectorFrame) => PixelSprite | null;
+type FrameLookup = (anim: DirectorAnim, frame: DirectorFrame) => PixelSprite | null;
 
-// Which animation and frame to show, from the player's render hints.
-// `reach`: the arm is extended (attack / 발도 follow-through), so the sword sits further forward.
+// Which animation and frame to show, from the player's render hints. Attack and 발도 land on the
+// key press, so their first frame is the strike and the second the recovery.
 const nth = (list: readonly [DirectorFrame, ...DirectorFrame[]], i: number): DirectorFrame => list[i] ?? list[0];
 
-function pickFrame(p: Player, clock: number): { anim: DirectorAnim; frame: DirectorFrame; reach: boolean } {
+function pickFrame(p: Player, clock: number): { anim: DirectorAnim; frame: DirectorFrame } {
   const S = DIRECTOR_SPRITE;
   const hurt = p.iframes > EXORCISTS.director.hurtIframes - S.hurtShow && p.dashT <= 0;
-  if (p.hp <= 0) return { anim: 'ko', frame: S.frames.ko[0], reach: false };
-  if (hurt) return { anim: 'hurt', frame: S.frames.hurt[0], reach: false };
-  if (p.drawFx < S.drawShow) {
-    const lunge = p.drawFx >= S.drawShow * 0.4;
-    return { anim: 'draw', frame: nth(S.frames.draw, lunge ? 1 : 0), reach: lunge };
-  }
-  if (p.swingFx < S.attackShow) {
-    const swung = p.swingFx >= S.attackShow / 2;
-    return { anim: 'attack', frame: nth(S.frames.attack, swung ? 1 : 0), reach: swung };
-  }
-  const anim: DirectorAnim = p.dashT > 0 ? 'dash' : p.moving ? 'walk' : 'idle';
+  if (p.hp <= 0) return { anim: 'ko', frame: S.frames.ko[0] };
+  if (hurt) return { anim: 'hurt', frame: S.frames.hurt[0] };
+  if (p.dashT > 0) return { anim: 'dash', frame: S.frames.dash[0] };
+  if (p.drawFx < S.drawShow) return { anim: 'draw', frame: nth(S.frames.draw, p.drawFx < S.drawStrike ? 0 : 1) };
+  if (p.swingFx < S.attackShow) return { anim: 'attack', frame: nth(S.frames.attack, p.swingFx < S.attackStrike ? 0 : 1) };
+  const anim: DirectorAnim = p.moving ? 'walk' : 'idle';
   const list = S.frames[anim];
-  return { anim, frame: nth(list, Math.floor(clock * S.fps) % list.length), reach: false };
+  return { anim, frame: nth(list, Math.floor(clock * S.fps) % list.length) };
 }
 
 // The director: body (pixel sprite when loaded, shapes otherwise), the separately drawn
@@ -35,20 +30,23 @@ function pickFrame(p: Player, clock: number): { anim: DirectorAnim; frame: Direc
 export function drawDirector(g: G, p: Player, f: Floor, alpha: number, clock: number, frames: FrameLookup): void {
   const x = lerp(p.prevX, p.x, alpha) * T;
   const y = lerp(p.prevY, p.y, alpha) * T;
-  const { anim, frame, reach } = pickFrame(p, clock);
-  const sprite = frames(frame);
+  const { anim, frame } = pickFrame(p, clock);
+  const sprite = frames(anim, frame);
   if (sprite) {
+    const S = DIRECTOR_SPRITE;
     shadow(g, x, y, 7);
-    const blink = p.iframes > 0 && p.dashT <= 0 && anim !== 'hurt' && anim !== 'ko' && Math.floor(clock * 20) % 2 === 0;
+    // After a hit the body dims on off-beats instead of vanishing (a counter's i-frames do not blink).
+    const blink = p.iframes > 0 && p.dashT <= 0 && p.drawFx >= S.drawShow && anim !== 'hurt' && anim !== 'ko' && Math.floor(clock * 12) % 2 === 0;
     const flip = Math.cos(p.aim) < 0;
-    const behind = Math.sin(p.aim) < -0.3;
-    const breathe = anim === 'idle' ? Math.round((Math.sin(clock * DIRECTOR_SPRITE.breathe * Math.PI) + 1) / 2) : 0;
-    const hand = reach ? DIRECTOR_SPRITE.handReach : DIRECTOR_SPRITE.hand;
+    const swinging = p.swingFx < FEEL.swingTrailTime;
+    const behind = swinging && Math.sin(p.aim) < -0.3;
+    const lift = anim === 'idle' && clock % S.headBob.period < S.headBob.period / 2 ? 1 : 0;
+    const hand = S.hands[frame as keyof typeof S.hands] ?? S.hand;
     const hx = x + (flip ? -hand.x : hand.x);
-    const hy = y + hand.y;
-    if (behind) drawSword(g, p, f, hx, hy);
-    if (!blink) drawPixelSprite(g, sprite, x, y + 1 + breathe, flip);
-    if (!behind) drawSword(g, p, f, hx, hy);
+    const hy = y + 1 + hand.y;
+    if (behind) drawSword(g, p, f, hx, hy, flip, x, y);
+    drawPixelSprite(g, sprite, x, y + 1, flip, blink ? S.blinkAlpha : 1, false, 1, S.headBob.rows, lift);
+    if (!behind) drawSword(g, p, f, hx, hy, flip, x, y);
     if (p.shield > 0) g.lineStyle(1, PALETTE.shield, 0.9).strokeCircle(x, y - sprite.h / 2, sprite.h / 2 + 2);
     drawDrawFx(g, p, f, x, y, clock);
     return;
@@ -59,7 +57,7 @@ export function drawDirector(g: G, p: Player, f: Floor, alpha: number, clock: nu
   const by = y - hop;
   const face = Math.cos(p.aim) >= 0 ? 1 : -1;
   const behind = Math.sin(p.aim) < -0.3;
-  const sword = () => drawSword(g, p, f, x, by - 7);
+  const sword = () => drawSword(g, p, f, x, by - 7, face < 0, x, y);
   if (behind) sword();
   g.fillStyle(PALETTE.body).fillRect(x - 4, by - 10, 8, 9); // coat
   g.fillStyle(PALETTE.skin).fillCircle(x, by - 13, 3.6); // head
@@ -98,13 +96,23 @@ function drawDrawFx(g: G, p: Player, f: Floor, x: number, y: number, clock: numb
 }
 
 // The sword is a separate "sprite": a newspaper bundle, or a glowing blade while bare.
-function drawSword(g: G, p: Player, f: Floor, hx: number, hy: number): void {
+// At rest it hangs at a fixed angle from the facing (it does not track the aim, which made it twitch);
+// a swing sweeps across the arc, alternating direction through the combo; its trail is centred on the body (cx, cy).
+function drawSword(g: G, p: Player, f: Floor, hx: number, hy: number, flip: boolean, cx: number, cy: number): void {
   const w = WEAPONS[f.weapon];
   const trail = FEEL.swingTrailTime;
   const swinging = p.swingFx < trail;
-  // During a swing the blade sweeps across the arc; at rest it points along the aim.
-  const sweep = swinging ? -w.arc / 2 + (p.swingFx / trail) * w.arc : 0.35;
-  const a = p.aim + sweep;
+  const k = p.swingFx / trail;
+  const dir = p.combo % 2 === 0 ? -1 : 1;
+  const S = DIRECTOR_SPRITE;
+  const held = p.dashT > 0 ? S.swordDash : S.swordRest; // angle from the facing when not cutting
+  const a = swinging
+    ? p.aim + dir * (-w.arc / 2 + k * w.arc)
+    : p.drawFx < S.drawStrike
+      ? p.aim // 발도 lunge: the blade points straight at the target
+      : flip
+        ? Math.PI - held
+        : held;
   const len = 12;
   const ex = hx + Math.cos(a) * len;
   const ey = hy + Math.sin(a) * len * 0.8;
@@ -118,7 +126,8 @@ function drawSword(g: G, p: Player, f: Floor, hx: number, hy: number): void {
   if (swinging) {
     g.lineStyle(2, p.bare > 0 ? PALETTE.bareBlade : 0xffffff, 0.5 * (1 - p.swingFx / trail));
     g.beginPath();
-    g.arc(hx, hy + 6, w.reach * T, p.aim - w.arc / 2, p.aim - w.arc / 2 + (p.swingFx / trail) * w.arc);
+    const from = p.aim - (dir * w.arc) / 2;
+    g.arc(cx, cy - 4, w.reach * T, Math.min(from, from + dir * k * w.arc), Math.max(from, from + dir * k * w.arc));
     g.strokePath();
   }
 }
