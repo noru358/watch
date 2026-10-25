@@ -38,9 +38,10 @@ export class Overlay {
   }
 
   // Up to three numbered cards (강화 카드 or a choice prompt). Select with 1/2/3 or A/D + J.
-  showCards(title: string, offer: readonly { name: string; desc: string }[]): void {
+  showCards(title: string, offer: readonly { name: string; desc: string }[], hint?: string): void {
     this.reset();
     this.layer.add(crispText(this.scene, W / 2, 90, title, { ...TEXT, fontSize: '24px' }).setOrigin(0.5));
+    if (hint) this.layer.add(crispText(this.scene, W / 2, 420, hint, { ...TEXT, fontSize: '15px', color: PALETTE.textDim }).setOrigin(0.5));
     const cardW = 250;
     const gap = 24;
     const startX = W / 2 - (offer.length * cardW + (offer.length - 1) * gap) / 2;

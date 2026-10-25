@@ -1,5 +1,6 @@
 // Ghost pixel art (from tools/artlab, one letter = one pixel, '.' = transparent).
-// Drawn at 2x so ghosts sit next to the bigger director sprite. Kinds without art fall back to shapes.
+// Drawn at 2x so a strong ghost stands about as tall as the director (1.5 tiles at 24px tiles);
+// hitboxes stay smaller than the drawings. Kinds without art fall back to shapes.
 import type { EnemyId } from '../../../../types/ids';
 
 export interface GridArt {

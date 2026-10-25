@@ -4,7 +4,7 @@ import { CARDS } from '../src/data/cards.data';
 import { BOSSES, GHOSTS } from '../src/data/ghosts.data';
 import { EXORCISTS } from '../src/data/protagonist.data';
 import { WEAPONS } from '../src/data/weapons.data';
-import { answerPayphone, generateFloor, isFloor, NO_INPUT, stepFloor, type Floor, type RiftInput } from '../src/systems/rift';
+import { answerPayphone, generateFloor, giveUp, isFloor, NO_INPUT, stepFloor, type Floor, type RiftInput } from '../src/systems/rift';
 import { makeEnemy } from '../src/systems/rift/mapgen';
 import { carry, DT, duel, floorWith } from './helpers';
 
@@ -271,5 +271,17 @@ describe('boss', () => {
     boss.hp = 1;
     run(f, rng, W.swingTime + 0.02, { attack: true, aim: -Math.PI / 2 });
     expect(f.status).toBe('bossDefeated');
+  });
+});
+
+describe('pause menu', () => {
+  it('giving up ends the floor as a failure, only while playing', () => {
+    const { f } = duel();
+    giveUp(f);
+    expect(f.status).toBe('dead');
+    const { f: g } = duel();
+    g.status = 'payphone';
+    giveUp(g);
+    expect(g.status).toBe('payphone');
   });
 });

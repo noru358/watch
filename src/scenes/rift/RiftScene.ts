@@ -7,7 +7,7 @@ import { FEEL, PALETTE, SCREEN } from '../../data/feel.data';
 import { t } from '../../i18n';
 import type { GameEvent } from '../../types/events';
 import type { CardId } from '../../types/ids';
-import { answerPayphone, stepFloor, type Floor, type RiftInput } from '../../systems/rift';
+import { answerPayphone, giveUp, stepFloor, type Floor, type RiftInput } from '../../systems/rift';
 import { enterFloor, leaveFloor, offerCards, pickCard, runResult, startRun, totalFloors, type RunState } from '../../systems/run';
 import { Overlay } from '../shared/Overlay';
 import { RiftHud } from './RiftHud';
@@ -15,7 +15,7 @@ import { attachVfx } from '../shared/vfx';
 import { RiftView, tileToPx } from './RiftView';
 import { loadDirectorFrames } from './draw/directorFrames';
 
-type Mode = 'play' | 'cards' | 'payphone' | 'end';
+type Mode = 'play' | 'cards' | 'payphone' | 'paused' | 'end';
 const END_INPUT_DELAY = 0.6; // seconds before the end panel accepts input
 
 function cardText(id: CardId): { name: string; desc: string } {
@@ -181,6 +181,8 @@ export class RiftScene extends Phaser.Scene {
       }
     } else if (this.mode === 'cards') this.updateCards();
     else if (this.mode === 'payphone') this.updatePayphone();
+    else if (this.mode === 'paused') this.updatePause();
+    else if (input.consume('pause', 'night')) this.openPause();
     else if (this.freezeLeft > 0) this.freezeLeft -= dt; // hit-stop
     else this.simulate(dt);
     this.followCamera(dt);
@@ -266,6 +268,35 @@ export class RiftScene extends Phaser.Scene {
     input.pop();
     this.mode = 'play';
     this.loadFloor();
+  }
+
+  // Pause menu: the simulation simply doesn't step while it is open.
+  private openPause(): void {
+    this.mode = 'paused';
+    this.selected = 0;
+    input.push('modal');
+    this.overlay.showCards(t('pause.title'), [
+      { name: t('pause.resume'), desc: t('pause.resumeDesc') },
+      { name: t('pause.controls'), desc: t('pause.controlsDesc') },
+      { name: t('pause.giveUp'), desc: t('pause.giveUpDesc') },
+    ], t('pause.hint'));
+  }
+
+  private closePause(): void {
+    this.overlay.hide();
+    input.pop();
+    this.mode = 'play';
+  }
+
+  private updatePause(): void {
+    if (input.consume('pause', 'modal')) return this.closePause();
+    const pick = this.choose(3);
+    if (pick === 0) this.closePause();
+    if (pick === 2) {
+      this.closePause();
+      giveUp(this.floor);
+      this.afterFloorChange();
+    }
   }
 
   private updatePayphone(): void {

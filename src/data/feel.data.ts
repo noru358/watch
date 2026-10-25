@@ -4,9 +4,11 @@ export const SCREEN = { width: 960, height: 540 } as const;
 export const FEEL = {
   fixedStep: 1 / 60, // simulation tick (seconds)
   maxStepsPerFrame: 5,
-  tile: 16, // px per tile (japda convention)
-  zoom: 2.5, // world camera zoom
-  wallFace: 9, // px height of a wall's front face (3/4 view)
+  // 24px tiles at 1.75x zoom (was 16px at 2.5x): about the same number of tiles on screen, but the
+  // ~37px director sprite is ~1.5 tiles tall instead of 2.3, so bodies match attack ranges (2026-10-25).
+  tile: 24, // px per tile
+  zoom: 1.75, // world camera zoom
+  wallFace: 13, // px height of a wall's front face (3/4 view)
   cameraLerp: 10, // camera follow speed per second
   mouseAimTimeout: 1.5, // seconds without mouse movement before aim falls back to keyboard aim
   keyboardSnapRange: 3, // keyboard aim: when standing still, face the nearest ghost within this many tiles
@@ -27,9 +29,9 @@ export const FEEL = {
   hurtFlashAlpha: 0.18, // brief red screen edge on hurt (no full-screen flash)
   popupRise: 24, // px
   popupDuration: 450, // ms
-  popupSize: 12, // px, normal hit numbers
-  popupSizeSmall: 10, // px, hits on swarm fodder
-  popupSizeBig: 15, // heavy hits, counters, damage taken
+  popupSize: 20, // px on screen, normal hit numbers
+  popupSizeSmall: 16, // px, hits on swarm fodder
+  popupSizeBig: 26, // heavy hits, counters, damage taken
   flashDuration: 70, // ms enemy white flash on hit
   drawFxTime: 0.3, // seconds a 발도's range arc/ring stays visible
   swingTrailTime: 0.14, // seconds the swing trail sweeps

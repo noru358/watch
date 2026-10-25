@@ -52,7 +52,13 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 - Basement tileset in `draw/tiles.ts` (colours in `PALETTE`), night lighting in `RiftView.drawLights` (multiply ambient + banded add pools, `FEEL.lights`); telegraphs draw on their own Graphics above the lighting.
 - My art-lab director attempts (v2–v7) removed from `tools/artlab/`.
 
+### Round 6 (2026-10-25): scale fix, pause menu, 2 facings
+- Bodies were too big for the map and effects (37px director on 16px tiles = 2.3 tiles; ghosts at 2x), damage numbers too small. Now `FEEL.tile` 24, `FEEL.zoom` 1.75 (same tiles on screen), wall face 13px, popups 20/16/26px. Director ~1.5 tiles; ghosts 2x ≈ director height, hitboxes unchanged (in tiles). Payphone uses the art-lab pixel art (`draw/art/propArt.ts`).
+- Pause: `pause` action (Esc). `RiftScene` mode `paused` (sim doesn't step), Overlay shows 계속하기 / 조작 안내 / 의뢰 포기; give up = `giveUp(f)` in `systems/rift/step.ts` (floor → dead → normal failure settlement). Test in `tests/rift.test.ts`.
+- Director: right-facing frames only, left mirrored (no back view for now). Gemini sheet v2 rejected (off-style); targeted v1-based prompt in spec §15.
+
 ## Verified
+- Round 6: `npm run check` 46 tests pass; Playwright: new scale renders, Esc opens/closes pause, 3 = give up → end screen, no page errors.
 - Art pass: `npm run check` 45 tests pass; Playwright: director faces ↘/↙ (mirror)/↑ and dashes correctly, staged ghosts render with lighting, no page errors. Not human-played yet.
 - Round 4: `npm run check` 45 tests pass. Playwright: new game writes a v1 save on 출동; a hand-written v1 save (money 777, solved 4) shows in the office after reload; keyboard run after the view split renders as before, no page errors.
 - `npm run check`: tsc clean, 40 tests pass (incl. balance: naive 0/8, skilled 8/8 after the 발도 rework). All relative links in *.md resolve.
@@ -70,6 +76,5 @@ Old code: action prototype `d170e4b`, turn-based `0278d77`.
 (a) Day hub = walkable Phaser scene (souls-style, `E` to talk) with React panels → §1 and Rule 4 wording; (b) touch context in InputManager; (c) keep ≤4 combat buttons (now: move, slash, dash, draw + mouse aim).
 
 ## Next step
-1. Feel accepted as a hypothesis (graybox pass done; retune from play reports any time).
-2. Vertical-slice art test is IN the game (director sprite, 3 ghost sprites, basement tiles, night lighting). User plays and judges. Open items: ghost/director pixel density mismatch (2x vs 1x), subway/printer still shapes, Hangul pixel-font signs and props (payphone art, chairs) not in game yet, real SFX, Gemini v2 for hair/eyes (spec §12).
-3. Then Gate 2: walkable rooftop hub (bookkeeper, cat), companions with one party slot, weapon B.
+1. User plays the art + scale pass. Gate 1 is feature-complete per ARCHITECTURE §5; what's left is the user's call that it is fun (plus polish: subway/printer art, real SFX, signs/props on the map, Gemini frames from spec §15).
+2. Proposed (needs the user's go, CLAUDE.md scope rule): declare Gate 1 passed and start Gate 2 — walkable rooftop office hub first (Phaser scene, souls-style, E to talk, bookkeeper + cat, React panels), then companion with one party slot, weapon B (label gun), persistent traits/traumas + recovery, save v2. Apply the pending ARCHITECTURE changes listed above when the hub starts.

@@ -10,9 +10,8 @@ type FrameLookup = (frame: number) => PixelSprite | null;
 
 // Which animation and frame to show, from the player's render hints.
 function pickFrame(p: Player, clock: number): { anim: DirectorAnim; frame: number } {
-  const up = Math.sin(p.aim) < -0.3;
   const hurt = p.iframes > EXORCISTS.director.hurtIframes - DIRECTOR_SPRITE.hurtShow && p.dashT <= 0;
-  const anim: DirectorAnim = hurt ? 'hurt' : p.dashT > 0 ? 'dash' : up ? (p.moving ? 'upWalk' : 'upIdle') : p.moving ? 'walk' : 'idle';
+  const anim: DirectorAnim = hurt ? 'hurt' : p.dashT > 0 ? 'dash' : p.moving ? 'walk' : 'idle';
   const list = DIRECTOR_SPRITE.frames[anim];
   return { anim, frame: list[Math.floor(clock * DIRECTOR_SPRITE.fps) % list.length] ?? list[0] ?? 0 };
 }
@@ -29,7 +28,7 @@ export function drawDirector(g: G, p: Player, f: Floor, alpha: number, clock: nu
     const blink = p.iframes > 0 && p.dashT <= 0 && anim !== 'hurt' && Math.floor(clock * 20) % 2 === 0;
     const flip = Math.cos(p.aim) < 0;
     const behind = Math.sin(p.aim) < -0.3;
-    const breathe = anim === 'idle' || anim === 'upIdle' ? Math.round((Math.sin(clock * DIRECTOR_SPRITE.breathe * Math.PI) + 1) / 2) : 0;
+    const breathe = anim === 'idle' ? Math.round((Math.sin(clock * DIRECTOR_SPRITE.breathe * Math.PI) + 1) / 2) : 0;
     const hx = x + (flip ? -DIRECTOR_SPRITE.hand.x : DIRECTOR_SPRITE.hand.x);
     const hy = y + DIRECTOR_SPRITE.hand.y;
     if (behind) drawSword(g, p, f, hx, hy);

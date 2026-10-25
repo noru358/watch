@@ -52,6 +52,11 @@ export function stepFloor(f: Floor, input: RiftInput, dt: number, rng: SeededRNG
 }
 
 // The director answered the payphone prompt.
+// Giving up the contract from the pause menu counts as a failed night (same penalties as falling).
+export function giveUp(f: Floor): void {
+  if (f.status === 'playing') f.status = 'dead';
+}
+
 export function answerPayphone(f: Floor, goHome: boolean): void {
   if (f.status !== 'payphone') return;
   f.status = goHome ? 'extracted' : 'playing';

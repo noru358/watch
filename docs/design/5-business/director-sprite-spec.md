@@ -116,3 +116,17 @@ Revise the sprite sheet with these fixes:
 
 ## 14. 결정: 제미나이 원본 사용 (2026-10-25)
 우리 쪽 픽셀 손질본은 폐기. 정리만 한 제미나이 1차 프레임을 그대로 게임에 넣음(`src/data/sprites.data.ts`에 동작별 프레임 번호). 머리 길이·앞머리·눈 같은 내용 수정은 제미나이 2차(12번 프롬프트)로.
+
+## 15. 2차 결과(제미나이) 폐기, 방향은 좌우 2방향 (2026-10-25)
+2차는 디자인이 우리 톤과 이질적이라 폐기하고 1차 디자인을 유지한다. 뒷모습까지 그리면 작업량이 너무 커서 당분간 **오른쪽을 보는 그림만** 쓰고 왼쪽은 좌우 반전(게임은 이미 그렇게 동작). 1차에서 어색하거나 빠진 프레임만 골라서 요청한다.
+
+붙여 넣을 프롬프트(1차 시트를 반드시 첨부):
+
+```
+Use the attached sprite sheet as the master design. Keep the face, hair, outfit, colors, outline and proportions exactly the same. Draw only the right-facing view (the same angle as the attached front frames).
+Background: one flat solid #FF00FF. No weapon, no effects, no speed lines.
+I need only these frames, one row each, 32x32 art per frame upscaled exactly 8x with nearest neighbor:
+Row 1 - idle, 2 frames: standing with EMPTY hands (no sword), 1px breathing difference.
+Row 2 - attack pose, 2 frames: right arm extended forward with an empty hand, body leaning slightly forward.
+Row 3 - walk, 4 frames: same as the attached walk frames, legs alternating.
+```
