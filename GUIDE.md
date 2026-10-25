@@ -20,14 +20,30 @@
 
 ---
 
-## ▶️ 실행하기
+## ▶️ 실행하기 (맥 터미널)
 
-```bash
-git pull         # 최신 코드 받기
-npm install      # 처음 한 번 (또는 package.json 바뀌었을 때)
-npm run dev      # 브라우저에서 http://localhost:5173 열기
-npm run check    # 타입 검사 + 테스트 (커밋 전 필수)
+> 명령어는 **한 줄씩** 붙여 넣고 엔터. 설명 문구(`#` 뒤)를 같이 붙이면 zsh에서 오류가 납니다.
+
+**처음 한 번만 (코드 받기 + 설치)**
 ```
+cd ~
+git clone https://github.com/noru358/watch.git
+cd watch
+git checkout claude/admiring-keller-rdwk4w
+npm install
+```
+- `git clone`에서 비밀번호를 물으면: 비공개 저장소라 GitHub 비밀번호 대신 **Personal Access Token**이 필요합니다. 어려우면 **GitHub Desktop** 앱으로 `noru358/watch`를 받은 뒤 그 폴더로 `cd` 하세요.
+- `npm: command not found`면 https://nodejs.org 에서 LTS 버전 설치.
+
+**게임 켤 때마다**
+```
+cd ~/watch
+git pull
+npm run dev
+```
+→ 브라우저에서 **http://localhost:5173** 열기. 끌 때는 터미널에서 `Ctrl + C`.
+- `package.json`이 바뀌었다는 안내가 있으면 `npm run dev` 전에 `npm install` 한 번 더.
+- `npm run check` = 타입 검사 + 테스트 (AI가 커밋 전에 돌리는 것, 직접 안 해도 됨)
 
 사무소 화면에서 **🌙 출동** (클릭 또는 Enter)
 
