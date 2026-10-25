@@ -8,7 +8,7 @@ export const ko = {
   'day.trauma': '트라우마',
   'day.runs': '해결한 의뢰',
   'day.contractTitle': '오늘 밤 의뢰',
-  'day.contractName': '을지로3가 인쇄소 지하, 밤마다 윤전기가 혼자 돈다',
+  'day.contractName': '을지로3가 정성당 인쇄소 지하, 밤마다 아무도 주문 안 한 종이가 찍혀 나온다',
   'day.contractFee': '수임료',
   'day.sortie': '출동',
   'day.sortieHint': 'Enter 또는 클릭',
@@ -34,7 +34,7 @@ export const ko = {
   'hud.draw.plain': '앞 크게 베기',
   'hud.legend': '노란 예고 받아치기 · 빨간 예고 피하기',
   'rift.bare': '검신 노출!',
-  'rift.bossIntro': '윤전기 귀신 출현',
+  'rift.bossIntro': '활자귀 「미발송」 — 독촉장은 세 번까지다',
   'rift.cardPick': '강화 카드 선택 — 1 / 2 / 3',
   'rift.payphoneTitle': '☎ 공중전화 — 1 / 2',
   'rift.payphoneHome': '귀환',
@@ -89,7 +89,7 @@ export const ko = {
   'enemy.cheonyeo': '처녀귀신',
   'enemy.dalgyal': '달걀귀신',
   'enemy.subway': '지하철 망령',
-  'enemy.printer': '윤전기 귀신',
+  'enemy.printer': '활자귀 「미발송」',
 } as const;
 
 export type TKey = keyof typeof ko;

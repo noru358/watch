@@ -10,7 +10,7 @@ function band(f: Floor, axis: 'row' | 'col', data: BossData, time: number): Tele
   return { shape: 'band', x: p.x, y: p.y, angle: 0, range: 0, width: data.sweepWidth, axis, t: time, total: time, damage: data.sweepDamage, parriable: false, darkness: 0 };
 }
 
-// 윤전기 귀신: paper-roller sweep across the room (cannot be countered — dodge it),
+// 활자귀 「미발송」 (id printer): paper-roller sweep across the room (cannot be countered — dodge it),
 // close-range slam (counter it with 발도), summons maidens. Phase 2 sweeps row + column, faster.
 export function updateBoss(f: Floor, e: Enemy, dt: number, rng: SeededRNG, data: BossData): void {
   const b = f.boss;

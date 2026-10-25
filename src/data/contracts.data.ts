@@ -23,7 +23,7 @@ export interface ContractData {
 }
 
 export const CONTRACTS: Record<ContractId, ContractData> = {
-  // 을지로3가 인쇄소 지하, 밤마다 윤전기가 혼자 돈다
+  // 을지로3가 정성당 인쇄소 지하: 「찍히지 못한 글자들」 (docs/design/2-night/contract.md)
   euljiro_printer: {
     fee: 300,
     floors: [

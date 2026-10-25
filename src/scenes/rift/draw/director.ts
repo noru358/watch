@@ -11,7 +11,7 @@ type FrameLookup = (frame: number) => PixelSprite | null;
 // Which animation and frame to show, from the player's render hints.
 function pickFrame(p: Player, clock: number): { anim: DirectorAnim; frame: number } {
   const hurt = p.iframes > EXORCISTS.director.hurtIframes - DIRECTOR_SPRITE.hurtShow && p.dashT <= 0;
-  const anim: DirectorAnim = hurt ? 'hurt' : p.dashT > 0 ? 'dash' : p.moving ? 'walk' : 'idle';
+  const anim: DirectorAnim = p.hp <= 0 ? 'ko' : hurt ? 'hurt' : p.dashT > 0 ? 'dash' : p.moving ? 'walk' : 'idle';
   const list = DIRECTOR_SPRITE.frames[anim];
   return { anim, frame: list[Math.floor(clock * DIRECTOR_SPRITE.fps) % list.length] ?? list[0] ?? 0 };
 }
@@ -25,7 +25,7 @@ export function drawDirector(g: G, p: Player, f: Floor, alpha: number, clock: nu
   const sprite = frames(frame);
   if (sprite) {
     shadow(g, x, y, 7);
-    const blink = p.iframes > 0 && p.dashT <= 0 && anim !== 'hurt' && Math.floor(clock * 20) % 2 === 0;
+    const blink = p.iframes > 0 && p.dashT <= 0 && anim !== 'hurt' && anim !== 'ko' && Math.floor(clock * 20) % 2 === 0;
     const flip = Math.cos(p.aim) < 0;
     const behind = Math.sin(p.aim) < -0.3;
     const breathe = anim === 'idle' ? Math.round((Math.sin(clock * DIRECTOR_SPRITE.breathe * Math.PI) + 1) / 2) : 0;

@@ -1,7 +1,7 @@
 // Sprite animation tables (frames are files in assets/sprites/, numbered by tools/spritekit).
 // Two facings for now (2026-10-25): frames face right; left is a mirror. No back view yet.
 
-export type DirectorAnim = 'idle' | 'walk' | 'dash' | 'hurt';
+export type DirectorAnim = 'idle' | 'walk' | 'dash' | 'hurt' | 'ko';
 
 export const DIRECTOR_SPRITE = {
   folder: 'director-gemini-v1',
@@ -10,6 +10,7 @@ export const DIRECTOR_SPRITE = {
     walk: [5, 6, 5, 7],
     dash: [10, 13],
     hurt: [20],
+    ko: [21], // knocked out (swirly eyes), shown when HP hits 0
   } satisfies Record<DirectorAnim, readonly number[]>,
   fps: 8, // walk / dash frame rate
   hurtShow: 0.25, // seconds the hurt frame shows after a hit

@@ -62,7 +62,7 @@ export interface BossData {
 }
 
 export const BOSSES: Record<BossId, BossData> = {
-  // 윤전기 귀신: sweeps a row (phase 2: row + column) with paper rollers, slams up close, summons maidens.
+  // 활자귀 「미발송」 (id printer): sweeps a row (phase 2: row + column) with paper rollers, slams up close, summons maidens.
   printer: {
     hp: 120,
     damage: 3,
