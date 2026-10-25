@@ -4,10 +4,10 @@ Branch: work continues on `claude/vigilant-turing-c8w4ga` (fast-forwarded from `
 
 ## Status (2026-10-25, session 2) — Gate 2 started; Gate 1 art/feel polish continues in parallel
 User decision this session: start Gate 2 now and keep finishing Gate 1 alongside ("병행"). CLAUDE.md scope line and ARCHITECTURE v1.2 updated accordingly (pending changes a/b/c applied).
-Day = walkable rooftop hub (Phaser `hub` scene) → iron door `E` → sortie panel (React) → night `lights_out` (3 floors + gumiho) → settlement → back to the hub. Bookkeeper appears after 1 solved contract; `E` → ledger panel. Autosave unchanged (save v1).
+Day = walkable office interior hub (Phaser `hub` scene; user: "사무실 내부여야") → front door `E` → sortie panel (React) → night `lights_out` (3 floors + gumiho) → settlement → back to the hub. Bookkeeper appears after 1 solved contract; `E` → ledger panel. Autosave unchanged (save v1).
 
 ### This session
-- Director motion (Gate 1 feedback "평시에 번쩍이며 너무 움직임, 공격·회피·발도 어색"): single idle frame + 1px head-only breathing; walk frames reuse the idle head (`stableHead`) so only limbs change; frames anchored on the body column (`bodyColumn`) instead of bbox centre (was up to 2.5px sideways jumps); attack = strike frame first then recovery (hit lands on press), attackShow 0.26 ≤ swingTime so held attack never pops to idle; 발도 = lunge first then hand-on-hilt; per-frame sword grip measured from the fists; sword rests at a fixed angle from facing (no longer tracks the mouse, no front/behind swapping at rest); swing direction alternates through the combo; 발도 lunge points the blade at the aim; dash trails the sword; post-hit i-frame blink dims to 45% at 12 Hz instead of vanishing at 20 Hz, and a counter's i-frames do not blink. Files: `src/data/sprites.data.ts`, `draw/director.ts`, `draw/directorFrames.ts` (`directorSprite`), `draw/pixelSprite.ts` (`anchorX`, `stackSprites`, head lift).
+- Director motion (Gate 1 feedback "평시에 번쩍이며 너무 움직임, 공격·회피·발도 어색"): single still idle frame (a head-only 1px breathing lift was tried and removed: it stretched the chin); walk frames reuse the idle head (`stableHead`) so only limbs change; frames anchored on the body column (`bodyColumn`) instead of bbox centre (was up to 2.5px sideways jumps); attack = strike frame first then recovery (hit lands on press), attackShow 0.26 ≤ swingTime so held attack never pops to idle; 발도 = lunge first then hand-on-hilt; per-frame sword grip measured from the fists; sword rests at a fixed angle from facing (no longer tracks the mouse, no front/behind swapping at rest); swing direction alternates through the combo; 발도 lunge points the blade at the aim; dash trails the sword; post-hit i-frame blink dims to 45% at 12 Hz instead of vanishing at 20 Hz, and a counter's i-frames do not blink. Files: `src/data/sprites.data.ts`, `draw/director.ts`, `draw/directorFrames.ts` (`directorSprite`), `draw/pixelSprite.ts` (`anchorX`, `stackSprites`, head lift).
 - Gate 2 hub: `src/systems/hub/` (walk, slide on walls/furniture, spot in reach, unlocks; 6 tests), `src/data/lobby.data.ts` (layout, `HUB_SPOTS`, `LOBBY_FEATURES`), `src/scenes/hub/HubScene.ts` + `HubView.ts` (shapes; director sprite reused), `src/app/features.ts` (`openFeature`/`closeFeature` push/pop `modal`), `src/ui/FeatureHost.tsx` + `ui/features/{sortie,ledger}/`. `OfficeApp.tsx` removed. New action `interact` = `E`. `HUB_LOOK` in `feel.data.ts`.
 
 ## Functional modules (where things live)
@@ -42,7 +42,7 @@ Day = walkable rooftop hub (Phaser `hub` scene) → iron door `E` → sortie pan
 
 ## Known issues / unverified
 - No long human playtest: parry window 0.22 s, speeds, run length are bot-tuned.
-- Hub art is shapes (roof, hut, desk, 평상, AC, bookkeeper placeholder figure). Cat, Esc full menu, rent, contract board not built. Unlock rule is "solved contracts ≥ N" until a story system exists.
+- Hub art is shapes (office room, window, desks, sofa, cabinet, plant, water dispenser, bookkeeper placeholder figure). Cat, Esc full menu, rent, contract board not built. Unlock rule is "solved contracts ≥ N" until a story system exists.
 - Headless Chromium runs slow, so hub/night step caps (5 steps per frame) drop time there; normal browsers are unaffected.
 - Ghost pixel density (art-lab sprites at 2x) differs from the director; subway ghost, boss, sword, stairs still shapes. Walls are not y-sorted with bodies.
 - Black jacket can sink into the dark floor (needs a rim light).
@@ -56,7 +56,7 @@ Gate 2 (main line):
 4. Cat (appraisal) once relics exist; Esc full menu in the hub.
 Gate 1 polish (parallel):
 5. User feedback on the new director motion; Gemini files when sent (subway ghost, cheonyeo, sword, a game screenshot) → `clean_sheet.py` (master palette, target height, in-game comparison image).
-6. Boss frames, dalgyal, dokkaebibul, tiles, props; director rim light; Hangul pixel signs; real SFX + BGM slot. Add hub art (rooftop, bookkeeper, cat) to the Gemini spec.
+6. Boss frames, dalgyal, dokkaebibul, tiles, props; director rim light; Hangul pixel signs; real SFX + BGM slot. Add hub art (office interior tiles/furniture, bookkeeper, cat) to the Gemini spec.
 
 ## History (short)
 Action prototype (auto-aim) lost to a stand-still bot → turn-based grid → user disliked it → Core Keeper–style real-time on a tile grid (old code: `d170e4b`, `0278d77`). Then: swarm fodder, keyboard-only play, smoother feel, one key per action, 발도 tiers (slash < counter = focus strike), quieter effects, design docs grouped into 5 folders, SaveManager, `draw/` split, art lab samples, Gemini pipeline, scale fix (24px tiles), pause menu, boss → gumiho, director attack/발도 poses, director motion cleanup (stable head, anchors, strike-first), Gate 2 start: walkable hub with React panels.

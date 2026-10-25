@@ -50,33 +50,43 @@ export const FEEL = {
   },
 } as const;
 
-// Day hub look (rooftop office at sunset, after work). Layout lives in lobby.data.ts.
+// Day hub look (inside the office in the evening, after work). Layout lives in lobby.data.ts.
+// Shapes only until hub art exists.
 export const HUB_LOOK = {
   zoom: 2,
-  sky: 0x3a2150, // camera background behind the roof
-  roof: 0x3f7a5c, // green waterproof paint
-  roofAlt: 0x447f61,
-  roofSeam: 0x356a50,
-  parapet: 0x8f8aa0,
-  parapetTop: 0xb3aec2,
-  hutWall: 0xc9b99a,
-  hutWallLo: 0xa8977a,
-  hutRoof: 0x5a4a6e,
-  window: 0xffd89a, // warm light inside
-  stairWall: 0x9a96aa,
-  ironDoor: 0x2f6f6a,
-  ironDoorHi: 0x41e0c8,
+  backdrop: 0x14101f, // camera background around the room
+  wallTop: 0x2a2338, // tops of the side and front walls
+  wallpaper: 0x8c9a86, // faded green wallpaper
+  wallpaperLo: 0x7a8874,
+  wainscot: 0x5e4a3a, // wooden lower band of the back wall
+  trim: 0x3d2f26,
+  floor: 0x7a5a44, // wooden floor planks
+  floorAlt: 0x725340,
+  floorSeam: 0x5e4434,
+  sunset: [0xffb36b, 0xf08a6a, 0xb8607a, 0x6a4a86] as readonly number[], // window sky bands, top to bottom
+  skyline: 0x3a2a4a, // roofs and Namsan tower outside
+  windowFrame: 0xe8dcc4,
+  door: 0x4a3a30,
+  doorHi: 0x6a5444,
+  knob: 0xd8b860,
+  clock: 0xf4f0e0,
+  poster: 0xd8c27a, // a talisman-yellow calendar
   desk: 0x8a6a4a,
-  bed: 0xa77d52, // 평상
-  bedSlat: 0x8a643f,
+  deskTop: 0xa07c56,
+  paper: 0xf4f0e0,
+  monitor: 0x2a3a4a,
+  monitorGlow: 0x7ad8c8,
+  sofa: 0x7a3a34, // worn leather
+  sofaHi: 0x92483f,
+  cabinet: 0x8a8e98,
+  cabinetLine: 0x5e626c,
   pot: 0x9a4a3a,
-  pepper: 0x4f9a4a,
-  acUnit: 0xd0d0d8,
-  acFan: 0x6a6a78,
+  leaf: 0x4f8a4a,
+  water: 0xd8e4ec,
+  waterJug: 0x7ab8e0,
   bookkeeperTop: 0xd88a9a, // pink cardigan (placeholder shapes until art)
   bookkeeperHair: 0x2a1a14,
   skin: 0xefd2b0,
-  promptBg: 0x1d1830,
   promptSize: 22, // px text size (drawn at half scale for crispness)
   hintSize: 18,
 } as const;

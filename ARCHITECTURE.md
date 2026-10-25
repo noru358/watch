@@ -7,7 +7,7 @@
 
 - **Language & Bundler:** TypeScript (`strict: true`), Vite
 - **Night (Rift combat & exploration):** Phaser 3 — 100% canvas, including the combat HUD and the in-run pause menu
-- **Day hub (rooftop office):** a walkable Phaser scene (souls-style: walk up to someone, `E` to talk, walk out the iron door to sortie). No permanent menu bar or currency bar on screen.
+- **Day hub (inside the office):** a walkable Phaser scene (souls-style: walk up to someone, `E` to talk, walk out the front door to sortie). No permanent menu bar or currency bar on screen.
 - **Day panels (Office ledger, Roster, Seoul Map, Rental Market):** React (DOM overlay, mounted ONLY in the Day phase), opened from the hub by talking to someone; one panel at a time
 - **Shared State:** Vanilla TypeScript store (`GameStore`), independent of both React and Phaser
 - **Map Authoring:** Tiled Map Editor (`.json` tilemaps loaded by Phaser)
@@ -76,7 +76,7 @@ src/
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
  │                #   rift/ (one floor: map gen, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement), hub/ (walking, who is in reach, what is unlocked),
  │                #   later: recruit/, economy/, dispatch/, rental/, shop/
- ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view = draw order, HUD; draw/ = one file per drawn thing, the art swap points), hub/ (day: walkable rooftop), shared/ (Overlay panels, vfx, sfx, crisp text)
+ ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view = draw order, HUD; draw/ = one file per drawn thing, the art swap points), hub/ (day: walkable office interior), shared/ (Overlay panels, vfx, sfx, crisp text)
  └── ui/          # React: FeatureHost (mounts the open panel), features/<featureId>/ (one folder per hub panel)
 tests/            # Vitest specs mirroring src/systems and src/store
 maps/             # Tiled source maps (.tmx/.json) and tilesets

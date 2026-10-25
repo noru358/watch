@@ -11,8 +11,8 @@ import { loadDirectorFrames } from '../rift/draw/directorFrames';
 import { crisp } from '../shared/text';
 import { HubView } from './HubView';
 
-// Day: the rooftop office you walk around in (souls-style). E on someone opens their panel;
-// the iron door opens tonight's contract. Panels are React; while one is open the input
+// Day: inside the office, walked around souls-style. E on someone opens their panel;
+// the front door opens tonight's contract. Panels are React; while one is open the input
 // context is `modal`, so this scene reads no keys (Rule 4).
 export class HubScene extends Phaser.Scene {
   private hub!: HubState;
@@ -33,7 +33,7 @@ export class HubScene extends Phaser.Scene {
     this.hub = newHub();
     this.acc = 0;
     this.clock = 0;
-    this.cameras.main.setZoom(HUB_LOOK.zoom).setBackgroundColor(HUB_LOOK.sky).centerOn((HUB.cols * T) / 2, (HUB.rows * T) / 2);
+    this.cameras.main.setZoom(HUB_LOOK.zoom).setBackgroundColor(HUB_LOOK.backdrop).centerOn((HUB.cols * T) / 2, (HUB.rows * T) / 2);
     this.view = new HubView(this);
     const text = (size: number) =>
       crisp(this.add.text(0, 0, '', { fontFamily: PALETTE.font, fontSize: `${size}px`, color: PALETTE.text, backgroundColor: '#1d1830cc', padding: { x: 6, y: 3 } }))

@@ -1,7 +1,7 @@
 import type { TKey } from '../i18n';
-import type { HubSpotId, LobbyFeatureId } from '../types/ids';
+import type { HubPropId, HubSpotId, LobbyFeatureId } from '../types/ids';
 
-// The day hub: the rooftop office in tile units (same 24px tiles as the night), and the
+// The day hub: inside the office (a rooftop room in Euljiro) in tile units (same 24px tiles as the night), and the
 // "registry row = one menu" table (docs/design/4-day/hub.md). New panel = one LOBBY_FEATURES row
 // + one src/ui/features/<id>/ file; new thing to walk up to = one HUB_SPOTS row.
 
@@ -32,21 +32,25 @@ export interface LobbyFeatureData {
 export const HUB = {
   cols: 18,
   rows: 10,
-  walk: { x: 1, y: 3, w: 16, h: 6.4 } satisfies Rect, // rooftop floor inside the parapet
-  start: { x: 9, y: 7.5 }, // where the director appears after coming home
+  walk: { x: 1, y: 3, w: 16, h: 6.4 } satisfies Rect, // office floor between the walls
+  wall: 3, // rows of back wall (window, door, posters) above the floor
+  window: { x: 3, w: 4 }, // back-wall window onto the sunset roofs and Namsan tower (tiles)
+  start: { x: 13, y: 5.5 }, // a few steps in from the front door, where the director comes home
   speed: 4.5, // tiles per second (a bit slower than the night's 5.5: no hurry at home)
   bodyR: 0.3, // director body half-size for collisions
   reach: 1.6, // max distance to a spot for E to use it
   step: 1 / 60, // walking runs on the same fixed step as the night
-  hut: { x: 1, y: 0, w: 10, h: 3 } satisfies Rect, // the rooftop room (front wall)
-  stairs: { x: 13, y: 0, w: 4, h: 3 } satisfies Rect, // stairwell housing with the iron door
-  solids: [
-    { x: 4, y: 4.6, w: 2, h: 0.8 }, // bookkeeper's folding desk
-    { x: 9, y: 5.6, w: 3, h: 1.4 }, // 평상 (wooden platform)
-    { x: 1, y: 8.4, w: 1.2, h: 1 }, // pepper pots
-    { x: 15.6, y: 5, w: 1.4, h: 1.6 }, // AC outdoor unit
-  ] satisfies Rect[],
 } as const;
+
+// Furniture you bump into (tile units, the rect is the floor footprint).
+export const HUB_PROPS: Record<HubPropId, Rect> = {
+  bookkeeperDesk: { x: 4, y: 4.6, w: 2, h: 0.8 },
+  directorDesk: { x: 9.5, y: 3, w: 2.5, h: 1 }, // against the back wall, under the clock
+  sofa: { x: 7, y: 7.4, w: 3.4, h: 1.2 }, // worn leather sofa + low table in front
+  cabinet: { x: 1, y: 3, w: 1.2, h: 0.8 }, // filing cabinet of old case files
+  plant: { x: 1, y: 8.4, w: 1, h: 1 },
+  water: { x: 16, y: 6, w: 1, h: 0.8 }, // water dispenser
+};
 
 export const HUB_SPOTS: Record<HubSpotId, HubSpotData> = {
   door: { x: 14.5, y: 3, feature: 'sortie', promptKey: 'hub.prompt.door', unlock: { solved: 0 } },

@@ -13,3 +13,4 @@ export type ContractId = 'lights_out';
 export type Phase = 'day' | 'night';
 export type LobbyFeatureId = 'sortie' | 'ledger'; // hub panels (src/ui/features/<id>/)
 export type HubSpotId = 'door' | 'bookkeeper'; // things in the hub you can walk up to and use
+export type HubPropId = 'bookkeeperDesk' | 'directorDesk' | 'sofa' | 'cabinet' | 'plant' | 'water'; // office furniture (solid)

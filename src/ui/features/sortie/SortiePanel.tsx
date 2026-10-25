@@ -9,7 +9,7 @@ function sortie(): void {
   requestPhase('night');
 }
 
-// The iron door: tonight's contract and the way out (출동).
+// The front door: tonight's contract and the way out (출동).
 export function SortiePanel() {
   const s = useSyncExternalStore(store.subscribe, store.getState);
 

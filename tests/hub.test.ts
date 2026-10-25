@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HUB, HUB_SPOTS } from '../src/data/lobby.data';
+import { HUB, HUB_PROPS, HUB_SPOTS } from '../src/data/lobby.data';
 import { newHub, spotInReach, stepHub, unlockedSpots } from '../src/systems/hub';
 
 const walk = (h: ReturnType<typeof newHub>, moveX: number, moveY: number, seconds: number) => {
@@ -17,13 +17,15 @@ describe('hub walking', () => {
     expect(h.moving).toBe(false);
   });
 
-  it('stays inside the rooftop and out of furniture', () => {
+  it('stays inside the office walls and out of furniture', () => {
     const h = newHub();
     walk(h, 0, 1, 5);
     expect(h.y + HUB.bodyR).toBeLessThanOrEqual(HUB.walk.y + HUB.walk.h);
-    walk(h, 0, -1, 5); // straight up from the start runs into the 평상
-    const bed = HUB.solids[1]!;
-    expect(h.y - HUB.bodyR).toBeGreaterThanOrEqual(bed.y + bed.h - 1e-9);
+    walk(h, 0, -1, 5);
+    expect(h.y - HUB.bodyR).toBeGreaterThanOrEqual(HUB.walk.y);
+    Object.assign(h, { x: 8.5, y: 5 }); // above the sofa
+    walk(h, 0, 1, 3);
+    expect(h.y + HUB.bodyR).toBeLessThanOrEqual(HUB_PROPS.sofa.y + 1e-9);
   });
 
   it('slides along a wall when moving diagonally into it', () => {
@@ -41,7 +43,7 @@ describe('hub spots', () => {
     expect(unlockedSpots({ solved: 1 })).toContain('bookkeeper');
   });
 
-  it('finds the door when standing in front of it, nothing in the middle of the roof', () => {
+  it('finds the door when standing in front of it, nothing where the director comes in', () => {
     const h = newHub();
     expect(spotInReach(h, { solved: 5 })).toBeNull();
     Object.assign(h, { x: HUB_SPOTS.door.x, y: HUB_SPOTS.door.y + 0.6 });

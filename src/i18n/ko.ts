@@ -20,7 +20,7 @@ export const ko = {
   'hub.prompt.bookkeeper': 'E 경리와 이야기',
   'hub.hint': 'WASD 이동 · E 말 걸기/사용',
   'hub.name.bookkeeper': '경리',
-  'feature.sortie.title': '철문 — 오늘 밤 의뢰',
+  'feature.sortie.title': '현관문 — 오늘 밤 의뢰',
   'feature.ledger.title': '경리 — 사무소 장부',
   'feature.ledger.line': '소장님, 장부 보세요. 월세는 아직 안 밀렸어요.',
   'feature.close': 'Esc 닫기',

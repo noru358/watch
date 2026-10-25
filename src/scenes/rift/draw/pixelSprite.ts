@@ -93,17 +93,14 @@ export function stackSprites(top: PixelSprite, body: PixelSprite, rows: number):
 }
 
 // Draws with the feet (anchor column, bottom row) at (fx, fy), each sprite pixel `scale` px wide.
-// `white` paints every pixel white (hit flash). `lift` raises the top `liftRows` rows by that many px.
-export function drawPixelSprite(g: G, s: PixelSprite, fx: number, fy: number, flip: boolean, alpha = 1, white = false, scale = 1, liftRows = 0, lift = 0): void {
+// `white` paints every pixel white (hit flash).
+export function drawPixelSprite(g: G, s: PixelSprite, fx: number, fy: number, flip: boolean, alpha = 1, white = false, scale = 1): void {
   const ax = s.anchorX ?? s.w / 2;
   const x0 = Math.round(fx - (flip ? s.w - ax : ax) * scale);
   const y0 = Math.round(fy - s.h * scale);
   for (const r of s.runs) {
     g.fillStyle(white ? 0xffffff : r.color, alpha);
     const x = flip ? s.w - r.x - r.len : r.x;
-    const lifted = r.y < liftRows;
-    // The seam row also stretches down so the lift leaves no gap.
-    const h = lifted && r.y === liftRows - 1 ? 1 + lift : 1;
-    g.fillRect(x0 + x * scale, y0 + (lifted ? r.y - lift : r.y) * scale, r.len * scale, h * scale);
+    g.fillRect(x0 + x * scale, y0 + r.y * scale, r.len * scale, scale);
   }
 }

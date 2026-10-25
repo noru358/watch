@@ -21,7 +21,7 @@ export const en: Record<TKey, string> = {
   'hub.prompt.bookkeeper': 'E Talk to the bookkeeper',
   'hub.hint': 'WASD move · E talk / use',
   'hub.name.bookkeeper': 'Bookkeeper',
-  'feature.sortie.title': 'Iron door — tonight\'s contract',
+  'feature.sortie.title': 'Front door — tonight\'s contract',
   'feature.ledger.title': 'Bookkeeper — office ledger',
   'feature.ledger.line': 'Here are the books, boss. Rent is not late. Yet.',
   'feature.close': 'Esc close',

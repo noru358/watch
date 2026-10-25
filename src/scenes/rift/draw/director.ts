@@ -40,12 +40,11 @@ export function drawDirector(g: G, p: Player, f: Floor, alpha: number, clock: nu
     const flip = Math.cos(p.aim) < 0;
     const swinging = p.swingFx < FEEL.swingTrailTime;
     const behind = swinging && Math.sin(p.aim) < -0.3;
-    const lift = anim === 'idle' && clock % S.headBob.period < S.headBob.period / 2 ? 1 : 0;
     const hand = S.hands[frame as keyof typeof S.hands] ?? S.hand;
     const hx = x + (flip ? -hand.x : hand.x);
     const hy = y + 1 + hand.y;
     if (behind) drawSword(g, p, f, hx, hy, flip, x, y);
-    drawPixelSprite(g, sprite, x, y + 1, flip, blink ? S.blinkAlpha : 1, false, 1, S.headBob.rows, lift);
+    drawPixelSprite(g, sprite, x, y + 1, flip, blink ? S.blinkAlpha : 1);
     if (!behind) drawSword(g, p, f, hx, hy, flip, x, y);
     if (p.shield > 0) g.lineStyle(1, PALETTE.shield, 0.9).strokeCircle(x, y - sprite.h / 2, sprite.h / 2 + 2);
     drawDrawFx(g, p, f, x, y, clock);

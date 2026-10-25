@@ -15,7 +15,8 @@ type Px = { x: number; y: number };
 
 export const DIRECTOR_SPRITE = {
   frames: {
-    // One idle frame: the AI frames are each redrawn, so swapping two of them shimmers (2026-10-25 feedback).
+    // One still idle frame: the AI frames are each redrawn, so swapping two of them shimmers, and a
+    // head-only breathing lift stretched the chin (both rejected 2026-10-25).
     idle: ['v3:0'],
     walk: ['v3:2', 'v3:3', 'v3:2', 'v3:4'],
     attack: ['v3:12', 'v3:11'], // the hit lands on the press: arm swung forward → pulled back to guard
@@ -44,6 +45,5 @@ export const DIRECTOR_SPRITE = {
   } satisfies Partial<Record<DirectorFrame, Px>>,
   swordRest: 1.0, // radians below the facing direction while not swinging (does not follow the aim)
   swordDash: 2.5, // while dashing the sword trails down and behind
-  headBob: { rows: 18, period: 2.6 }, // idle: only the head rows rise 1px, once per period (s); feet stay planted
   blinkAlpha: 0.45, // sprite alpha on the off-beats while invulnerable after a hit (no full disappearing)
 } as const;
