@@ -26,7 +26,7 @@
 ### Rule 2 — Function registry for skills & traits (`src/registry/`)
 - No string DSL / effect interpreters (e.g. `["DAMAGE", "STUN"]`).
 - Numbers live in `src/data/`. Behaviour lives in small pure functions registered by ID in `src/registry/`.
-- Upgrade cards (and later traits, traumas, gear) hook into fixed timing points only: `onRunStart`, `onRoomEnter`, `onBeforeAttack`, `onHit`, `onTakeDamage`, `onKill`, `onRunEnd`. Adding a hook point is an architecture change — note it in `HANDOFF.md`.
+- Upgrade cards, passive skills and supplies (later traits, gear) hook into fixed timing points only (`src/registry/hookPoints.ts`): `onRunStart`, `onRoomEnter`, `onBeforeAttack`, `onHit`, `onTakeDamage`, `onKill`, `onRunEnd`, and since 2026-10-27 `onAfterHurt`, `onLethal`, `onDashTick`, `onDashEnd`, `onSwing`, `onCounter`, `onFocusStrike`, `onDodge`, `onFloorEnd`, `onMove`. Adding a hook point is an architecture change — note it in `HANDOFF.md`.
 
 ### Rule 3 — State mutation vs presentation
 - **State changes** (HP, gold, items, trait acquisition, district purification) happen ONLY through direct calls to `src/systems/*` functions or `GameStore` actions. Never mutate state from an EventBus listener.
@@ -38,7 +38,7 @@
 - `InputManager` holds a context stack: `night` / `day` / `modal`. Only the top context receives input.
 - Night: React overlay is unmounted, Phaser renders; keyboard and mouse are still read only through `InputManager` (mouse buttons bind like keys: `Mouse0`, `Mouse2`). Day: the rift scene is stopped; the hub scene reads the `day` context, and a React panel opened from it pushes `modal` (the hub then reads as idle). Panels open and close only through `openFeature(id)` / `closeFeature()` (`src/app/features.ts`), which push/pop the context. Title (boot phase): only the title scene runs and reads the `day` context. A story dialogue (`src/app/dialogue.ts`) pushes `modal` like a panel. Switching phase (`title` / `day` / `night`) goes through one function (`setPhase`) — never toggle visibility ad hoc.
 - Touch (mobile, after Steam) will be one more input source inside `InputManager` that produces the same actions (tap-to-walk in the hub, on-screen buttons at night). Scenes and panels never read touch events themselves.
-- Night combat uses at most 4 action buttons (now: slash, dash, 발도, plus one free slot for the companion call) besides movement and mouse aim; `Esc` is menu only. A new combat action must replace one, not add a fifth.
+- Night combat uses at most 4 action buttons (now: slash J, dash Space, 발도 K, the equipped active skill L — the companion call will have to share or replace that slot) besides movement and mouse aim; `Esc` is menu only. A new combat action must replace one, not add a fifth.
 - Regression to prevent: "after closing a window, the game needs a click before keys work." Any UI change must be checked against this.
 
 ### Rule 5 — File size & responsibility
@@ -51,7 +51,7 @@
 - Saves carry `schemaVersion: number` and pass through `SaveManager.migrate()` on load. Any change to the save shape bumps the version and adds a migration + test.
 
 ### Rule 7 — Server-authoritative economy (design for it now, build it in Gate 4)
-- Exorcist power is ALWAYS derived by a pure function: `computeExorcistStats(exorcist, level, cards, weapon)` in `src/systems/run/stats.ts`. Never store final stats.
+- Exorcist power is ALWAYS derived by a pure function: `computeExorcistStats(exorcist, training, cards, weapon, perks)` in `src/systems/run/stats.ts` (base → 트레이닝 → passive skills → cards). Never store final stats. Every number the director's feel depends on (move, dash, swing interval, 발도 cooldown, parry window, reach, hurt iframes, pickup pull) is a `Stats` field; systems read `f.stats`, never the exorcist / weapon tables directly. (Changed 2026-10-27: `level` → training levels, `Stats` widened.)
 - The rental market will only accept the inputs (level, trait IDs, gear IDs). The server recomputes stats with the same shared function and settles fees itself. The client never sends final stats or fee amounts.
 - Idle (2nd squad) income and rental fees will use server time once the backend exists. Until then, keep the calculation a pure function of `(startTime, endTime, state)` so it can move server-side unchanged.
 
@@ -70,11 +70,11 @@ src/
  ├── types/       # Shared interfaces, ID union types (ids.ts), event map (events.ts)
  ├── i18n/        # ko.ts (source of keys), en.ts, t() helper
  ├── data/        # Static typed tables: protagonist, weapons, cards, ghosts, dungeon, contracts,
- │                #   penalties, feel (night presentation), hubLook (day presentation), titleLook, objectives (rescue numbers), story (scenes, speakers, chatter), settings (volume steps), sfx, input, save, sprites (sprite anim tables), lobby (hub layout + feature registry), office (rent, board, contamination numbers), nodes (operations map), requests (general-contract story frames); later recruit, shop
- ├── registry/    # Behaviour by ID: cardEffects.ts (upgrade-card hooks); later companion skills
+ │                #   penalties (+ trauma), feel (night presentation), hubLook (day presentation), titleLook, objectives (per-objective numbers + how each shapes a general contract), modifiers (현장 변형), training, skills, facilities (+ supplies), story (scenes, speakers, chatter), settings (volume steps), sfx, input, save, sprites (sprite anim tables), lobby (hub layout + feature registry), office (rent, board, contamination numbers), nodes (operations map), requests (general-contract story frames); later recruit, shop
+ ├── registry/    # Behaviour by ID on fixed hook points (hookPoints.ts): cardEffects.ts (upgrade cards), perkEffects.ts (passive skills, supplies); later companion skills
  ├── store/       # GameStore (single source of truth) + actions
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
- │                #   rift/ (one floor: layout = rooms + roles, mapgen = what stands in them, objectives/ = one file per floor objective, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement), hub/ (walking, who is in reach, what is unlocked), story/ (which scene plays next),
+ │                #   rift/ (one floor: layout = rooms + roles, mapgen = what stands in them, objectives/ = one file per floor objective, lair = 괴이 소굴, skills = actives on L, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement), hub/ (walking, who is in reach, what is unlocked), story/ (which scene plays next), growth/ (training, skills, facilities, supplies, trauma; `loadoutOf` = what a night takes from the office),
  │                #   office/ (day loop, rent and debt, contract board, node contamination, offer → floor plans); later: recruit/, dispatch/, rental/, shop/
  ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view = draw order, HUD; draw/ = one file per drawn thing, the art swap points), hub/ (day: walkable office interior + chatter bubble), title/ (title menu), shared/ (Overlay panels, vfx, sfx, crisp text; draw/ = sprite kit shared by every scene)
  └── ui/          # React: FeatureHost (mounts the open panel + DialogueBox), features/<featureId>/ (one folder per hub panel)

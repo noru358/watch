@@ -4,12 +4,15 @@
 계산 코드: `src/systems/hub/hub.ts`(걷기·E 범위·해금), `src/systems/story/`(이야기 장면 순서). 숫자: `src/data/lobby.data.ts`, 대사·잡담 `src/data/story.data.ts`. 테스트: `tests/hub.test.ts`, `story.test.ts`.
 
 ## 누가 언제 나타나나
-사무소에서 E로 쓸 수 있는 자리는 해결한 의뢰 수(성공만 셈)가 정해진 값 이상일 때 나타난다(`unlockedSpots`).
+사무소에서 E로 쓸 수 있는 자리는 해결한 의뢰 수(성공만 셈)가 정해진 값 이상이고, 시설이 필요한 자리는 그 시설을 지었을 때 나타난다(`unlockedSpots`).
 
 | 자리 | 열리는 패널 | 나타나는 조건 | 위치 |
 |------|-----------|-------------|------|
 | 현관문 | 의뢰판·작전 지도 | 처음부터 | `HUB_SPOTS.door` |
-| 경리 책상 | 장부·아침 보고 | 의뢰 1건 해결 | `HUB_SPOTS.bookkeeper` |
+| 소장 책상 | 트레이닝·기술 | 처음부터 | `HUB_SPOTS.directorDesk` |
+| 낡은 소파 | 휴식하기·자본 치료·진정제 | 처음부터 | `HUB_SPOTS.sofa` |
+| 경리 책상 | 장부·아침 보고·시설 공사 | 의뢰 1건 해결 | `HUB_SPOTS.bookkeeper` |
+| 부적 작업대 | 보급품 | 시설 공사로 설치한 뒤(가구도 그때 생긴다) | `HUB_SPOTS.bench`, `HUB_PROP_NEEDS` |
 
 E는 주인공 발에서 1.6칸 안의 가장 가까운 열린 자리에 쓰인다(`reach`). 걷는 속도는 초당 4.5칸(`speed`).
 

@@ -54,7 +54,7 @@ function GoalIcon({ kind }: { kind: GoalKind }) {
   );
 }
 
-const cell = { background: L.paperCell, borderRadius: 4, padding: '8px 10px', display: 'flex', flexDirection: 'column' as const, gap: 4, minWidth: 0 };
+const cell = { background: L.paperCell, borderRadius: 4, padding: '6px 10px', display: 'flex', flexDirection: 'column' as const, gap: 4, minWidth: 0 };
 const small = { fontSize: 11, color: L.paperDim };
 
 // One offer as a sheet of paper on the clipboard: who asks, what they saw, four indicators
@@ -72,7 +72,7 @@ export function OfferSheet({ offer, day, known, others }: { offer: ContractOffer
     <div style={{ position: 'relative', paddingTop: 10 }}>
       {others > 0 && <div aria-hidden="true" style={{ position: 'absolute', left: 16, right: -4, top: 22, bottom: 0, background: L.paperBack[0], borderRadius: 4, transform: 'rotate(2.5deg)' }} />}
       {others > 1 && <div aria-hidden="true" style={{ position: 'absolute', left: 8, right: 2, top: 16, bottom: 0, background: L.paperBack[1], borderRadius: 4, transform: 'rotate(1deg)' }} />}
-      <article style={{ position: 'relative', background: L.paper, color: L.paperInk, borderRadius: 4, padding: '28px 20px 16px', display: 'flex', flexDirection: 'column', gap: 11, boxShadow: '0 10px 24px rgba(0,0,0,0.45)', minHeight: 330, boxSizing: 'border-box' }}>
+      <article style={{ position: 'relative', background: L.paper, color: L.paperInk, borderRadius: 4, padding: '24px 18px 12px', display: 'flex', flexDirection: 'column', gap: 8, boxShadow: '0 10px 24px rgba(0,0,0,0.45)', minHeight: 300, boxSizing: 'border-box' }}>
         <div aria-hidden="true" style={{ position: 'absolute', left: '50%', top: -12, width: 88, height: 24, marginLeft: -44, background: L.clip, borderRadius: 5, border: '2px solid #5d5870' }} />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -89,7 +89,7 @@ export function OfferSheet({ offer, day, known, others }: { offer: ContractOffer
             </span>
           )}
         </div>
-        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: '#3b3140' }}>“{offerBody(offer)}”</p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: '#3b3140' }}>“{offerBody(offer)}”</p>
         {name && (
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 13 }}>
             <span style={{ color: L.stamp, fontWeight: 700, fontSize: 16 }}>{t('board.target', { name })}</span>

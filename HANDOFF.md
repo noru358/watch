@@ -6,9 +6,12 @@ Read order: `ARCHITECTURE.md` → this file → `docs/design/1-foundation/direct
 
 Docs have three homes, one fact in one place: `docs/design/` (what and why, 5 groups, map in `docs/design/README.md`), `docs/rules/` (what the code actually computes: formulas and where each number lives — update it in the same commit as any rule change; design docs link to it instead of repeating numbers), `docs/reference/` (other games, index in its README).
 
-## Status (2026-10-26 night)
-- **Gate 1** (night combat): feature-complete, waits on the user's playtest. Story contract 「불 꺼지는 동네」 = 4 floors (alley → basement → arcade ☎ → rooftop) + gumiho.
-- **Gate 2** (office & growth): day loop in (walkable office, day counter, weekly rent with debt, contract board with story / generated / bounty offers and bundling, Euljiro map with contamination and fog, ledger with morning report). **Tonight (user: "ㅇㅇ 구현해봐"):** floor objective frame (`clear` / `rescue`) with 섬멸 moved into it, 수색·구조, return on objective done (goal floor), new outcome `failed`; board A with four indicators (goal, difficulty from the real floor plan, length, fee); night HUD final; dialogue box (story scenes) + bookkeeper chatter bubbles; title (merged A+B) with continue / new game (overwrite confirm) / volume; pause menu has a sound card; save v3 (`seen`). Not built: money sinks and trauma (`docs/design/3-growth/progression.md`), remaining objectives (chase, ward, escort). Companions wait on user decisions.
+## Status (2026-10-27)
+- **Gate 1** (night combat): feature-complete, waits on the user's playtest. Main story contract 「불 꺼지는 동네」 = 4 floors (alley → basement → arcade ☎ → rooftop) + gumiho (3 심연 파편).
+- **Gate 2** (office & growth): day loop, screens (board A, night HUD, dialogue + chatter, title + volume) from 2026-10-26. **2026-10-27 (user: "ㅇㅋ 구현해"):**
+  - Money sinks: 트레이닝 (15 lines in 6 groups, small % steps, price inflates per line and overall), 기술 (passives 3 branches × 3 slots with A/B sides, paid in 심연 파편; actives on L: 부적 던지기 / 결계 펴기 / 소금 뿌리기), trauma effects (2: 2 cards, 4: start −2 HP, 6: grounded) and recovery at the sofa (휴식하기, 자본 치료 1,000 → −2, 진정제 slot disabled until the item exists), facilities (경리 책상, 부적 작업대, 소파) ordered from the ledger, supplies (salt pack, bacchus, map copy). Save v4.
+  - Contracts: 메인 스토리 vs 일반 의뢰. Each 일반 의뢰 rolls one objective (clear, rescue, bounty, chase, ward, first train) + a frame + node + length + 0–2 modifiers (blackout, lair, surge); fee from difficulty × objective × modifiers; named targets (bounty, chase) level up when they get away; deep floors past the goal (more ghosts, richer, a shard on the last). Arena removed (its role → the lair modifier).
+  - Not built: weapon honing, reputation rank, payphone-line facility, sedative item, escort / retrieval / challenge contracts. Companions wait on user decisions; the companion call has no slot now (L = active skill, user decision).
 - **Screens:** built as picked on the canvas (https://claude.ai/artifact/FVdNQucCLJbcmNqo3DKhzf). The title went ahead as the merged candidate; the user may still ask to change it.
 - **Art:** paused at the current level (user). The user does not draw pixels, only judges. Procedure `docs/design/5-business/art-pipeline.md`, prompts `art-prompts.md`. Open: the protagonist spec (mid-length layered hair, gender undecided) does not match the in-game sprite (long hair, reads female) — user decides which to follow. Dialogue portraits: director uses the master @8x; bookkeeper and Wolha are silhouettes.
 
@@ -16,58 +19,61 @@ Docs have three homes, one fact in one place: `docs/design/` (what and why, 5 gr
 | Function | Code | Design doc |
 |----------|------|------------|
 | Input (single owner, context stack, `Mouse0/2`, `pause`=Esc, `interact`=E) | `src/core/InputManager.ts`, `src/data/input.data.ts` | `1-foundation/platform.md` |
-| Save (v3 with `seen`, migrations 1→2→3, `.bad` backup, autosave on store change; `startedWithSave` for the title) | `src/core/SaveManager.ts`, `src/app/services.ts`, `src/store/gameStore.ts` (`newGame`, `markSeen`) | `1-foundation/save.md` |
+| Save (v4: growth fields + `wanted`; migrations 1→2→3→4, v3 board cleared; `.bad` backup, autosave on store change; `startedWithSave` for the title) | `src/core/SaveManager.ts`, `src/app/services.ts`, `src/store/gameStore.ts` (`newGame`, `markSeen`, growth actions, `restToday`, `startNight`) | `1-foundation/save.md` |
 | Phases (`title` boot → `day` ↔ `night`) | `src/core/phase.ts`, `src/main.ts` | ARCHITECTURE Rule 4 |
 | Settings (volume, own localStorage key, separate from the save) | `src/app/settings.ts`, `src/data/settings.data.ts`; `sfx.ts` multiplies by it | `1-foundation/ui.md` |
 | One floor — layout (rooms, corridors, roles, walk distances) | `src/systems/rift/layout.ts` | `2-night/contract.md` |
-| One floor — placement and play (fixed 1/60 tick, tile units, arena) | `src/systems/rift/` — `mapgen`, `physics`, `player`, `enemies`, `boss`, `spawner`, `combat`, `step`, `hooks`; API `index.ts` |
-| Floor objectives (`clear`, `rescue`: setup / update / ready / complete at stairs; survivor follows via flow field) | `src/systems/rift/objectives/`, `src/data/objectives.data.ts` | `2-night/objectives.md`, rules `floor.md` | `2-night/combat.md`, `enemies.md`, `objectives.md` |
-| One night (floor plans from the offer, cards, stats, settlement, `goalReached` / `finishAtGoal`, outcome `failed`) | `src/systems/run/` (`RunSetup.floors/fee/offerId`) | `2-night/run-result.md`, `3-growth/party.md` |
-| Office day loop (day, rent, debt, board generation, bundling, contamination, offer → floor plans, `offerGoal`, `offerDifficulty`) | `src/systems/office/`, `src/data/office.data.ts`, `nodes.data.ts`, `requests.data.ts`, `contracts.data.ts` (story) | `4-day/contracts-map-ops.md`, `4-day/economy.md` |
-| Day panels | `src/ui/FeatureHost.tsx`, `src/ui/features/board/` (`BoardPanel`, `OpsMap`, `OfferSheet`, `look.ts`), `ledger/` (books + morning report), `panel.ts`, `lastRun.ts` | `1-foundation/ui.md`, `4-day/hub.md` |
+| One floor — placement and play (fixed 1/60 tick, tile units; per-enemy multipliers, sleep, roles) | `src/systems/rift/` — `mapgen`, `enemyFactory`, `physics`, `player`, `enemies`, `boss`, `spawner`, `combat` (`cutAround`, `stunEnemy`, `isStrong`), `step`, `hooks`, `lair` (괴이 소굴), `skills` (actives, shots, zones); API `index.ts` | `2-night/combat.md`, `enemies.md`, rules `floor.md` |
+| Floor objectives (one file each: `rescue`, `bounty`, `chase`, `ward`, `firsttrain`; `index.ts` = setup / update / ready / complete at stairs) | `src/systems/rift/objectives/`, `src/data/objectives.data.ts` | `2-night/objectives.md`, rules `floor.md` |
+| Modifiers (현장 변형) | `src/data/modifiers.data.ts`; blackout → `f.vision` (RiftView), lair → `lair.ts`, surge → `office/contracts.ts` `swarmFor` | rules `floor.md` |
+| Growth (training, skills, facilities, supplies, trauma, `loadoutOf`) | `src/systems/growth/`, `src/data/training.data.ts`, `skills.data.ts`, `facilities.data.ts`, `penalties.data.ts` `TRAUMA`; perks in `src/registry/perkEffects.ts` | `3-growth/progression.md`, rules `growth.md` |
+| One night (floor plans from the offer, loadout, cards, stats, quarry carry, shards, settlement, `goalReached` (needs the objective done) / `finishAtGoal`, outcome `failed`) | `src/systems/run/` (`RunSetup.floors/fee/offerId/loadout`) | `2-night/run-result.md`, `3-growth/party.md` |
+| Office day loop (day, rent, debt, board generation by objective, bundling, contamination, wanted targets, offer → floor plans, `offerGoal`, `offerDifficulty`, `offerFee`) | `src/systems/office/`, `src/data/office.data.ts`, `nodes.data.ts`, `requests.data.ts`, `objectives.data.ts`, `modifiers.data.ts`, `contracts.data.ts` (main story) | `4-day/contracts-map-ops.md`, `4-day/economy.md` |
+| Day panels | `src/ui/FeatureHost.tsx`, `src/ui/features/board/` (`BoardPanel`, `OpsMap`, `OfferSheet`, `look.ts`), `ledger/` (books, morning report, facilities), `training/` (training + skills tabs), `sofa/`, `bench/`, `useNav.ts` (W/S/Enter lists), `panel.ts`, `lastRun.ts`; names `src/app/names.ts` | `1-foundation/ui.md`, `4-day/hub.md` |
 | Day hub (walk, `E` spots, unlocks, chatter bubble) | `src/systems/hub/`, `src/data/lobby.data.ts`, `hubLook.data.ts`, `src/scenes/hub/`, `src/app/features.ts` | `4-day/hub.md` |
 | Story scenes (which plays next, dialogue box, `modal` context) | `src/systems/story/`, `src/data/story.data.ts`, `src/app/dialogue.ts`, `src/ui/DialogueBox.tsx` | `1-foundation/ui.md`, rules `hub.md` |
 | Title | `src/scenes/title/TitleScene.ts`, `src/data/titleLook.data.ts` | `1-foundation/ui.md` |
-| Card effects (fixed hook points) | `src/registry/cardEffects.ts`, `src/data/cards.data.ts` | `3-growth/party.md` |
+| Card and perk effects (fixed hook points, `registry/hookPoints.ts`; 10 points added 2026-10-27) | `src/registry/cardEffects.ts`, `perkEffects.ts`, `src/data/cards.data.ts` | `3-growth/party.md`, rules `growth.md` |
 | Night screen flow (hit-stop, cameras, aim, pause (4 cards incl. sound)/cards/payphone/goal prompt/end) | `src/scenes/rift/RiftScene.ts`, `RiftHud.ts`, `src/scenes/shared/Overlay.ts` | `2-night/combat.md`, `1-foundation/ui.md` |
-| Night drawing (layers, y-sort, lighting, themes) | `src/scenes/rift/RiftView.ts`; `draw/`: `director`, `sword`, `ghosts` + `art/ghostArt`, `props` + `art/propArt`, `tiles` (`FLOOR_THEMES`), `telegraph` | `5-business/art.md` |
+| Night drawing (layers, y-sort, lighting, themes, blackout fog) | `src/scenes/rift/RiftView.ts`; `draw/`: `director`, `sword`, `ghosts` + `art/ghostArt`, `props` + `art/propArt`, `tiles` (`FLOOR_THEMES`), `telegraph`, `marks` (ward sites, zones, talismans, lair doors, shards, named-ghost rings) | `5-business/art.md` |
 | Shared sprite kit, director sprite tables | `src/scenes/shared/draw/` (`pixelSprite`, `directorFrames`, `common`), `src/data/sprites.data.ts` | `5-business/art.md` |
 | Feel numbers, palette, floor themes | `src/data/feel.data.ts` | `2-night/combat.md`, `5-business/art.md` |
 | Presentation listeners | `src/scenes/shared/vfx.ts`, `sfx.ts`, `src/data/sfx.data.ts` | — |
 | Assets and asset tools | `assets/` (rules in `assets/README.md`), `tools/spritekit/`, `tools/artlab/` | `5-business/art-pipeline.md`, `art-prompts.md` |
-| Tests | `tests/core`, `rift`, `mapgen`, `run`, `office`, `save`, `balance`, `hub`, `objectives`, `story` (+ `bots.ts`, `helpers.ts` incl. `storySetup`) | — |
+| Tests | `tests/core`, `rift`, `mapgen`, `run`, `office`, `save`, `balance` (+ fully trained), `hub`, `objectives` (all six + modifiers + deep), `story`, `growth` (+ `bots.ts`, `helpers.ts` incl. `storySetup`) | — |
 | Dev handles (dev builds only) | `window.__rift`, `window.__hub`, `window.__store` | — |
 
 ## Decisions to respect
 - Art: chunky Soul Knight–style pixels, 2-head chibi; Gemini sheet v1 is the style master; frames are edited from one master; right-facing only, left mirrored; blade and smear rotate to the aim; only upward attacks use the back view. Judge art in the game screen. The user does not draw: never hand them an editing task; give them a comparison image.
 - Damage order: any normal hit < plain 발도 < counter = focus strike (tested). 발도 outcome is judged on the press; damage after the stance. Attacks show the strike pose first.
-- Hub is the office interior. The front door opens the contract board; the bookkeeper appears after 1 solve.
+- Hub is the office interior. Spots: front door (board), director's desk (training + skills), sofa (rest), bookkeeper after 1 solve (ledger + facilities), talisman bench once built (supplies).
+- Growth pace (user): slower than typical growth RPGs; stats split per number; one line = one data row. Currencies: money, 심연 파편 (skills only). Trauma recovery names: 휴식하기 / 진정제 사용 / 자본 치료. Active skill on L.
+- Contracts (user): 메인 스토리 separate; every 일반 의뢰 gets exactly one random objective. 현상수배 = a recoloured, stronger named ghost on a random floor, return/continue after it. No arena objective (lair modifier instead). No hard-coding: objectives, modifiers, frames are data rows.
 - A day's board is fixed by `seedBase` + day (`morningSeed`); a reload replays it.
 - Objective types are reshaped for real time by changing floor structure, not by tuning numbers (user). Rescue as built: survivor follows on contact (no E grab / drop), dash allowed, the return prompt appears at the goal floor's stairs. The board shows no "contamination"/"risk" words: map colour for districts, four indicators per offer (objective, difficulty computed from the real floor plan, length, fee).
 - Boss/story: visual appeal first, not tied to real places/industries. Personal reference photos and third-party screenshots are not committed.
-- Open, not decided (do not build as if decided): protagonist look, big story and ending, first companion, recruiting method, human exorcist companions, squad-operation weight, keeping per-run cards, night length target, the cat's role, rental market, weapon B.
+- Open, not decided (do not build as if decided): where the companion call goes now that L is the active skill, protagonist look, big story and ending, first companion, recruiting method, human exorcist companions, squad-operation weight, keeping per-run cards, night length target, the cat's role, rental market, weapon B.
 - Scope: Gate 2 + the art/sound track (art paused by the user). Gate 3+ out of scope.
 - Shell: do not `pkill -f` a pattern matching your own command; kill a dev server by port (`kill $(lsof -ti :5199)`). Vitest hides `console.log` of passing tests: write to a file to inspect bot runs. Headless Chromium is at `/opt/pw-browsers/chromium-1243/chrome-linux64/chrome` in the cloud sandbox.
 
-## Verified (2026-10-26 night)
-- `npm run check`: tsc clean, 91 tests pass (objectives 8, story 4, office goal / difficulty / v2→v3 migration added).
-- Playwright smoke (headless, dev server): title renders (2 rows without a save, 3 with; continue shows day · money), volume A/D changes, new-game confirm overlay, new game → intro dialogue; board A with the rescue offer sheet; night HUD (goal panel, floor counter, slots); rescue floor (cry arrow, fear gauge, found banner, following); goal prompt; pause 4 cards; bookkeeper scene and chatter bubble. No page errors.
-- Not verified: human play of rescue (fear speed, survivor hp, how often it fails), sealed floors, arena; economy pacing; the board at phone width.
-
+## Verified (2026-10-27)
+- `npm run check`: tsc clean, 132 tests pass. New: `growth.test.ts` (training prices / caps / damage order at max / tree total, skills, perks in the night, trauma, facilities and supplies, save v3→v4), objectives for bounty / chase / ward / first train / lair / blackout / deep / plain-floor determinism, office generation (every objective and modifier appears, desk bonus, wanted comeback, named targets not bundled, fee rises with level), bots finish each new objective, fully trained balance.
+- Bots (story contract, 8 seeds): untrained naive 0/8, skilled 8/8 avg 184 s; fully trained naive 0/8, skilled 8/8 avg 172 s.
+- Playwright smoke (headless): training and skills tabs, sofa, bench (pack/unpack), ledger facilities, board sheets (bounty name + shards, ward, rescue + lair stamp); nights for bounty (ring, HP bar, talisman on L), chase (flee ticks on the bar), ward (circle filling), first train (timer), lair + blackout (sealed doors, fog). No page errors.
+- Not verified: human play of any of it; economy pacing with the new fees; supplies and most passives only by unit test.
 ## Known issues
 - Headless Chromium runs the game slow, so screenshot scripts must wait longer than game-time numbers suggest (chatter first bubble took ~9 s real time).
-- Money has no sink besides rent (~400–500 per night vs 450 per week, estimate).
-- No human playtest: parry window, stance, speeds, run length, rescue numbers and all office numbers are bot-tuned or guessed.
-- Trauma is a number with no effect (now also +1 on a failed objective). Squad operations not built.
+- No human playtest: parry window, stance, speeds, run length, objective numbers, training prices, fees are bot-tuned or guessed.
+- Chase has no footprint trail (an edge arrow points at the quarry); ward does not pull strong ghosts to the circle. Squad operations not built. The sedative item does not exist yet (its sofa row is disabled).
+- Lair doors seal by turning doorway tiles into walls and redrawing the whole map (fine at this size).
 - Bookkeeper / Wolha portraits are silhouettes; the chatter bubble has no tail. Unlocks still use "solved ≥ N".
 - Hub art is shapes; subway ghost, sword, stairs, survivor are shapes; gumiho one static frame; walls not y-sorted with bodies; black jacket can sink into dark floors; floor themes are colour swaps only. Hero outline has purple fringe (`#22011e`, `#40043a`) from magenta keying.
 
 ## Next steps (order and reasons in `docs/design/roadmap.md`)
-1. User looks at the new screens and plays a rescue offer; adjust `objectives.data.ts` / layout from feedback.
-2. Money sinks per `docs/design/3-growth/progression.md`: save v4 → director training (new input to `computeExorcistStats` = architecture change; replace the unused `level`) → trauma effects + sofa rest → facilities → reputation rank.
-3. After a week of user play: retune `office.data.ts` and growth numbers.
-4. Remaining objectives: chase → ward → escort (`docs/design/2-night/objectives.md`); each one = one file in `rift/objectives/` + a request frame.
-5. Companions (2-B) after the user's decisions.
+1. User plays the new contracts and growth; retune `objectives.data.ts`, `modifiers.data.ts`, `training.data.ts`, `office.data.ts` from feedback.
+2. Sedative item (trauma recovery #3), reputation rank (unlock contract kinds / districts; replaces "solved ≥ N"), weapon honing.
+3. Remaining objectives: escort → retrieval → challenge contract (one file in `rift/objectives/` + a rule row + frames each).
+4. Companions (2-B) after the user's decisions, including where the call key goes.
 
 ## History (short)
-Action prototype (auto-aim) lost to a stand-still bot → turn-based grid → user disliked it → Core Keeper–style real-time on a tile grid (old code: `d170e4b`, `0278d77`). 2026-10-25: swarm fodder, 발도 tiers, design docs in 5 groups, save, art lab, Gemini pipeline, 24px tiles, gumiho boss, director poses, walkable office hub, feel pass. 2026-10-26: design review; Gate 2-A day loop + board + map + save v2; floor roles, seal, arena, themes; hero master + palette; art roles. Afternoon: rule ledger, objective and progression designs, reference research, 12 screen mockups. Evening: mockups picked, docs cleanup. Night: objectives + rescue, board A, HUD, dialogue, title, save v3.
+Action prototype (auto-aim) lost to a stand-still bot → turn-based grid → user disliked it → Core Keeper–style real-time on a tile grid (old code: `d170e4b`, `0278d77`). 2026-10-25: swarm fodder, 발도 tiers, design docs in 5 groups, save, art lab, Gemini pipeline, 24px tiles, gumiho boss, director poses, walkable office hub, feel pass. 2026-10-26: design review; Gate 2-A day loop + board + map + save v2; floor roles, seal, arena, themes; hero master + palette; art roles. Afternoon: rule ledger, objective and progression designs, reference research, 12 screen mockups. Evening: mockups picked, docs cleanup. Night: objectives + rescue, board A, HUD, dialogue, title, save v3. 2026-10-27: growth (training, skills, trauma, facilities, supplies, save v4) and general-contract rework (six objectives, modifiers, deep floors, main story split).
