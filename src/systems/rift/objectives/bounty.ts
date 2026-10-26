@@ -1,4 +1,3 @@
-import { GHOSTS } from '../../../data/ghosts.data';
 import { OBJECTIVES } from '../../../data/objectives.data';
 import type { ObjectiveBrief } from '../../../data/contracts.data';
 import { makeEnemy } from '../enemyFactory';
@@ -11,11 +10,12 @@ type Bounty = Extract<ObjectiveState, { kind: 'bounty' }>;
 export function makeNamed(f: Floor, brief: ObjectiveBrief, at: Pos, rule: { hpMult: number; damageAdd: number; speedMult: number; windupMult: number }, role: Enemy['role'], extraHp = 0): Enemy {
   const ghost = brief.target?.ghost ?? 'cheonyeo';
   const e = makeEnemy(f, ghost, at);
-  e.maxHp = Math.round(GHOSTS[ghost].hp * (rule.hpMult + extraHp));
+  // On top of the floor's 현장 변형 (makeEnemy already applied them).
+  e.maxHp = Math.round(e.maxHp * (rule.hpMult + extraHp));
   e.hp = e.maxHp;
-  e.damageAdd = rule.damageAdd;
-  e.speedMult = rule.speedMult;
-  e.windupMult = rule.windupMult;
+  e.damageAdd += rule.damageAdd;
+  e.speedMult *= rule.speedMult;
+  e.windupMult *= rule.windupMult;
   e.warpTimer = 999; // a named ghost holds its ground (no blinking behind the director)
   e.role = role;
   return e;

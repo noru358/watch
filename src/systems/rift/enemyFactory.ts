@@ -28,7 +28,18 @@ export function makeEnemy(f: Floor, kind: EnemyId, at: Pos): Enemy {
     windupMult: 1,
     role: 'normal',
     asleep: false,
+    regen: 0,
+    sinceHit: 0,
   };
+  // 현장 변형 on every ghost but the boss (fodder keeps its HP: one-hit wisps stay one-hit).
+  if (!boss) {
+    const m = f.mods;
+    if (!GHOSTS[kind].fodder) e.maxHp = e.hp = Math.round(hp * m.hpMult);
+    e.damageAdd = m.damageAdd;
+    e.speedMult = m.speedMult;
+    e.windupMult = m.windupMult;
+    e.regen = m.regen;
+  }
   f.enemies.push(e);
   return e;
 }

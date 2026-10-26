@@ -235,3 +235,12 @@ describe('save v4', () => {
     expect(store.getState().board.length).toBeGreaterThan(0);
   });
 });
+
+describe('경리 책상 upgrade', () => {
+  it('posts the extra offer at once', () => {
+    const store = new GameStore({ money: 5000 });
+    const before = store.getState().board.filter((o) => o.kind === 'general').length;
+    store.buildFacility('desk');
+    expect(store.getState().board.filter((o) => o.kind === 'general').length).toBe(before + 1);
+  });
+});

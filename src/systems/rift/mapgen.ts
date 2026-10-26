@@ -9,6 +9,7 @@ import type { ActiveId, CardId, PerkId, WeaponId } from '../../types/ids';
 import { runHooks } from './hooks';
 import { makeEnemy } from './enemyFactory';
 import { setupLair } from './lair';
+import { foldMods, NO_MODS, type FloorMods } from './modifiers';
 import { setupObjective, type QuarryCarry } from './objectives';
 import { assignRoles, bigRoom, centre, distances, randomRooms, roomTile, type Room } from './layout';
 import { isFloor } from './physics';
@@ -29,6 +30,12 @@ export interface FloorCarry {
   active: ActiveId | null;
   quarry?: QuarryCarry | null; // 추격: the quarry as it left the previous floor
   last?: boolean; // this is the contract's last floor
+}
+
+// 현장 변형 that act on the director for this floor only (the run's stats stay as they are).
+function modStats(s: Stats, m: FloorMods): Stats {
+  if (m.moveMult === 1 && m.drawMult === 1) return s;
+  return { ...s, moveSpeed: s.moveSpeed * m.moveMult, drawSlash: s.drawSlash * m.drawMult, draw: s.draw * m.drawMult };
 }
 
 function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, plan: FloorPlan): Floor {
@@ -83,7 +90,7 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
     swarm: plan.swarm ? { ...plan.swarm } : null,
     swarmTimer: plan.swarm ? plan.swarm.every / 2 : 0,
     weapon: carry.weapon,
-    stats: carry.stats,
+    stats: modStats(carry.stats, plan.kind === 'normal' ? foldMods(plan.mods ?? []) : NO_MODS),
     cards: [...carry.cards],
     perks: [...carry.perks],
     used: [...carry.used],
@@ -92,6 +99,7 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
     zones: [],
     shots: [],
     vision: null,
+    mods: plan.kind === 'normal' ? foldMods(plan.mods ?? []) : NO_MODS,
     time: 0,
     loot: carry.loot,
     shards: 0,
@@ -140,7 +148,7 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
     const nest = pool.reduce((best, r) => (walk(r) > walk(best) ? r : best), pool[0]!);
     f.objective = setupObjective(f, plan, { quiet: () => free(pool), nest: () => free([nest]), quarry: carry.quarry ?? null, last: carry.last ?? false, rng });
   }
-  const value = (v: number) => Math.round(v * (1 + DEEP.lootPerFloor * deep));
+  const value = (v: number) => Math.round(v * (1 + DEEP.lootPerFloor * deep) * f.mods.pickupMult);
   for (let i = 0; i < DUNGEON.spiritPickupsPerFloor; i++) f.pickups.push({ ...free(rooms), value: value(DUNGEON.spiritPickupValue) });
   if (treasure) for (let i = 0; i < DUNGEON.treasurePickups; i++) f.pickups.push({ ...free([treasure]), value: value(DUNGEON.treasureValue) });
   if (treasure && deep > 0 && carry.last) for (let i = 0; i < DEEP.shardOnLast; i++) f.pickups.push({ ...free([treasure]), value: 0, shard: true });

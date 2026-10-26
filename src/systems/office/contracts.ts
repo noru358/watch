@@ -48,7 +48,7 @@ export function offerFloors(offer: ContractOffer): readonly FloorPlan[] {
     plans.push({
       kind: 'normal',
       enemies: train ? T.startEnemies + offer.risk : OFFICE.general.enemiesBase + offer.risk + i + deep * DEEP.enemiesPerFloor,
-      pool: offer.pool,
+      pool: offer.mods.map((m) => MODIFIERS[m].pool).find((p) => p) ?? offer.pool,
       payphone: i === payphoneAt && i < offer.floors - 1 && i !== offer.goalFloor,
       swarm: swarmFor(offer, i),
       objective: here ? objective : 'clear',

@@ -221,8 +221,15 @@ export class GameStore {
     this.grow((g) => (growth.equipActive(g, id), true));
   }
 
+  // A bigger 경리 책상 shows at once: the extra offer is posted now, not next morning.
   buildFacility(id: FacilityId): boolean {
-    return this.grow((g) => growth.buildFacility(g, id) > 0);
+    if (!this.grow((g) => growth.buildFacility(g, id) > 0)) return false;
+    if (id === 'desk') {
+      const o = office(this.state);
+      refillBoard(o, new SeededRNG(morningSeed(this.state.seedBase, o.day) ^ 0x5eed));
+      this.set({ ...o });
+    }
+    return true;
   }
 
   packSupply(id: SupplyId | null): boolean {

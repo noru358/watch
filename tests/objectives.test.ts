@@ -262,3 +262,38 @@ describe('현장 변형 and deep floors', () => {
     expect(b.enemies.map((e) => [e.x, e.y])).toEqual(a.enemies.map((e) => [e.x, e.y]));
   });
 });
+
+describe('현장 변형 (2026-10-27 batch): each one changes what its card says', () => {
+  const on = (mods: Extract<FloorPlan, { kind: 'normal' }>['mods']) => generateFloor(0, { ...clearPlan, enemies: 3, mods }, new SeededRNG(5), carry());
+  const plain = on([]);
+
+  it('질긴 놈들 / 독한 원한 / 성급한 귀신 change the ghosts', () => {
+    const tough = on(['tough']).enemies[0]!;
+    expect(tough.maxHp).toBe(Math.round(plain.enemies[0]!.maxHp * MODIFIERS.tough.enemy!.hpMult!));
+    expect(on(['lethal']).enemies[0]!.damageAdd).toBe(1);
+    const fast = on(['haste']).enemies[0]!;
+    expect(fast.speedMult).toBeCloseTo(1.2, 5);
+    expect(fast.windupMult).toBeCloseTo(0.85, 5);
+  });
+
+  it('사무치는 원한: a ghost left alone heals', () => {
+    const f = on(['regen']);
+    const e = f.enemies[0]!;
+    e.hp = 1;
+    e.state = 'idle';
+    f.player.iframes = 99;
+    for (let i = 0; i < 60 * 5; i++) stepFloor(f, NO_INPUT, DT, new SeededRNG(1));
+    expect(e.hp).toBeGreaterThan(1);
+  });
+
+  it('탁한 공기 halves healing; 맑은 밤 and 약점 노출 boost the director on this floor only', () => {
+    expect(on(['lesshealing']).mods.healMult).toBe(0.5);
+    expect(on(['clearnight']).stats.moveSpeed).toBeCloseTo(plain.stats.moveSpeed * 1.15, 5);
+    expect(on(['weakspot']).stats.draw).toBeCloseTo(plain.stats.draw * 1.3, 5);
+  });
+
+  it('영력 풍년 makes floor spirit worth more', () => {
+    const rich = on(['windfall']);
+    expect(Math.max(...rich.pickups.map((k) => k.value))).toBe(Math.round(DUNGEON.treasureValue * 1.5));
+  });
+});

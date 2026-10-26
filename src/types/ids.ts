@@ -23,7 +23,8 @@ export type RequestId =
 // What opens a floor's stairs (docs/design/2-night/objectives.md). A general contract has exactly one
 // main objective (not 'clear' on its goal floor unless it is a 섬멸 contract); other floors are 'clear'.
 export type ObjectiveKind = 'clear' | 'rescue' | 'bounty' | 'chase' | 'ward' | 'firsttrain';
-export type ModifierId = 'blackout' | 'lair' | 'surge'; // 현장 변형 (src/data/modifiers.data.ts)
+// 현장 변형 (src/data/modifiers.data.ts): warnings make the night harder (and pay more), boons help.
+export type ModifierId = 'blackout' | 'lair' | 'surge' | 'regen' | 'lethal' | 'haste' | 'tough' | 'lesshealing' | 'subwayline' | 'windfall' | 'clearnight' | 'weakspot';
 export type FloorTheme = 'basement' | 'alley' | 'arcade' | 'rooftop' | 'lot';
 export type SceneId = 'intro' | 'bookkeeper' | 'lights_out_done'; // story scenes in the dialogue box
 export type Phase = 'title' | 'day' | 'night';

@@ -50,7 +50,7 @@ describe('office: contract board', () => {
   it('over many mornings every objective and every modifier shows up', () => {
     const seen = new Set<string>();
     const mods = new Set<string>();
-    for (let seed = 1; seed < 40; seed++) {
+    for (let seed = 1; seed < 120; seed++) {
       const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], deskLevel: 0 };
       refillBoard(s, new SeededRNG(seed));
       for (const o of s.board) {

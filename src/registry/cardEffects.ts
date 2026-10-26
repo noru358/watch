@@ -12,7 +12,7 @@ export type CardHooks = { [K in CardHookName]?: Hook<K> };
 
 export function heal(f: Floor, amount: number): void {
   const p = f.player;
-  const healed = Math.min(amount, f.stats.maxHp - p.hp);
+  const healed = Math.min(Math.max(1, Math.round(amount * f.mods.healMult)), f.stats.maxHp - p.hp);
   if (healed <= 0) return;
   p.hp += healed;
   f.events.push({ type: 'playerHealed', x: p.x, y: p.y, amount: healed });

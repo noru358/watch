@@ -46,6 +46,7 @@ export function hitEnemy(
   const atk = { damage: base, kind };
   runHooks(f, 'onBeforeAttack', atk);
   e.asleep = false;
+  e.sinceHit = 0;
   e.hp -= atk.damage;
   const push = WEAPONS[f.weapon].knockback * (empowered ? 2 : 1) * (e.kind === 'gumiho' ? 0.2 : 1);
   e.knockX = (dir.x * push) / DUNGEON.knockTime;
@@ -57,7 +58,7 @@ export function hitEnemy(
 
   e.teles = [];
   const kindId = e.kind;
-  const drop = kindId === 'gumiho' ? BOSSES[kindId].drop : GHOSTS[kindId].drop;
+  const drop = kindId === 'gumiho' ? BOSSES[kindId].drop : GHOSTS[kindId].drop + (GHOSTS[kindId].fodder ? f.mods.fodderDrop : 0);
   f.pickups.push({ x: e.x, y: e.y, value: drop });
   f.events.push({ type: 'enemyKilled', x: e.x, y: e.y, kind: e.kind, entityId: e.id });
   runHooks(f, 'onKill', { enemy: e, rng });

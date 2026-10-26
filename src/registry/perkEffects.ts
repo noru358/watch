@@ -30,9 +30,15 @@ const addFocus = (f: Floor, n: number) => (f.player.focus = Math.min(f.stats.foc
 
 export const PERK_HOOKS: Record<PerkId, PerkHooks> = {
   // 검
+  // Cuts toward where the dash went (not the mouse), and shows a swing so it reads as an attack.
   dash_cut: {
     onDashEnd(f, d, { rng }) {
-      cutAround(f, rng, f.stats.reach, 2.0, f.player.aim, f.stats.slash * d.amount);
+      const p = f.player;
+      const dir = Math.atan2(p.dashY, p.dashX);
+      p.aim = dir;
+      p.swingFx = 0;
+      f.events.push({ type: 'slash', x: p.x, y: p.y });
+      cutAround(f, rng, f.stats.reach + 0.3, 2.2, dir, f.stats.slash * d.amount, 'slash');
     },
   },
   finisher_wave: {

@@ -4,6 +4,7 @@ export const BOARD_LOOK = {
   line: '#3b2f5c',
   ink: '#f6e7c1',
   dim: '#c9bfe8',
+  off: '#6b6290', // districts with nothing posted
   accent: '#41e0c8',
   spread: '#ff3cac',
   bounty: '#ff3b4f',
@@ -20,4 +21,5 @@ export const BOARD_LOOK = {
   bundle: '#7dffb0',
   accentInk: '#1f7f72', // 메인 스토리 stamp on paper
   shardInk: '#5b3fc4', // 심연 파편 on paper
+  bundleInk: '#1f7a4c', // what gets finished together, on paper
 } as const;

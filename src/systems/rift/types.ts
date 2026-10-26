@@ -4,6 +4,7 @@ import type { ActiveId, CardId, EnemyId, FloorTheme, PerkId, WeaponId } from '..
 import type { GameEvent } from '../../types/events';
 import type { ObjectiveState } from './objectives/types';
 import type { LairState } from './lair';
+import type { FloorMods } from './modifiers';
 
 // Positions are in TILE units (floats); tile (x, y) covers [x, x+1) × [y, y+1).
 export type Tile = 'wall' | 'floor';
@@ -69,6 +70,8 @@ export interface Enemy extends Body {
   windupMult: number;
   role: 'normal' | 'bounty' | 'quarry' | 'lair'; // what the floor's objective cares about
   asleep: boolean; // lair pack before the director walks in; quarry resting in its nest
+  regen: number; // 사무치는 원한: fraction of max HP healed per second after a while unhit
+  sinceHit: number; // seconds since it was last hit
 }
 
 // Something on the floor for a while: salt from a dash, a barrier circle.
@@ -182,6 +185,7 @@ export interface Floor {
   zones: Zone[];
   shots: Shot[];
   vision: number | null; // tiles visible on the whole floor (정전); null = normal
+  mods: FloorMods; // 현장 변형 folded into numbers (modifiers.ts)
   time: number;
   loot: number;
   shards: number; // 심연 파편 earned on this floor (banked by the run)

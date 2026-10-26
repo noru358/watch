@@ -3,6 +3,7 @@ import { BOSSES, GHOSTS } from '../../data/ghosts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import { updateBoss } from './boss';
 import { hurtPlayer } from './combat';
+import { REGEN_DELAY } from './modifiers';
 import { hurtObjective, survivorOf } from './objectives';
 import { dist, inTelegraph, isFloor, lineOfSight, moveBody, steer } from './physics';
 import type { Enemy, Floor, Telegraph } from './types';
@@ -134,6 +135,9 @@ export function updateEnemies(f: Floor, dt: number, rng: SeededRNG): void {
       e.knockX = Math.abs(e.knockX * k) < 0.05 ? 0 : e.knockX * k;
       e.knockY = Math.abs(e.knockY * k) < 0.05 ? 0 : e.knockY * k;
     }
+    // 사무치는 원한: left alone for a while, a ghost heals.
+    e.sinceHit += dt;
+    if (e.regen > 0 && e.sinceHit >= REGEN_DELAY && e.hp < e.maxHp) e.hp = Math.min(e.maxHp, e.hp + e.regen * e.maxHp * dt);
     if (e.kind === 'gumiho') updateBoss(f, e, dt, rng, BOSSES.gumiho);
     else updateGhost(f, e, dt, rng);
   }

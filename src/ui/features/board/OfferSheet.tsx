@@ -57,26 +57,41 @@ function GoalIcon({ kind }: { kind: GoalKind }) {
 const cell = { background: L.paperCell, borderRadius: 4, padding: '6px 10px', display: 'flex', flexDirection: 'column' as const, gap: 4, minWidth: 0 };
 const small = { fontSize: 11, color: L.paperDim };
 
-// One offer as a sheet of paper on the clipboard: who asks, what they saw, four indicators
-// (objective · difficulty · length · fee), the site and its ghosts, a deadline stamp.
-export function OfferSheet({ offer, day, known, others }: { offer: ContractOffer; day: number; known: boolean; others: number }) {
+const SHEET_H = 452; // fixed: the board must not change size between offers (user, 2026-10-27)
+const clamp2 = { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden' };
+
+// One offer as a sheet of paper on the clipboard, always the same size: who asks, what they saw,
+// the named target (if any), then three rows of cells — objective · difficulty, length · fee
+// (+ shards, + what gets finished together), modifiers · ghosts. The district counter ("1 / 2")
+// says how many offers this district has (W / S).
+export function OfferSheet({ offer, day, known, index, count, bundle }: {
+  offer: ContractOffer;
+  day: number;
+  known: boolean;
+  index: number;
+  count: number;
+  bundle: { count: number; fee: number } | null;
+}) {
   const goal = offerGoal(offer);
   const difficulty = offerDifficulty(offer);
   const early = goal.floor < offer.floors - 1;
-  const ghosts = offer.kind === 'main' ? '—' : known ? offer.pool.map((g) => t(`enemy.${g}` as TKey)).join(' · ') : t('board.unknown');
+  const ghosts = offer.kind === 'main' ? ['—'] : known ? offer.pool.map((g) => t(`enemy.${g}` as TKey)) : [t('board.unknown')];
   const name = targetName(offer.target);
   // 현상수배 says only which floor; 추격 cannot say (it ends wherever the quarry is caught).
   const lengthLabel =
     offer.objective === 'chase' ? t('board.whereAny') : offer.objective === 'bounty' ? t('board.where', { floor: goal.floor + 1 }) : early ? t('board.length', { floor: goal.floor + 1 }) : t('board.lengthAll', { floors: offer.floors });
   return (
     <div style={{ position: 'relative', paddingTop: 10 }}>
-      {others > 0 && <div aria-hidden="true" style={{ position: 'absolute', left: 16, right: -4, top: 22, bottom: 0, background: L.paperBack[0], borderRadius: 4, transform: 'rotate(2.5deg)' }} />}
-      {others > 1 && <div aria-hidden="true" style={{ position: 'absolute', left: 8, right: 2, top: 16, bottom: 0, background: L.paperBack[1], borderRadius: 4, transform: 'rotate(1deg)' }} />}
-      <article style={{ position: 'relative', background: L.paper, color: L.paperInk, borderRadius: 4, padding: '24px 18px 12px', display: 'flex', flexDirection: 'column', gap: 8, boxShadow: '0 10px 24px rgba(0,0,0,0.45)', minHeight: 300, boxSizing: 'border-box' }}>
+      {count > 1 && <div aria-hidden="true" style={{ position: 'absolute', left: 16, right: -4, top: 22, bottom: 0, background: L.paperBack[0], borderRadius: 4, transform: 'rotate(2.5deg)' }} />}
+      {count > 2 && <div aria-hidden="true" style={{ position: 'absolute', left: 8, right: 2, top: 16, bottom: 0, background: L.paperBack[1], borderRadius: 4, transform: 'rotate(1deg)' }} />}
+      <article style={{ position: 'relative', background: L.paper, color: L.paperInk, borderRadius: 4, padding: '22px 18px 14px', display: 'flex', flexDirection: 'column', gap: 8, boxShadow: '0 10px 24px rgba(0,0,0,0.45)', height: SHEET_H, boxSizing: 'border-box' }}>
         <div aria-hidden="true" style={{ position: 'absolute', left: '50%', top: -12, width: 88, height: 24, marginLeft: -44, background: L.clip, borderRadius: 5, border: '2px solid #5d5870' }} />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <span style={{ ...small, letterSpacing: 1 }}>{t('board.client')}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+            <span style={{ ...small, letterSpacing: 1, whiteSpace: 'nowrap' }}>
+              {t(NODES[offer.node].nameKey)} · {t('board.client')}
+              {count > 1 && <span style={{ marginLeft: 8, color: L.paperInk, fontWeight: 700 }}>{t('board.districtCount', { index: index + 1, count })}</span>}
+            </span>
             <span style={{ fontSize: 21, fontWeight: 700 }}>{offerTitle(offer)}</span>
           </div>
           {offer.deadline !== null ? (
@@ -89,15 +104,17 @@ export function OfferSheet({ offer, day, known, others }: { offer: ContractOffer
             </span>
           )}
         </div>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: '#3b3140' }}>“{offerBody(offer)}”</p>
-        {name && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 13 }}>
-            <span style={{ color: L.stamp, fontWeight: 700, fontSize: 16 }}>{t('board.target', { name })}</span>
-            <span style={small}>{t(`enemy.${offer.target!.ghost}` as TKey)}</span>
-            {offer.target!.level > 0 && <span style={{ ...small, color: L.stamp }}>{t('board.level', { level: offer.target!.level })}</span>}
-          </div>
-        )}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 9 }}>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: '#3b3140', height: 39, ...clamp2 }}>“{offerBody(offer)}”</p>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 13, height: 20 }}>
+          {name && (
+            <>
+              <span style={{ color: L.stamp, fontWeight: 700, fontSize: 16 }}>{t('board.target', { name })}</span>
+              <span style={small}>{t(`enemy.${offer.target!.ghost}` as TKey)}</span>
+              {offer.target!.level > 0 && <span style={{ ...small, color: L.stamp }}>{t('board.level', { level: offer.target!.level })}</span>}
+            </>
+          )}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridTemplateRows: '64px 86px 1fr', gap: 9, flex: 1, minHeight: 0 }}>
           <div style={{ ...cell, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <GoalIcon kind={goal.kind} />
             <div style={{ display: 'flex', flexDirection: 'column' }}><span style={small}>{t('board.goal')}</span><span style={{ fontWeight: 700, fontSize: 15 }}>{t(`board.goal.${goal.kind}`)}</span></div>
@@ -120,24 +137,25 @@ export function OfferSheet({ offer, day, known, others }: { offer: ContractOffer
             <span style={small}>{t('board.reward')}</span>
             <span style={{ fontFamily: 'monospace', fontSize: 24, fontWeight: 700, lineHeight: 1 }}>₩ {offer.fee}</span>
             {offer.shards > 0 && <span style={{ fontSize: 12, color: L.shardInk, fontWeight: 700 }}>+ {t('board.shards', { shards: offer.shards })}</span>}
+            {bundle && <span style={{ fontSize: 11, color: L.bundleInk, fontWeight: 700 }}>{t('board.bundle', { count: bundle.count, fee: bundle.fee })}</span>}
           </div>
-        </div>
-        {offer.kind === 'general' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', fontSize: 12 }}>
+          <div style={{ ...cell, justifyContent: 'flex-start' }}>
             <span style={small}>{t('board.mods')}</span>
-            {offer.mods.length === 0 && <span style={{ color: L.paperDim }}>{t('board.noMods')}</span>}
-            {offer.mods.map((m) => (
-              <span key={m} title={t(MODIFIERS[m].descKey)} style={{ border: `1.5px solid ${L.paperInk}`, padding: '1px 7px', borderRadius: 3, fontWeight: 700 }}>
-                {t(MODIFIERS[m].nameKey)} <span style={{ fontWeight: 400, color: L.paperDim }}>+{Math.round(MODIFIERS[m].feeBonus * 100)}%</span>
-              </span>
-            ))}
+            {offer.kind === 'main' || offer.mods.length === 0 ? (
+              <span style={{ color: L.paperDim, fontSize: 13 }}>{t('board.noMods')}</span>
+            ) : (
+              offer.mods.map((m) => (
+                <div key={m} style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontWeight: 700, fontSize: 14, color: MODIFIERS[m].kind === 'boon' ? L.bundleInk : L.paperInk }}>{t(MODIFIERS[m].nameKey)} <span style={{ fontWeight: 400, fontSize: 11, color: L.paperDim }}>{MODIFIERS[m].kind === 'boon' ? t('board.boon') : `+${Math.round(MODIFIERS[m].feeBonus * 100)}%`}</span></span>
+                  <span style={{ fontSize: 11, color: '#4a3f52', lineHeight: 1.35, ...clamp2 }}>{t(MODIFIERS[m].descKey)}</span>
+                </div>
+              ))
+            )}
           </div>
-        )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: L.paperDim, marginTop: 'auto', flexWrap: 'wrap' }}>
-          <span>{t('board.site')}</span>
-          <span style={{ color: L.paperInk, fontWeight: 700 }}>{t(NODES[offer.node].nameKey)}</span>
-          <span style={{ marginLeft: 'auto' }}>{t('board.ghosts')}</span>
-          <span style={{ color: L.paperInk, fontWeight: 700 }}>{ghosts}</span>
+          <div style={{ ...cell, justifyContent: 'flex-start' }}>
+            <span style={small}>{t('board.ghosts')}</span>
+            {ghosts.map((g) => <span key={g} style={{ fontWeight: 700, fontSize: 15 }}>{g}</span>)}
+          </div>
         </div>
       </article>
     </div>
