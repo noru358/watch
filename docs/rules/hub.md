@@ -24,10 +24,18 @@ E는 주인공 발에서 1.6칸 안의 가장 가까운 열린 자리에 쓰인�
 | 장면 | 조건 | 대사 |
 |------|------|------|
 | `intro` | 처음 | 소장 혼잣말 3줄 |
-| `lights_out_done` | 「불 꺼지는 동네」를 끝냄 | 3줄 |
 | `bookkeeper` | 의뢰 1건 해결(경리 등장) | 경리 첫인사 3줄 |
+| `lights_out_done` | 1장 끝 | 3줄 |
+| `ch2_start` | 2장 시작(단서 모으기) | 4줄 |
+| `ch2_ready` | 2장 단서 다 모임 | 3줄 |
+| `ch2_done` | 2장 끝 | 3줄 |
 
-장면 추가 = `story.data.ts` `SCENES`에 줄 목록 + `ids.ts` `SceneId` + `systems/story` 규칙 한 줄 + ko/en 대사.
+장 장면(시작·준비·끝)은 `chapters.data.ts`의 `scenes`에서 자동으로 규칙이 된다([메인 스토리 장](story.md)). 같은 날 여러 장면이 걸리면 위 순서대로 하나씩, 사무소에 들어올 때마다 하나.
+
+장면 추가 = `story.data.ts` `SCENES`에 줄 목록 + `ids.ts` `SceneId` + (장 장면이 아니면) `systems/story` 규칙 한 줄 + ko/en 대사.
+
+## 월세 연출 (2026-10-27)
+뒷벽 달력에 월세까지 남은 날("D-3", 전날은 빨간 "내일!"). 월세 전날 경리의 첫 잡담은 월세 귀띔(`RENT_TALK.reminder`). 월세 날 아침 사무소에 들어오면 0.9초 뒤 화면 위에 1층 집주인 할머니 문자가 6초(`src/app/toast.ts` `showPhoneText`, `ui/PhoneToast.tsx`): 냈으면 "잘 받았어" 3종 중 하나, 빚을 갚았으면 따로, 모자라면 2종 중 하나. 하루 한 번.
 
 ## 경리 잡담 (말풍선)
 경리가 있고 대화창·패널이 닫혀 있으면, 들어온 지 4초 뒤 첫 말풍선, 그 뒤 14초마다 한 줄씩 3.5초 동안 경리 머리 위에 뜬다(`story.data.ts` `CHATTER.firstAfter/every/show`). 대사 5줄을 차례로 돌려서 같은 줄이 연달아 나오지 않는다. 걷기를 막지 않는다.

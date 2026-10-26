@@ -5,15 +5,19 @@ import { GameStore } from '../src/store/gameStore';
 
 describe('story: which scene plays in the office', () => {
   it('opens with the intro, once', () => {
-    expect(nextScene({ seen: [], solved: 0, storyDone: [] })).toBe('intro');
-    expect(nextScene({ seen: ['intro'], solved: 0, storyDone: [] })).toBeNull();
+    expect(nextScene({ seen: [], solved: 0, chapters: {} })).toBe('intro');
+    expect(nextScene({ seen: ['intro'], solved: 0, chapters: {} })).toBeNull();
   });
 
-  it('the bookkeeper arrives after the first solve; the story epilogue comes first if both are due', () => {
-    expect(nextScene({ seen: ['intro'], solved: 1, storyDone: [] })).toBe('bookkeeper');
-    expect(nextScene({ seen: ['intro'], solved: 1, storyDone: ['lights_out'] })).toBe('lights_out_done');
-    expect(nextScene({ seen: ['intro', 'lights_out_done'], solved: 1, storyDone: ['lights_out'] })).toBe('bookkeeper');
-    expect(nextScene({ seen: ['intro', 'lights_out_done', 'bookkeeper'], solved: 3, storyDone: ['lights_out'] })).toBeNull();
+  it('the bookkeeper arrives after the first solve; then chapter scenes in order', () => {
+    expect(nextScene({ seen: ['intro'], solved: 1, chapters: { ch1: 'ready' } })).toBe('bookkeeper');
+    expect(nextScene({ seen: ['intro', 'bookkeeper'], solved: 1, chapters: { ch1: 'done' } })).toBe('lights_out_done');
+    const seen = ['intro', 'bookkeeper', 'lights_out_done'] as const;
+    expect(nextScene({ seen, solved: 3, chapters: { ch1: 'done' } })).toBeNull();
+    expect(nextScene({ seen, solved: 3, chapters: { ch1: 'done', ch2: 'gathering' } })).toBe('ch2_start');
+    expect(nextScene({ seen: [...seen, 'ch2_start'], solved: 3, chapters: { ch1: 'done', ch2: 'gathering' } })).toBeNull();
+    expect(nextScene({ seen: [...seen, 'ch2_start'], solved: 3, chapters: { ch1: 'done', ch2: 'ready' } })).toBe('ch2_ready');
+    expect(nextScene({ seen: [...seen, 'ch2_start', 'ch2_ready'], solved: 3, chapters: { ch1: 'done', ch2: 'done' } })).toBe('ch2_done');
   });
 
   it('every scene has lines, and the store remembers what was seen (saved)', () => {

@@ -3,7 +3,8 @@ import { store } from '../../../app/services';
 import { NODES } from '../../../data/nodes.data';
 import { OFFICE } from '../../../data/office.data';
 import { t } from '../../../i18n';
-import type { MorningReport } from '../../../systems/office';
+import { activeChapter, chapterStatus, type MorningReport, type OfficeState } from '../../../systems/office';
+import { CHAPTERS } from '../../../data/chapters.data';
 import { FACILITIES, FACILITY_IDS } from '../../../data/facilities.data';
 import { facilityPrice } from '../../../systems/growth';
 import { outcomeLabel } from '../lastRun';
@@ -21,6 +22,15 @@ function morningLines(m: MorningReport | null): string[] {
   return lines.length > 0 ? lines : [t('morning.quiet')];
 }
 
+// 메인 스토리: which chapter, and how far its clues are.
+function storyLine(s: Pick<OfficeState, 'chapters'>): string {
+  const id = activeChapter(s);
+  if (!id) return t('ledger.storyWait');
+  const chapter = t(CHAPTERS[id].nameKey);
+  if (chapterStatus(s, id) === 'ready') return t('ledger.storyReady', { chapter });
+  return t('ledger.storyGather', { chapter, have: s.chapters[id]?.clues ?? 0, need: CHAPTERS[id].clues });
+}
+
 // The bookkeeper's books: the day, rent and debt, money, trauma, record, last night.
 export function LedgerPanel() {
   const s = useSyncExternalStore(store.subscribe, store.getState);
@@ -36,6 +46,7 @@ export function LedgerPanel() {
         <div style={css.row}><span>{t('day.trauma')}</span><span>{s.trauma}</span></div>
         <div style={css.row}><span>{t('ledger.shards')}</span><span>{s.shards}</span></div>
         <div style={css.row}><span>{t('day.runs')}</span><span>{s.solved}</span></div>
+        <div style={css.row}><span>{t('ledger.story')}</span><span>{storyLine(s)}</span></div>
       </div>
       <Facilities />
       {s.lastRun && (

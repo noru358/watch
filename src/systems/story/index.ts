@@ -1,18 +1,33 @@
-import type { ContractId, SceneId } from '../../types/ids';
+import { CHAPTER_IDS, CHAPTERS } from '../../data/chapters.data';
+import type { ChapterId, SceneId } from '../../types/ids';
+import type { ChapterStatus } from '../office';
 
 // Public API of the story module: which scene plays next when the director is in the office.
-// Pure; scenes play once each, in this order of priority.
+// Pure; scenes play once each, the first one (in this order) whose condition holds.
 
 export interface StoryProgress {
   seen: readonly SceneId[];
   solved: number;
-  storyDone: readonly ContractId[];
+  chapters: Partial<Record<ChapterId, ChapterStatus>>;
 }
 
-const RULES: readonly { id: SceneId; when: (p: StoryProgress) => boolean }[] = [
+type Rule = { id: SceneId; when: (p: StoryProgress) => boolean };
+
+// Chapter scenes come from chapters.data.ts: done (of the last chapter) → start → ready.
+const chapterRules: Rule[] = CHAPTER_IDS.flatMap((id) => {
+  const sc = CHAPTERS[id].scenes;
+  const st = (p: StoryProgress) => p.chapters[id] ?? 'locked';
+  const out: Rule[] = [];
+  if (sc.done) out.push({ id: sc.done, when: (p) => st(p) === 'done' });
+  if (sc.start) out.push({ id: sc.start, when: (p) => st(p) !== 'locked' });
+  if (sc.ready) out.push({ id: sc.ready, when: (p) => st(p) === 'ready' || st(p) === 'done' });
+  return out;
+});
+
+const RULES: readonly Rule[] = [
   { id: 'intro', when: () => true },
-  { id: 'lights_out_done', when: (p) => p.storyDone.includes('lights_out') },
   { id: 'bookkeeper', when: (p) => p.solved >= 1 },
+  ...chapterRules,
 ];
 
 export function nextScene(p: StoryProgress): SceneId | null {

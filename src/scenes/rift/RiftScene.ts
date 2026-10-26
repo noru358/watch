@@ -5,6 +5,7 @@ import { SeededRNG } from '../../core/SeededRNG';
 import { CARDS } from '../../data/cards.data';
 import { FEEL, PALETTE, SCREEN } from '../../data/feel.data';
 import { t } from '../../i18n';
+import { CONTRACTS } from '../../data/contracts.data';
 import type { GameEvent } from '../../types/events';
 import type { CardId } from '../../types/ids';
 import { answerPayphone, giveUp, stepFloor, type Floor, type RiftInput } from '../../systems/rift';
@@ -85,7 +86,9 @@ export class RiftScene extends Phaser.Scene {
     // The offer chosen on the contract board (the board always has one selected before 출동).
     const plan = store.nightPlan() ?? store.firstPlan();
     this.run = startRun({ ...plan, weapon: 'newspaper_sword', loadout: night.loadout });
-    this.targetName = targetName(store.getState().board.find((o) => o.id === plan.offerId)?.target ?? null);
+    const offer = store.getState().board.find((o) => o.id === plan.offerId);
+    const story = offer?.kind === 'main' && offer.story ? CONTRACTS[offer.story].targetNameKey : undefined;
+    this.targetName = story ? t(story) : targetName(offer?.target ?? null);
 
     // Two cameras: the zoomed world camera follows the director; the UI camera stays 1:1.
     this.worldLayer = this.add.layer();

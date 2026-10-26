@@ -9,7 +9,8 @@ export type BaseCardId = 'tough' | 'medicine' | 'salt_ward' | 'grudge_drain' | '
 export type WeaponCardId = 'double_newspaper' | 'blue_lightning' | 'lazy_but_serious' | 'torn_paper' | 'third_strike';
 export type CardId = BaseCardId | WeaponCardId; // 강화 카드 (per-run upgrade)
 export type CardSource = 'base' | WeaponId;
-export type ContractId = 'lights_out'; // hand-written story contracts
+export type ContractId = 'lights_out' | 'last_line'; // hand-written main story contracts
+export type ChapterId = 'ch1' | 'ch2'; // 메인 스토리 장 (src/data/chapters.data.ts)
 export type ContractKind = 'main' | 'general'; // 메인 스토리 (hand-written, required to progress) / 일반 의뢰 (generated)
 export type NodeId = 'alley' | 'printshop' | 'arcade' | 'station' | 'motel' | 'rooftop'; // 을지로 작전 지도 노드
 // 일반 의뢰 사연 틀 (each belongs to one objective, src/data/requests.data.ts)
@@ -26,7 +27,7 @@ export type ObjectiveKind = 'clear' | 'rescue' | 'bounty' | 'chase' | 'ward' | '
 // 현장 변형 (src/data/modifiers.data.ts): warnings make the night harder (and pay more), boons help.
 export type ModifierId = 'blackout' | 'lair' | 'surge' | 'regen' | 'lethal' | 'haste' | 'tough' | 'lesshealing' | 'subwayline' | 'windfall' | 'clearnight' | 'weakspot';
 export type FloorTheme = 'basement' | 'alley' | 'arcade' | 'rooftop' | 'lot';
-export type SceneId = 'intro' | 'bookkeeper' | 'lights_out_done'; // story scenes in the dialogue box
+export type SceneId = 'intro' | 'bookkeeper' | 'lights_out_done' | 'ch2_start' | 'ch2_ready' | 'ch2_done'; // story scenes in the dialogue box
 export type Phase = 'title' | 'day' | 'night';
 export type LobbyFeatureId = 'sortie' | 'ledger' | 'training' | 'sofa' | 'bench'; // hub panels (src/ui/features/<id>/)
 export type HubSpotId = 'door' | 'bookkeeper' | 'directorDesk' | 'sofa' | 'bench'; // things in the hub you can walk up to and use

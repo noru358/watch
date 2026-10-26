@@ -8,6 +8,7 @@ import { REQUESTS } from '../../data/requests.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import type { ContractId, GhostId, ModifierId, NodeId, RequestId } from '../../types/ids';
 import { bundleWith, goalFloorFor, offerFee } from './contracts';
+import { chapterAfterNight, mainContractsDue, startChapters } from './chapters';
 import type { Contamination, ContractOffer, MorningReport, NightResolution, OfferTarget, OfficeState, WantedTarget } from './types';
 
 const NODE_IDS = Object.keys(NODES) as NodeId[];
@@ -128,8 +129,9 @@ function deskBonus(s: OfficeState) {
 // Returns how many offers were added.
 export function refillBoard(s: OfficeState, rng: SeededRNG): number {
   const before = s.board.length;
-  for (const id of Object.keys(CONTRACTS) as ContractId[]) {
-    if (CONTRACTS[id].unlockDay > s.day || s.storyDone.includes(id) || s.board.some((o) => o.story === id)) continue;
+  startChapters(s);
+  for (const id of mainContractsDue(s)) {
+    if (s.storyDone.includes(id) || s.board.some((o) => o.story === id)) continue;
     s.board.push(mainOffer(s, id));
   }
   const size = OFFICE.boardSize + deskBonus(s).board;
@@ -141,7 +143,8 @@ export function refillBoard(s: OfficeState, rng: SeededRNG): number {
 // done and its node calmer; any outcome means the director has now seen the place.
 export function resolveNight(s: OfficeState, offerId: number, success: boolean): NightResolution {
   const offer = s.board.find((o) => o.id === offerId);
-  if (!offer) return { completed: [], fee: 0 };
+  if (!offer) return { completed: [], fee: 0, clue: null };
+  const clue = chapterAfterNight(s, offer, success);
   if (!s.known.includes(offer.node)) s.known.push(offer.node);
   if (!success) {
     // The named ghost got away tonight: it is stronger next time (and pays more).
@@ -150,7 +153,7 @@ export function resolveNight(s: OfficeState, offerId: number, success: boolean):
       if (offer.objective === 'bounty') offer.shards = GENERAL_OBJECTIVES.bounty.shards + offer.target.level;
       offer.fee = offerFee(offer);
     }
-    return { completed: [], fee: 0 };
+    return { completed: [], fee: 0, clue: null };
   }
   const done = bundleWith(s.board, offer);
   const ids = done.map((o) => o.id);
@@ -158,7 +161,7 @@ export function resolveNight(s: OfficeState, offerId: number, success: boolean):
   const cleanse = offer.kind === 'main' ? OFFICE.contamination.cleanse.main : GENERAL_OBJECTIVES[offer.objective ?? 'clear'].cleanse;
   s.contamination[offer.node] = clamp(s.contamination[offer.node] - cleanse);
   if (offer.story && !s.storyDone.includes(offer.story)) s.storyDone.push(offer.story);
-  return { completed: ids, fee: done.reduce((sum, o) => sum + o.fee, 0) };
+  return { completed: ids, fee: done.reduce((sum, o) => sum + o.fee, 0), clue };
 }
 
 // Overnight → the next morning: rent, the city getting worse, expired offers, a fresh board.

@@ -43,4 +43,6 @@ export const HUB_LOOK = {
   bubbleBg: '#f6e7c1',
   bubbleInk: '#2a2233',
   hintSize: 18,
+  calendar: { x: 12.95, y: 15 }, // wall calendar (tiles x, px y): days to rent
+  rentTextDelay: 900, // ms after coming home before the landlady's text
 } as const;

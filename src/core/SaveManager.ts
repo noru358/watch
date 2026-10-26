@@ -2,11 +2,11 @@
 // a step to MIGRATIONS plus a test. Only long-lived office state is saved; a night in
 // progress is not (quitting mid-night = the night never happened).
 
-import { startingContamination, type ContractOffer, type Contamination, type WantedTarget } from '../systems/office';
-import type { ActiveId, ContractId, FacilityId, NodeId, SceneId, SkillSlotId, SupplyId } from '../types/ids';
+import { startingContamination, type ChapterState, type ContractOffer, type Contamination, type WantedTarget } from '../systems/office';
+import type { ActiveId, ChapterId, ContractId, FacilityId, NodeId, SceneId, SkillSlotId, SupplyId } from '../types/ids';
 import type { TrainingLevels } from '../systems/run';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 export interface SaveData {
   schemaVersion: typeof SAVE_VERSION;
@@ -35,6 +35,8 @@ export interface SaveData {
   actives: ActiveId[];
   active: ActiveId | null;
   wanted: WantedTarget[];
+  // v5: main-story chapters (clues, done days)
+  chapters: Partial<Record<ChapterId, ChapterState>>;
 }
 
 // The part of localStorage we use; tests pass a Map-backed fake.
@@ -76,6 +78,11 @@ const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
     active: null,
     wanted: [],
   }),
+  // v4 → v5: chapters. Chapter 1 is under way (or done, if its contract was finished).
+  4: (old) => ({
+    ...old,
+    chapters: { ch1: { started: 1, clues: 0, done: Array.isArray(old.storyDone) && old.storyDone.includes('lights_out') ? (isNum(old.day) ? old.day : 1) : null } },
+  }),
 };
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
@@ -95,10 +102,10 @@ export function migrate(raw: unknown): SaveData | null {
     v += 1;
   }
   const { money, trauma, solved, seedBase, runCounter, day, debt, contamination, known, board, nextOfferId, storyDone, seen } = data;
-  const { shards, training, trainingBought, facilities, supply, passives, actives, active, wanted } = data;
+  const { shards, training, trainingBought, facilities, supply, passives, actives, active, wanted, chapters } = data;
   if (![money, trauma, solved, seedBase, runCounter, day, debt, nextOfferId, shards, trainingBought].every(isNum)) return null;
   if (!Array.isArray(known) || !Array.isArray(board) || !Array.isArray(storyDone) || !Array.isArray(seen)) return null;
-  if (!Array.isArray(actives) || !Array.isArray(wanted) || !isObj(training) || !isObj(facilities) || !isObj(passives)) return null;
+  if (!Array.isArray(actives) || !Array.isArray(wanted) || !isObj(training) || !isObj(facilities) || !isObj(passives) || !isObj(chapters)) return null;
   if (contamination !== null && (typeof contamination !== 'object' || Array.isArray(contamination))) return null;
   return {
     schemaVersion: SAVE_VERSION,
@@ -124,6 +131,7 @@ export function migrate(raw: unknown): SaveData | null {
     actives,
     active: active ?? null,
     wanted,
+    chapters,
   } as SaveData;
 }
 

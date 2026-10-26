@@ -297,3 +297,18 @@ describe('현장 변형 (2026-10-27 batch): each one changes what its card says'
     expect(Math.max(...rich.pickups.map((k) => k.value))).toBe(Math.round(DUNGEON.treasureValue * 1.5));
   });
 });
+
+describe('결계 sites are spread out', () => {
+  it('in different rooms, far enough apart that one circle never covers another', () => {
+    for (let seed = 1; seed <= 40; seed++) {
+      const f = generateFloor(0, { ...clearPlan, objective: 'ward', goal: true }, new SeededRNG(seed), carry());
+      const o = f.objective;
+      if (o?.kind !== 'ward') throw new Error('ward');
+      for (let i = 0; i < o.sites.length; i++)
+        for (let j = i + 1; j < o.sites.length; j++) {
+          const d = Math.hypot(o.sites[i]!.x - o.sites[j]!.x, o.sites[i]!.y - o.sites[j]!.y);
+          expect(d, `seed ${seed}`).toBeGreaterThan(OBJECTIVES.ward.radius * 2 + 1);
+        }
+    }
+  });
+});

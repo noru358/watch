@@ -12,7 +12,7 @@ import type { NodeId, ObjectiveKind } from '../src/types/ids';
 import { playNight, skilled } from './bots';
 
 function fresh(): OfficeState {
-  const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], deskLevel: 0 };
+  const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0 };
   refillBoard(s, new SeededRNG(5));
   return s;
 }
@@ -51,7 +51,7 @@ describe('office: contract board', () => {
     const seen = new Set<string>();
     const mods = new Set<string>();
     for (let seed = 1; seed < 120; seed++) {
-      const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], deskLevel: 0 };
+      const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0 };
       refillBoard(s, new SeededRNG(seed));
       for (const o of s.board) {
         if (o.objective) seen.add(o.objective);
@@ -63,7 +63,7 @@ describe('office: contract board', () => {
   });
 
   it('the 경리 책상 adds an offer and a day to deadlines', () => {
-    const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], deskLevel: 3 };
+    const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 3 };
     refillBoard(s, new SeededRNG(5));
     expect(s.board.filter((o) => o.kind === 'general')).toHaveLength(OFFICE.boardSize + 1);
     for (const o of s.board.filter((x) => x.kind === 'general')) expect(o.deadline! - s.day).toBeGreaterThanOrEqual(OFFICE.deadline.min + 1);

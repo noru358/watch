@@ -10,6 +10,7 @@
 | [밤 · 한 층](floor.md) | 방 역할, 강적 배치, 층 목표 6종과 계단, 목표 층 귀환, 계속 보상, 현장 변형(정전·괴이 소굴·물결 폭증), 도깨비불 물결, 공중전화, 영력·심연 파편 줍기 | `src/data/dungeon.data.ts`, `ghosts.data.ts`, `objectives.data.ts`, `modifiers.data.ts`, `contracts.data.ts` | `src/systems/rift/` |
 | [밤 · 한 판](night.md) | 층 순서, 강화 카드 뽑기, 능력치 계산, 성공·귀환·쓰러짐 정산, 트라우마 | `src/data/cards.data.ts`, `penalties.data.ts`, `protagonist.data.ts`, `weapons.data.ts` | `src/systems/run/`, `src/registry/cardEffects.ts` |
 | [성장](growth.md) | 트레이닝 15줄과 값, 기술(패시브 3×3, 액티브 L), 심연 파편, 트라우마 효과와 회복, 시설 3종, 보급품 | `src/data/training.data.ts`, `skills.data.ts`, `facilities.data.ts`, `penalties.data.ts` | `src/systems/growth/`, `src/registry/perkEffects.ts` |
+| [메인 스토리 장](story.md) | 장이 시작되는 때(날짜 또는 오염), 단서 모으기, 메인 의뢰가 올라오는 때 | `src/data/chapters.data.ts`, `contracts.data.ts` | `src/systems/office/chapters.ts` |
 | [사무소 허브](hub.md) | 누가 언제 나타나나(해금), 이야기 장면 순서, 경리 잡담 | `src/data/lobby.data.ts`, `story.data.ts` | `src/systems/hub/`, `src/systems/story/` |
 
 ## 고치는 법 (AI에게 말할 때)

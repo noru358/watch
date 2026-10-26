@@ -18,13 +18,14 @@ interface Props {
   board: readonly ContractOffer[];
   selected: ContractOffer | null;
   onPick: (node: NodeId) => void;
+  clue?: { nodes: readonly NodeId[]; have: number; need: number } | null; // 메인 스토리 단서를 모으는 동네
 }
 
 // Can this district get worse tomorrow because a neighbour spreads? (office.data.ts contamination)
 export const atRisk = (c: Contamination, id: NodeId) =>
   c[id] < OFFICE.contamination.max && NODES[id].links.some((n) => c[n] >= OFFICE.contamination.spreadAt);
 
-export function OpsMap({ contamination, board, selected, onPick }: Props) {
+export function OpsMap({ contamination, board, selected, onPick, clue }: Props) {
   const links = NODE_IDS.flatMap((a) => NODES[a].links.filter((b) => a < b).map((b) => [a, b] as const));
   const y = (id: NodeId) => NODES[id].y * 0.6 + 3;
   return (
@@ -49,6 +50,9 @@ export function OpsMap({ contamination, board, selected, onPick }: Props) {
               {isSel && <circle cx={n.x} cy={cy} r={r + 1.8} fill="none" stroke={L.accent} strokeWidth={0.9} />}
               <text x={n.x} y={cy + r + 3.6} textAnchor="middle" fontSize={2.7} fill={isSel ? L.ink : live ? L.dim : L.off} fontWeight={isSel || live ? 700 : 400}>{t(n.nameKey)}</text>
               {risk && <text x={n.x} y={cy + r + 6.6} textAnchor="middle" fontSize={2.1} fill={L.spread}>{t('board.atRisk')}</text>}
+              {clue?.nodes.includes(id) && (
+                <text x={n.x} y={cy + r + (risk ? 9.4 : 6.6)} textAnchor="middle" fontSize={2.1} fill={L.accent}>{t('board.clues', { have: clue.have, need: clue.need })}</text>
+              )}
               {pins.map((o, i) => (
                 <rect key={o.id} x={n.x - (pins.length * 2.6) / 2 + i * 2.6 + 0.3} y={cy - r - 4.2} width={2} height={2.6} rx={0.3}
                   fill={o.kind === 'main' ? L.accent : o.target ? L.bounty : L.general} />

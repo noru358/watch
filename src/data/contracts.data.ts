@@ -48,7 +48,7 @@ export interface ContractData {
   node: NodeId; // where it sits on the operations map
   floors: readonly FloorPlan[];
   fee: number; // paid when the source (boss) is purified
-  unlockDay: number; // first day it shows on the board
+  targetNameKey?: TKey; // the named ghost of the last floor, when it is not a boss (HUD)
 }
 
 // 메인 스토리: hand-written contracts. 일반 의뢰 are generated (src/systems/office/).
@@ -60,13 +60,27 @@ export const CONTRACTS: Record<ContractId, ContractData> = {
     textKey: 'board.storyText.lights_out',
     node: 'alley',
     fee: 300,
-    unlockDay: 1,
     floors: [
       { kind: 'normal', enemies: 5, pool: ['cheonyeo', 'dalgyal'], payphone: false, swarm: wisps(6.5, 4, 10), objective: 'clear', goal: false, theme: 'alley' },
       { kind: 'normal', enemies: 6, pool: ['cheonyeo', 'dalgyal'], payphone: false, swarm: wisps(6, 4, 12), objective: 'clear', goal: false, theme: 'basement' },
       { kind: 'normal', enemies: 7, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: true, swarm: wisps(5.5, 4, 14), objective: 'clear', goal: false, theme: 'arcade' },
       { kind: 'normal', enemies: 7, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: false, swarm: wisps(5, 5, 16), objective: 'clear', goal: false, theme: 'rooftop' },
       { kind: 'boss', boss: 'gumiho', swarm: wisps(7, 4, 10), theme: 'lot', shards: 3 },
+    ],
+  },
+  // 막차가 끊기지 않는 역 (2장): 을지로3가역 승강장 → 지하상가 → 선로 옆 대피 통로 → 끊기지 않는 막차.
+  // The source is a named subway wraith, 「막차 기관사」, fought as a 현상수배-style elite on the last floor.
+  last_line: {
+    nameKey: 'board.storyName.last_line',
+    textKey: 'board.storyText.last_line',
+    node: 'station',
+    fee: 450,
+    targetNameKey: 'name.lastDriver',
+    floors: [
+      { kind: 'normal', enemies: 5, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: false, swarm: wisps(6.5, 4, 10), objective: 'clear', goal: false, theme: 'arcade' },
+      { kind: 'normal', enemies: 5, pool: ['dalgyal', 'subway'], payphone: true, swarm: wisps(6, 4, 12), objective: 'clear', goal: false, theme: 'basement', mods: ['blackout'] },
+      { kind: 'normal', enemies: 6, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: false, swarm: wisps(5.5, 4, 14), objective: 'clear', goal: false, theme: 'arcade', mods: ['haste'] },
+      { kind: 'normal', enemies: 3, pool: ['dalgyal', 'cheonyeo'], payphone: false, swarm: wisps(6, 4, 10), objective: 'bounty', goal: false, theme: 'basement', brief: { target: { ghost: 'subway', level: 2 }, shards: 3, time: 0 } },
     ],
   },
 };

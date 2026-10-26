@@ -3,6 +3,8 @@ import { input, store } from '../../app/services';
 import { openFeature } from '../../app/features';
 import { playScene } from '../../app/dialogue';
 import { nextScene } from '../../systems/story';
+import { chapterStatus } from '../../systems/office';
+import { CHAPTER_IDS } from '../../data/chapters.data';
 import { PALETTE } from '../../data/feel.data';
 import { HUB_LOOK } from '../../data/hubLook.data';
 import { HUB, HUB_SPOTS } from '../../data/lobby.data';
@@ -13,7 +15,11 @@ import { T } from '../shared/draw/common';
 import { loadDirectorFrames } from '../shared/draw/directorFrames';
 import { crisp } from '../shared/text';
 import { HubView } from './HubView';
-import { CHATTER } from '../../data/story.data';
+import { CHATTER, RENT_TALK } from '../../data/story.data';
+import { OFFICE } from '../../data/office.data';
+import { showPhoneText } from '../../app/toast';
+
+let rentTextDay = -1; // the landlady texts once per rent morning
 
 // Day: inside the office, walked around souls-style. E on someone opens their panel;
 // the front door opens tonight's contract. Panels are React; while one is open the input
@@ -25,6 +31,7 @@ export class HubScene extends Phaser.Scene {
   private bubble!: Phaser.GameObjects.Text;
   private chatterT: number = CHATTER.firstAfter;
   private chatterLine = 0;
+  private calendar!: Phaser.GameObjects.Text;
   private acc = 0;
   private clock = 0;
 
@@ -65,7 +72,18 @@ export class HubScene extends Phaser.Scene {
     input.clearPressed();
     // A story scene that is due plays as soon as the director is home (once each).
     const s = store.getState();
-    const scene = nextScene({ seen: s.seen, solved: s.solved, storyDone: s.storyDone });
+    this.calendar = crisp(this.add.text(HUB_LOOK.calendar.x * T, HUB_LOOK.calendar.y, '', { fontFamily: PALETTE.font, fontSize: '22px', fontStyle: 'bold', color: '#c0392b' }))
+      .setScale(1 / HUB_LOOK.zoom)
+      .setOrigin(0.5, 0);
+    this.updateCalendar();
+    const m = s.lastMorning;
+    if (m?.rentDue && rentTextDay !== s.day) {
+      rentTextDay = s.day;
+      const key = m.debtAdded > 0 ? RENT_TALK.short[s.day % RENT_TALK.short.length]! : m.rentPaid > OFFICE.rent ? RENT_TALK.cleared : RENT_TALK.paid[s.day % RENT_TALK.paid.length]!;
+      this.time.delayedCall(HUB_LOOK.rentTextDelay, () => showPhoneText(t(RENT_TALK.from), t(key, { paid: m.rentPaid, debt: store.getState().debt })));
+    }
+    const chapters = Object.fromEntries(CHAPTER_IDS.map((id) => [id, chapterStatus(s, id)]));
+    const scene = nextScene({ seen: s.seen, solved: s.solved, chapters });
     if (scene) this.time.delayedCall(HUB_LOOK.sceneDelay, () => playScene(scene));
     // Dev-only read access for automated play-testing; stripped from production builds.
     if (import.meta.env.DEV) (window as unknown as { __hub?: unknown }).__hub = this;
@@ -111,10 +129,23 @@ export class HubScene extends Phaser.Scene {
     }
     this.chatterT = CHATTER.every;
     const lines = CHATTER.bookkeeper;
-    const key = lines[this.chatterLine % lines.length]!;
+    // The day before rent, the first thing she says is about rent.
+    const rentTomorrow = this.rentIn() === 1 && this.chatterLine === 0;
+    const key = rentTomorrow ? RENT_TALK.reminder : lines[this.chatterLine % lines.length]!;
     this.chatterLine += 1;
     const spot = HUB_SPOTS.bookkeeper;
     this.bubble.setText(t(key)).setPosition(spot.x * T, spot.y * T - 40).setVisible(true);
+  }
+
+  private rentIn(): number {
+    return OFFICE.rentEvery - (store.getState().day % OFFICE.rentEvery);
+  }
+
+  // The wall calendar: days to rent, red and loud the day before.
+  private updateCalendar(): void {
+    const d = this.rentIn();
+    this.calendar.setText(d === 1 ? t('hub.calendar.tomorrow') : t('hub.calendar.days', { days: d }));
+    this.calendar.setFontSize(d === 1 ? 18 : 22); // "내일!" is wider than "D-3"; keep it on the page
   }
 
   private showPrompt(spot: HubSpotId | null): void {

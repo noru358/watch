@@ -118,6 +118,7 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
 // floor draws exactly the same RNG as before, so main-story maps stay the same for a given seed.
 function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>, rng: SeededRNG, carry: FloorCarry): Floor {
   const { tiles, rooms } = randomRooms(rng);
+  const rooms_ = rooms;
   const { start, exit, treasure, side } = assignRoles(tiles, rooms, rng);
   const mods = plan.mods ?? [];
   const deep = plan.deep ?? 0;
@@ -146,7 +147,28 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
     const dist = distances(tiles, start);
     const walk = (r: Room) => dist[Math.floor(r.y + r.h / 2) * f.cols + Math.floor(r.x + r.w / 2)] ?? -1;
     const nest = pool.reduce((best, r) => (walk(r) > walk(best) ? r : best), pool[0]!);
-    f.objective = setupObjective(f, plan, { quiet: () => free(pool), nest: () => free([nest]), quarry: carry.quarry ?? null, last: carry.last ?? false, rng });
+    // n spots in different rooms, at least `gap` tiles from each other where the map allows (결계 sites).
+    const apart = (n: number, gap: number): Pos[] => {
+      const rooms = [...pool, ...rooms_.filter((r) => !pool.includes(r) && r !== exit && r !== lairRoom && r !== rooms_[0])];
+      const out: Pos[] = [];
+      const left = [...rooms];
+      for (let k = 0; k < n; k++) {
+        let best: Pos | null = null;
+        for (let tries = 0; tries < 30 && left.length > 0; tries++) {
+          const room = left[rng.int(0, left.length - 1)]!;
+          const p = roomTile(room, rng);
+          const far = out.every((q) => Math.hypot(q.x - p.x, q.y - p.y) >= gap);
+          if (far || tries === 29) {
+            best = p;
+            left.splice(left.indexOf(room), 1);
+            break;
+          }
+        }
+        out.push(best ?? free(pool));
+      }
+      return out;
+    };
+    f.objective = setupObjective(f, plan, { quiet: () => free(pool), nest: () => free([nest]), apart, quarry: carry.quarry ?? null, last: carry.last ?? false, rng });
   }
   const value = (v: number) => Math.round(v * (1 + DEEP.lootPerFloor * deep) * f.mods.pickupMult);
   for (let i = 0; i < DUNGEON.spiritPickupsPerFloor; i++) f.pickups.push({ ...free(rooms), value: value(DUNGEON.spiritPickupValue) });

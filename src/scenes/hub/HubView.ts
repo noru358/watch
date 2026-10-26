@@ -48,6 +48,11 @@ export class HubView {
     g.fillStyle(L.clock).fillCircle(desk.x + desk.w / 2, 18, 7);
     g.fillStyle(L.trim).fillRect(desk.x + desk.w / 2, 13, 1, 6).fillRect(desk.x + desk.w / 2, 18, 4, 1);
     g.fillStyle(L.poster).fillRect(8 * T, 12, 16, 22);
+    // Wall calendar (days to rent are written on it by HubScene): a white page, red header.
+    const cx = L.calendar.x * T;
+    g.fillStyle(0xf4f1ea).fillRect(cx - 11, 10, 22, 28);
+    g.fillStyle(0xc0392b).fillRect(cx - 11, 10, 22, 5);
+    g.fillStyle(L.trim).fillRect(cx - 1, 8, 2, 3);
     g.fillStyle(L.trim).fillRect(8 * T + 3, 18, 10, 1).fillRect(8 * T + 3, 22, 10, 1).fillRect(8 * T + 3, 26, 7, 1);
     const d = HUB_SPOTS.door;
     g.fillStyle(L.trim).fillRect(d.x * T - 16, 10, 32, wallH - 10);

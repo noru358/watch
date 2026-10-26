@@ -11,6 +11,7 @@ import { BenchPanel } from './features/bench/BenchPanel';
 import { SofaPanel } from './features/sofa/SofaPanel';
 import { TrainingPanel } from './features/training/TrainingPanel';
 import { DialogueBox } from './DialogueBox';
+import { PhoneToast } from './PhoneToast';
 
 const PANELS: Record<LobbyFeatureId, ComponentType> = {
   sortie: BoardPanel,
@@ -25,6 +26,7 @@ export function FeatureHost() {
   return (
     <>
       <Panels />
+      <PhoneToast />
       <DialogueBox />
     </>
   );

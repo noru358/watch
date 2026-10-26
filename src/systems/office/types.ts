@@ -1,4 +1,4 @@
-import type { ContractId, ContractKind, GhostId, ModifierId, NodeId, ObjectiveKind, RequestId } from '../../types/ids';
+import type { ChapterId, ContractId, ContractKind, GhostId, ModifierId, NodeId, ObjectiveKind, RequestId } from '../../types/ids';
 
 // The named ghost of a 현상수배 or 추격 contract.
 export interface OfferTarget {
@@ -28,6 +28,13 @@ export interface ContractOffer {
 
 export type Contamination = Record<NodeId, number>;
 
+// One main-story chapter's progress (save v5).
+export interface ChapterState {
+  started: number; // day it started
+  clues: number; // 단서 gathered
+  done: number | null; // day its main contract was finished
+}
+
 // A named 현상수배 target whose offer expired: it comes back on the board, one level stronger.
 export interface WantedTarget extends OfferTarget {
   node: NodeId;
@@ -44,6 +51,7 @@ export interface OfficeState {
   nextOfferId: number;
   storyDone: ContractId[];
   wanted: WantedTarget[];
+  chapters: Partial<Record<ChapterId, ChapterState>>; // 메인 스토리 장 (chapters.ts)
   deskLevel: number; // 경리 책상 (facilities.data.ts): more offers, longer deadlines
 }
 
@@ -61,4 +69,5 @@ export interface MorningReport {
 export interface NightResolution {
   completed: number[]; // offer ids finished tonight (a bundle can finish several)
   fee: number; // all of their fees together (0 unless success)
+  clue: { chapter: ChapterId; have: number; need: number } | null; // 메인 스토리 단서 gained tonight
 }

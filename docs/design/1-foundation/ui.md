@@ -6,6 +6,8 @@
 
 **2026-10-27 의뢰판 손질(사용자):** 의뢰가 없는 동네는 흐리게(누를 수 없음), 의뢰가 있는 동네만 밝게. 이동은 동네 단위: A/D가 의뢰 있는 동네를 지도 왼쪽부터 오가고, 한 동네에 의뢰가 둘 이상이면 마감이 가까운 순으로 W/S(의뢰서 위에 "1/2 (W·S)"), 동네를 다시 눌러도 다음 의뢰. 의뢰서는 늘 같은 크기: 현장 줄을 빼고 변형·괴이를 아래 칸으로 키웠고, "같은 동네 일반 의뢰 n건 같이 끝남"은 보수 칸 안에, 보급품은 위 줄, 출동 불가는 출동 버튼 글자로. "번지는 중" 점선은 없애고, 내일 이웃에서 오염이 옮겨 올 수 있는 동네 이름 밑에 "▲ 내일 번져 올 수 있음"을 쓴다.
 
+**2026-10-27 밤 추가:** 작전 지도에 지금 장의 단서 동네 아래 "단서 n / 3"(청록). 경리 장부에 "이야기" 줄(어느 장, 단서 몇 개 / 의뢰판에 올라옴 / 다음 이야기 기다리는 중). 정산 화면에 "단서 +1". 화면 위 문자 알림(`ui/PhoneToast.tsx`, 집주인 문자), 사무소 벽 달력 D-n.
+
 **2026-10-27 추가:** 소장 책상(트레이닝·기술 탭), 소파(휴식하기·자본 치료·진정제), 부적 작업대(보급품) 창은 `src/ui/features/training|sofa|bench/`, 목록 키 처리는 `features/useNav.ts`. 경리 장부에 "시설 공사" 칸. 의뢰서에 표적 이름·변형 도장·심연 파편 줄, 메인 스토리 도장. 밤 HUD 목표 패널은 목표 6종 문구·게이지(현상수배·추격 표적 체력, 결계 진행, 첫차 시간)와 가장자리 화살표(표적, 결계 자리, 열린 계단, 귀신 눈, 지도 사본).
 
 **지금 코드:** 의뢰판 `src/ui/features/board/`(`BoardPanel`, 지도 `OpsMap`, 의뢰서 `OfferSheet`, 색 `look.ts`), 장부 `src/ui/features/ledger/`, 밤 HUD `src/scenes/rift/RiftHud.ts`, 일시정지·카드·공중전화·귀환 창 `src/scenes/shared/Overlay.ts`, 대화창 `src/ui/DialogueBox.tsx` + `src/app/dialogue.ts`, 잡담 말풍선 `src/scenes/hub/HubScene.ts`, 타이틀 `src/scenes/title/TitleScene.ts` + `src/data/titleLook.data.ts`, 음량 `src/app/settings.ts`.

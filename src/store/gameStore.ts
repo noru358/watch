@@ -1,6 +1,6 @@
 import { SAVE_VERSION, type SaveData } from '../core/SaveManager';
 import { SeededRNG } from '../core/SeededRNG';
-import type { ActiveId, ContractId, FacilityId, NodeId, Phase, SceneId, SkillSlotId, SupplyId, TrainingId } from '../types/ids';
+import type { ActiveId, ChapterId, ContractId, FacilityId, NodeId, Phase, SceneId, SkillSlotId, SupplyId, TrainingId } from '../types/ids';
 import type { TrainingLevels } from '../systems/run';
 import * as growth from '../systems/growth';
 import { settleRun, type RunResult, type Settlement } from '../systems/run';
@@ -16,6 +16,8 @@ import {
   type MorningReport,
   type OfficeState,
   type WantedTarget,
+  type ChapterState,
+  type NightResolution,
 } from '../systems/office';
 import type { FloorPlan } from '../data/contracts.data';
 
@@ -23,6 +25,7 @@ export interface LastRun {
   result: RunResult;
   settlement: Settlement;
   bundled: number; // offers finished together (1 = just the one taken)
+  clue?: NightResolution['clue']; // 메인 스토리 단서 gained that night
 }
 
 export interface GameState {
@@ -51,6 +54,7 @@ export interface GameState {
   actives: ActiveId[];
   active: ActiveId | null;
   wanted: WantedTarget[]; // named bounties that got away
+  chapters: Partial<Record<ChapterId, ChapterState>>; // 메인 스토리 장 (save v5)
   // not saved
   activeOfferId: number | null; // chosen on the board, played tonight
   lastRun: LastRun | null;
@@ -89,6 +93,7 @@ const office = (s: GameState): OfficeState => ({
   nextOfferId: s.nextOfferId,
   storyDone: [...s.storyDone],
   wanted: s.wanted.map((w) => ({ ...w, name: [...w.name] as [number, number] })),
+  chapters: { ...s.chapters },
   deskLevel: s.facilities.desk,
 });
 
@@ -127,6 +132,7 @@ export class GameStore {
       actives: [],
       active: null,
       wanted: [],
+      chapters: {},
       activeOfferId: null,
       lastRun: null,
       lastMorning: null,
@@ -188,6 +194,7 @@ export class GameStore {
       actives: [...s.actives],
       active: s.active,
       wanted: s.wanted.map((w) => ({ ...w, name: [...w.name] as [number, number] })),
+      chapters: { ...s.chapters },
     };
   }
 
@@ -298,7 +305,7 @@ export class GameStore {
   }
 
   // Night over: settle the contract (and its bundle), pay out, then it is the next morning.
-  applyRunResult(result: RunResult): Settlement {
+  applyRunResult(result: RunResult): Settlement & { clue: NightResolution['clue'] } {
     const o = office(this.state);
     const night = resolveNight(o, result.offerId, result.outcome === 'success');
     const settlement = settleRun({ ...result, fee: night.fee }, this.state.money);
@@ -310,9 +317,9 @@ export class GameStore {
       shards: this.state.shards + settlement.shards,
       solved: this.state.solved + (result.outcome === 'success' ? 1 : 0),
       activeOfferId: null,
-      lastRun: { result, settlement, bundled: Math.max(1, night.completed.length) },
+      lastRun: { result, settlement, bundled: Math.max(1, night.completed.length), clue: night.clue },
       lastMorning: morning,
     });
-    return settlement;
+    return { ...settlement, clue: night.clue };
   }
 }

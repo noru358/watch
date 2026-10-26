@@ -37,6 +37,7 @@ export const OBJECTIVES = {
   // 결계: stand in each circle until it fills; leaving drains it. Wisps come faster while it fills.
   ward: {
     sites: 3,
+    minApart: 9, // tiles between sites (different rooms) so two are never charged at once
     radius: 1.6,
     fillTime: 9, // seconds standing inside to finish one site
     drainPerSecond: 0.06, // progress lost per second outside (0..1)

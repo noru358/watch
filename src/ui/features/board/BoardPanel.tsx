@@ -3,13 +3,14 @@ import { input, requestPhase, store } from '../../../app/services';
 import { NODES } from '../../../data/nodes.data';
 import { OFFICE } from '../../../data/office.data';
 import { t } from '../../../i18n';
-import { bundleWith, type ContractOffer } from '../../../systems/office';
+import { activeChapter, bundleWith, chapterStatus, type ContractOffer, type OfficeState } from '../../../systems/office';
 import { deskEffects, traumaEffects } from '../../../systems/growth';
 import { SUPPLIES } from '../../../data/facilities.data';
 import type { NodeId } from '../../../types/ids';
 import { BOARD_LOOK as L } from './look';
 import { OfferSheet } from './OfferSheet';
 import { OpsMap } from './OpsMap';
+import { CHAPTERS } from '../../../data/chapters.data';
 
 // Navigation is by district (user, 2026-10-27): A / D step through districts that have offers
 // (left to right on the map), W / S through that district's offers, soonest deadline first
@@ -61,6 +62,14 @@ const arrow = {
 
 // The front door (mockup A, docs/design/1-foundation/ui.md): the Euljiro map on the left, the chosen
 // offer as a sheet on a clipboard on the right, then ‹ 출동 ›.
+// The chapter gathering clues right now, for the map (docs/rules/story.md).
+function clueOf(s: Pick<OfficeState, 'chapters'>) {
+  const id = activeChapter(s);
+  if (!id || chapterStatus(s, id) !== 'gathering') return null;
+  const ch = CHAPTERS[id];
+  return { nodes: ch.clueNodes, have: s.chapters[id]?.clues ?? 0, need: ch.clues };
+}
+
 export function BoardPanel() {
   const s = useSyncExternalStore(store.subscribe, store.getState);
   const sel = s.board.find((o) => o.id === s.activeOfferId) ?? null;
@@ -103,7 +112,7 @@ export function BoardPanel() {
             <span style={{ fontFamily: 'monospace', fontSize: 16, color: L.ink }}>₩ {s.money}</span>
           </span>
         </div>
-        <OpsMap contamination={s.contamination} board={s.board} selected={sel} onPick={pickNode} />
+        <OpsMap contamination={s.contamination} board={s.board} selected={sel} onPick={pickNode} clue={clueOf(s)} />
       </section>
       <section aria-label={t('board.pick')} style={{ flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {sel ? (

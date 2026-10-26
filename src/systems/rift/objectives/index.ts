@@ -22,6 +22,7 @@ export function strongLeft(f: Floor): number {
 export interface ObjectiveSpots {
   quiet: () => Pos; // a free tile in a side room away from the start
   nest: () => Pos; // a free tile in the side room farthest from the start
+  apart: (n: number, gap: number) => Pos[]; // n tiles in different rooms, spread out
   quarry: QuarryCarry | null; // 추격: the quarry as it left the last floor
   last: boolean; // this is the contract's last floor
   rng: SeededRNG;
@@ -43,7 +44,7 @@ export function setupObjective(f: Floor, plan: Extract<FloorPlan, { kind: 'norma
     case 'chase':
       return setupChase(f, brief, at.quarry, at.quiet(), at.nest(), at.last);
     case 'ward':
-      return setupWard(Array.from({ length: OBJECTIVES.ward.sites }, () => at.quiet()));
+      return setupWard(at.apart(OBJECTIVES.ward.sites, OBJECTIVES.ward.minApart));
     case 'firsttrain':
       return setupFirstTrain(brief.time, plan.pool);
   }
