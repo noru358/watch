@@ -7,6 +7,7 @@ import { updatePlayer } from './player';
 import { updateSwarm } from './spawner';
 import { runHooks } from './hooks';
 import { updateShots, updateZones } from './skills';
+import { updateLair } from './lair';
 import type { Floor, RiftInput } from './types';
 
 function updatePickups(f: Floor, dt: number): void {
@@ -15,6 +16,11 @@ function updatePickups(f: Floor, dt: number): void {
   for (const k of f.pickups) {
     const d = dist(k, p);
     if (d <= p.r + 0.3) {
+      if (k.shard) {
+        f.shards += 1;
+        f.events.push({ type: 'shardCollected', x: k.x, y: k.y });
+        continue;
+      }
       f.loot += k.value;
       f.events.push({ type: 'pickupCollected', x: k.x, y: k.y, value: k.value });
       continue;
@@ -35,18 +41,10 @@ export function stairsOpen(f: Floor): boolean {
   return objectiveReady(f);
 }
 
-// An arena ends the night once its pack is down; other floors follow their objective.
-function updateGoal(f: Floor, dt: number): void {
-  if (f.arena && strongLeft(f) === 0) {
-    for (const k of f.pickups) f.loot += k.value;
-    f.pickups = [];
-    f.enemies.forEach((e) => (e.hp = 0));
-    f.enemies = [];
-    f.status = 'bossDefeated';
-    f.events.push({ type: 'roomCleared', boss: true });
-    return;
-  }
-  updateObjective(f, dt);
+// The floor's objective, and a 괴이 소굴 if there is one.
+function updateGoal(f: Floor, dt: number, rng: SeededRNG): void {
+  updateObjective(f, dt, rng);
+  updateLair(f);
 }
 
 function updateExits(f: Floor): void {
@@ -74,7 +72,7 @@ export function stepFloor(f: Floor, input: RiftInput, dt: number, rng: SeededRNG
   updatePlayer(f, input, dt, rng);
   updateEnemies(f, dt, rng);
   if (f.status !== 'playing') return;
-  updateGoal(f, dt);
+  updateGoal(f, dt, rng);
   if (f.status !== 'playing') return;
   updateSwarm(f, dt, rng);
   updateShots(f, dt, rng);

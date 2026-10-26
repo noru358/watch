@@ -42,6 +42,10 @@ function updateGhost(f: Floor, e: Enemy, dt: number, rng: SeededRNG): void {
   const p = f.player;
   const d = dist(e, p);
   const toP = Math.atan2(p.y - e.y, p.x - e.x);
+  // A sleeping lair pack or a quarry resting in its nest does nothing until woken (lair.ts, chase.ts).
+  if (e.asleep) return;
+  const damage = data.damage + e.damageAdd;
+  const windup = data.windup * e.windupMult;
   switch (e.state) {
     case 'idle':
       if (d <= data.sight && lineOfSight(f, e, p)) e.state = 'chase';
@@ -64,7 +68,7 @@ function updateGhost(f: Floor, e: Enemy, dt: number, rng: SeededRNG): void {
     case 'windup':
       if (resolveTelegraphs(f, e, dt)) {
         e.state = 'recover';
-        e.timer = data.recover;
+        e.timer = data.recover * e.windupMult;
       }
       return;
     case 'chase':
@@ -84,22 +88,22 @@ function updateGhost(f: Floor, e: Enemy, dt: number, rng: SeededRNG): void {
   }
   if (data.attack === 'none') {
     // Swarm fodder: just rushes in; touching the director burns.
-    if (d <= e.r + p.r) hurtPlayer(f, data.contactDamage, 0);
+    if (d <= e.r + p.r) hurtPlayer(f, data.contactDamage + e.damageAdd, 0);
     const s = survivorOf(f);
     if (s && dist(e, s) <= e.r + s.r) hurtObjective(f, data.contactDamage);
   } else if (data.attack === 'line') {
     if (d <= data.attackRange && lineOfSight(f, e, p)) {
-      e.teles = [tele('line', e, toP, data.attackRange, data.attackSize, data.windup, data.damage, false, data.darkness)];
+      e.teles = [tele('line', e, toP, data.attackRange, data.attackSize, windup, damage, false, data.darkness)];
       e.state = 'windup';
       return;
     }
   } else if (d - e.r - p.r <= data.attackRange) {
-    e.teles = [tele(data.attack, e, toP, data.attackSize, data.attackArc, data.windup, data.damage, true, data.darkness)];
+    e.teles = [tele(data.attack, e, toP, data.attackSize, data.attackArc, windup, damage, true, data.darkness)];
     e.state = 'windup';
     return;
   }
   const dir = steer(f, e);
-  moveBody(f, e, dir.x * data.speed * dt, dir.y * data.speed * dt);
+  moveBody(f, e, dir.x * data.speed * e.speedMult * dt, dir.y * data.speed * e.speedMult * dt);
   if (dir.x !== 0) e.face = dir.x > 0 ? 1 : -1;
 }
 

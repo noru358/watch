@@ -43,10 +43,42 @@ function pathDir(f: Floor, to: Pos): Pos {
   return { x: (tx - p.x) / len, y: (ty - p.y) / len };
 }
 
+// Where the floor's objective wants the director (null = nothing special).
+function objectiveSpot(f: Floor): { at: Pos; stay: boolean } | null {
+  const o = f.objective;
+  const p = f.player;
+  if (!o || o.done) return null;
+  if (o.kind === 'rescue' && o.survivor.state === 'hidden') return { at: o.survivor, stay: false };
+  if (o.kind === 'ward') {
+    const site = o.sites.filter((s) => s.progress < 1).sort((a, b) => dist(a, p) - dist(b, p))[0];
+    return site ? { at: site, stay: true } : null;
+  }
+  if ((o.kind === 'bounty' || o.kind === 'chase') && !(o.kind === 'chase' && o.fled)) {
+    const e = f.enemies.find((x) => x.id === o.targetId && x.hp > 0);
+    return e ? { at: e, stay: false } : null;
+  }
+  if (o.kind === 'firsttrain') return { at: p, stay: true };
+  return null;
+}
+
 // Stands its ground and swings at whatever is closest; walks to the exit when nothing is near.
 export function naive(f: Floor): RiftInput {
   const p = f.player;
   const e = nearest(f);
+  const spot = objectiveSpot(f);
+  // Holding a ward circle (or waiting for the first train): stay put, swing at what comes close.
+  if (spot?.stay && dist(spot.at, p) < 1) {
+    const aim = e ? Math.atan2(e.y - p.y, e.x - p.x) : p.aim;
+    return { ...NO_INPUT, aim, attack: !!e && dist(e, p) - e.r <= W.reach };
+  }
+  if (spot && !spot.stay && (!e || dist(e, p) >= 7)) {
+    const d = pathDir(f, spot.at);
+    return { ...NO_INPUT, aim: Math.atan2(d.y, d.x), attack: true, moveX: d.x, moveY: d.y };
+  }
+  if (spot?.stay && (!e || dist(e, p) >= 4)) {
+    const d = pathDir(f, spot.at);
+    return { ...NO_INPUT, aim: Math.atan2(d.y, d.x), attack: true, moveX: d.x, moveY: d.y };
+  }
   if (e && dist(e, p) < 7) {
     const aim = Math.atan2(e.y - p.y, e.x - p.x);
     const close = dist(e, p) - e.r <= W.reach * 0.8;
@@ -54,7 +86,7 @@ export function naive(f: Floor): RiftInput {
   }
   // Sealed stairs: hunt the nearest strong ghost still standing (awake or not).
   const hunt = f.enemies
-    .filter((x) => x.hp > 0 && x.kind !== 'gumiho' && !GHOSTS[x.kind].fodder)
+    .filter((x) => x.hp > 0 && x.kind !== 'gumiho' && !GHOSTS[x.kind].fodder && x.role !== 'lair')
     .sort((a, b) => dist(a, p) - dist(b, p))[0];
   const goal = (f.stairs && stairsOpen(f) ? f.stairs : hunt) ?? f.stairs ?? f.enemies[0] ?? p;
   const d = pathDir(f, goal);

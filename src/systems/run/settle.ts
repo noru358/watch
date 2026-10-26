@@ -7,6 +7,7 @@ export interface Settlement {
   lootLost: number;
   fee: number;
   traumaDelta: number;
+  shards: number; // 심연 파편 kept (all of them, unless the director fell)
 }
 
 // Converts a finished run into wallet/trauma changes (docs/design/2-night/run-result.md).
@@ -31,5 +32,6 @@ export function settleRun(result: RunResult, wallet: number): Settlement {
     lootLost: result.loot - lootKept,
     fee: result.fee,
     traumaDelta,
+    shards: result.outcome === 'died' ? 0 : result.shards,
   };
 }

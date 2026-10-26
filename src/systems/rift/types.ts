@@ -3,6 +3,7 @@ import type { AttackShape } from '../../data/ghosts.data';
 import type { ActiveId, CardId, EnemyId, FloorTheme, PerkId, WeaponId } from '../../types/ids';
 import type { GameEvent } from '../../types/events';
 import type { ObjectiveState } from './objectives/types';
+import type { LairState } from './lair';
 
 // Positions are in TILE units (floats); tile (x, y) covers [x, x+1) × [y, y+1).
 export type Tile = 'wall' | 'floor';
@@ -162,12 +163,12 @@ export interface Floor {
   stairs: Pos | null; // tile centre; null on boss / arena floors
   objective: ObjectiveState | null; // what opens the stairs (normal floors); null = open from the start
   goal: boolean; // the contract's main objective is on this floor (finishing it offers to go home)
-  arena: boolean; // bounty arena: clearing every strong ghost ends the night
+  lair: LairState | null; // 괴이 소굴 (현장 변형)
   payphone: Pos | null;
   payphoneArmed: boolean; // re-arms once the director walks away
   player: Player;
   enemies: Enemy[];
-  pickups: (Pos & { value: number })[];
+  pickups: (Pos & { value: number; shard?: boolean })[];
   boss: BossState | null;
   swarm: SwarmPlan | null;
   swarmTimer: number; // seconds to the next swarm wave
@@ -183,6 +184,8 @@ export interface Floor {
   vision: number | null; // tiles visible on the whole floor (정전); null = normal
   time: number;
   loot: number;
+  shards: number; // 심연 파편 earned on this floor (banked by the run)
+  bossShards: number; // paid when this floor's boss is purified
   status: FloorStatus;
   nextId: number;
   flow: Int16Array; // tile distance to the director (enemy pathing)

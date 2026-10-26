@@ -15,6 +15,7 @@ import { RiftHud } from './RiftHud';
 import { attachVfx } from '../shared/vfx';
 import { RiftView, tileToPx } from './RiftView';
 import { loadDirectorFrames } from '../shared/draw/directorFrames';
+import { targetName } from '../../app/names';
 
 type Mode = 'play' | 'cards' | 'payphone' | 'goal' | 'paused' | 'end';
 const END_INPUT_DELAY = 0.6; // seconds before the end panel accepts input
@@ -64,6 +65,7 @@ export class RiftScene extends Phaser.Scene {
   private aim = -Math.PI / 2;
   private mouseMoves = -1;
   private mouseIdle = 99;
+  private targetName: string | null = null; // 현상수배 / 추격 target on tonight's offer
 
   constructor() {
     super('rift');
@@ -83,6 +85,7 @@ export class RiftScene extends Phaser.Scene {
     // The offer chosen on the contract board (the board always has one selected before 출동).
     const plan = store.nightPlan() ?? store.firstPlan();
     this.run = startRun({ ...plan, weapon: 'newspaper_sword', loadout: night.loadout });
+    this.targetName = targetName(store.getState().board.find((o) => o.id === plan.offerId)?.target ?? null);
 
     // Two cameras: the zoomed world camera follows the director; the UI camera stays 1:1.
     this.worldLayer = this.add.layer();
@@ -129,6 +132,7 @@ export class RiftScene extends Phaser.Scene {
     cam.setBounds(-FEEL.tile * 2, -FEEL.tile * 2, (this.floor.cols + 4) * FEEL.tile, (this.floor.rows + 4) * FEEL.tile);
     cam.centerOn(this.floor.player.x * FEEL.tile, this.floor.player.y * FEEL.tile);
     if (this.floor.boss) this.overlay.banner(t('rift.bossIntro'));
+    else if (this.floor.vision !== null) this.overlay.banner(t('rift.blackout'));
     input.clearPressed();
     this.acc = 0;
   }
@@ -195,7 +199,7 @@ export class RiftScene extends Phaser.Scene {
     this.followCamera(dt);
     this.view.render(this.floor, this.acc / FEEL.fixedStep, dt);
     const goal = this.run.floors.findIndex((p) => p.kind === 'normal' && p.goal);
-    this.hud.render(this.floor, { floor: this.floor.index + 1, total: totalFloors(this.run), goalFloor: goal >= 0 ? goal + 1 : null }, dt);
+    this.hud.render(this.floor, { floor: this.floor.index + 1, total: totalFloors(this.run), goalFloor: goal >= 0 ? goal + 1 : null, targetName: this.targetName }, dt);
   }
 
   private simulate(dt: number): void {
@@ -211,6 +215,17 @@ export class RiftScene extends Phaser.Scene {
       events.forEach((e) => eventBus.emitEvent(toPixels(e)));
       if (events.some((e) => e.type === 'bossPhase')) this.view.setNeon(true);
       if (events.some((e) => e.type === 'survivorFound')) this.overlay.banner(t('rift.found'));
+      if (events.some((e) => e.type === 'quarryFled')) this.overlay.banner(t('rift.quarryFled'));
+      if (events.some((e) => e.type === 'wardSealed')) this.overlay.banner(t('rift.wardSealed'));
+      // A 괴이 소굴 sealed or opened its doors: the tiles changed, redraw the map.
+      if (events.some((e) => e.type === 'lairLocked')) {
+        this.view.drawMap(this.floor);
+        this.overlay.banner(t('rift.lairLocked'));
+      }
+      if (events.some((e) => e.type === 'lairOpened')) {
+        this.view.drawMap(this.floor);
+        this.overlay.banner(t('rift.lairOpened'));
+      }
       if (this.floor.status !== 'playing') this.afterFloorChange();
     }
   }

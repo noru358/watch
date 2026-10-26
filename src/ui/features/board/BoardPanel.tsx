@@ -3,15 +3,16 @@ import { input, requestPhase, store } from '../../../app/services';
 import { OFFICE } from '../../../data/office.data';
 import { t } from '../../../i18n';
 import { bundleWith, type ContractOffer } from '../../../systems/office';
-import { traumaEffects } from '../../../systems/growth';
+import { deskEffects, traumaEffects } from '../../../systems/growth';
 import { SUPPLIES } from '../../../data/facilities.data';
 import type { NodeId } from '../../../types/ids';
 import { BOARD_LOOK as L } from './look';
 import { OfferSheet } from './OfferSheet';
 import { OpsMap } from './OpsMap';
 
-const ORDER: Record<ContractOffer['kind'], number> = { story: 0, bounty: 1, general: 2 };
-const sorted = (board: readonly ContractOffer[]) => [...board].sort((a, b) => ORDER[a.kind] - ORDER[b.kind] || a.id - b.id);
+// 메인 스토리 first, then named targets, then the rest.
+const rank = (o: ContractOffer) => (o.kind === 'main' ? 0 : o.target ? 1 : 2);
+const sorted = (board: readonly ContractOffer[]) => [...board].sort((a, b) => rank(a) - rank(b) || a.id - b.id);
 
 // Too much trauma keeps the director in (docs/rules/growth.md).
 function sortie(): void {
@@ -75,7 +76,7 @@ export function BoardPanel() {
         <OpsMap contamination={s.contamination} board={s.board} selected={sel} onPick={pickNode} />
       </section>
       <section aria-label={t('board.pick')} style={{ flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {sel ? <OfferSheet offer={sel} day={s.day} known={s.known.includes(sel.node)} others={list.length - 1} /> : <div style={{ color: L.dim, padding: 20 }}>{t('board.pick')}</div>}
+        {sel ? <OfferSheet offer={sel} day={s.day} known={s.known.includes(sel.node) || deskEffects(s).reveal} others={list.length - 1} /> : <div style={{ color: L.dim, padding: 20 }}>{t('board.pick')}</div>}
         {s.supply && <div style={{ fontSize: 13, color: L.dim }}>{t('board.supply', { name: t(SUPPLIES[s.supply].nameKey) })}</div>}
         {grounded && <div style={{ fontSize: 13, color: L.bounty }}>{t('board.grounded')}</div>}
         {bundle.length > 0 && (

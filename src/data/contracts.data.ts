@@ -1,5 +1,5 @@
 import type { TKey } from '../i18n';
-import type { BossId, ContractId, FloorTheme, GhostId, NodeId, ObjectiveKind } from '../types/ids';
+import type { BossId, ContractId, FloorTheme, GhostId, ModifierId, NodeId, ObjectiveKind } from '../types/ids';
 
 // Swarm waves: every `every` seconds `group` fodder spawn out of sight (between
 // `near` and `far` tiles from the director), while fewer than `cap` are alive.
@@ -12,14 +12,33 @@ export interface SwarmPlan {
   far: number;
 }
 
+// What a floor's objective needs beyond its kind: the named target (현상수배 / 추격), the 심연 파편
+// it pays, the time to hold out (첫차까지).
+export interface ObjectiveBrief {
+  target: { ghost: GhostId; level: number } | null;
+  shards: number;
+  time: number;
+}
+
 // normal: random rooms; the stairs stay shut until the floor's objective is met (null = open from the start).
 // `goal`: the contract's main objective is on this floor, so finishing it offers to go home with the fee.
-// arena: one big room of strong ghosts (a bounty's last floor); clearing it ends the night.
-// boss: the source's room.
+// `mods`: 현장 변형 (modifiers.data.ts). `deep`: floors past the goal ("계속": richer, harder).
+// boss: the source's room (main story); `shards` are paid when it is purified.
 export type FloorPlan =
-  | { kind: 'normal'; enemies: number; pool: readonly GhostId[]; payphone: boolean; swarm: SwarmPlan | null; objective: ObjectiveKind | null; goal: boolean; theme: FloorTheme }
-  | { kind: 'arena'; enemies: number; pool: readonly GhostId[]; swarm: SwarmPlan | null; theme: FloorTheme }
-  | { kind: 'boss'; boss: BossId; swarm: SwarmPlan | null; theme: FloorTheme };
+  | {
+      kind: 'normal';
+      enemies: number;
+      pool: readonly GhostId[];
+      payphone: boolean;
+      swarm: SwarmPlan | null;
+      objective: ObjectiveKind | null;
+      goal: boolean;
+      theme: FloorTheme;
+      mods?: readonly ModifierId[];
+      deep?: number;
+      brief?: ObjectiveBrief;
+    }
+  | { kind: 'boss'; boss: BossId; swarm: SwarmPlan | null; theme: FloorTheme; shards?: number };
 
 export const wisps = (every: number, group: number, cap: number): SwarmPlan => ({ kind: 'dokkaebibul', every, group, cap, near: 7, far: 12 });
 
@@ -32,7 +51,7 @@ export interface ContractData {
   unlockDay: number; // first day it shows on the board
 }
 
-// Hand-written story contracts. General and bounty contracts are generated (src/systems/office/).
+// 메인 스토리: hand-written contracts. 일반 의뢰 are generated (src/systems/office/).
 export const CONTRACTS: Record<ContractId, ContractData> = {
   // 불 꺼지는 동네: 구미호 「월하」 (docs/design/2-night/contract.md)
   // 불 꺼진 골목 → 인쇄소 지하 → 지하상가(☎) → 옥상 → 불이 전부 꺼진 공터
@@ -47,7 +66,7 @@ export const CONTRACTS: Record<ContractId, ContractData> = {
       { kind: 'normal', enemies: 6, pool: ['cheonyeo', 'dalgyal'], payphone: false, swarm: wisps(6, 4, 12), objective: 'clear', goal: false, theme: 'basement' },
       { kind: 'normal', enemies: 7, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: true, swarm: wisps(5.5, 4, 14), objective: 'clear', goal: false, theme: 'arcade' },
       { kind: 'normal', enemies: 7, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: false, swarm: wisps(5, 5, 16), objective: 'clear', goal: false, theme: 'rooftop' },
-      { kind: 'boss', boss: 'gumiho', swarm: wisps(7, 4, 10), theme: 'lot' },
+      { kind: 'boss', boss: 'gumiho', swarm: wisps(7, 4, 10), theme: 'lot', shards: 3 },
     ],
   },
 };

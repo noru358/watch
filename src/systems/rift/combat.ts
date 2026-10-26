@@ -69,6 +69,7 @@ export function hitEnemy(
       o.hp = 0;
       o.teles = [];
     });
+    f.shards += f.bossShards;
     f.status = 'bossDefeated';
     f.events.push({ type: 'roomCleared', boss: true });
   }

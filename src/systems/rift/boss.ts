@@ -1,7 +1,7 @@
 import type { BossData } from '../../data/ghosts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import { resolveTelegraphs } from './enemies';
-import { makeEnemy } from './mapgen';
+import { makeEnemy } from './enemyFactory';
 import { dist, isFloor, moveBody, steer } from './physics';
 import type { Enemy, Floor, Telegraph } from './types';
 

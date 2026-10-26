@@ -10,6 +10,7 @@ import { drawSurvivor } from './draw/survivor';
 import { drawProps } from './draw/props';
 import { drawTelegraph } from './draw/telegraph';
 import { drawTiles } from './draw/tiles';
+import { drawEnemyMark, drawFloorMarks, drawShots } from './draw/marks';
 
 export const tileToPx = (x: number, y: number) => ({ x: x * T, y: y * T });
 
@@ -84,25 +85,31 @@ export class RiftView {
     this.clock += dt;
     g.clear();
     drawProps(g, f, this.clock);
+    drawFloorMarks(g, f, this.clock);
     this.tele.clear();
     for (const e of f.enemies) for (const t of e.teles) drawTelegraph(this.tele, t, f);
 
     // y-sort: whoever stands lower on screen is drawn in front.
     const draws: { y: number; fn: () => void }[] = f.enemies.map((e) => ({
       y: e.y,
-      fn: () => drawGhost(g, e, alpha, this.clock, this.flashing(e.id, dt), f.boss?.phase === 2),
+      fn: () => {
+        drawGhost(g, e, alpha, this.clock, this.flashing(e.id, dt), f.boss?.phase === 2);
+        drawEnemyMark(g, e, alpha, this.clock);
+      },
     }));
     const s = survivorOf(f);
     if (s) draws.push({ y: s.y, fn: () => drawSurvivor(g, s, alpha, this.clock) });
     draws.push({ y: f.player.y, fn: () => drawDirector(g, f.player, f, alpha, this.clock, (anim, n) => directorSprite(this.scene, anim, n)) });
     draws.sort((a, b) => a.y - b.y).forEach((d) => d.fn());
+    drawShots(g, f);
 
     this.drawLights(f, alpha);
     this.fog.clear();
     const p = f.player;
-    if (p.darkness > 0) {
+    // Darkness from a hit, or 정전 on the whole floor (현장 변형): only a few tiles around are visible.
+    if (p.darkness > 0 || f.vision !== null) {
       this.fog.fillStyle(0x000000, FEEL.darknessAlpha);
-      const vision = EXORCISTS.director.darknessVision;
+      const vision = p.darkness > 0 ? Math.min(EXORCISTS.director.darknessVision, f.vision ?? 99) : f.vision!;
       for (let y = 0; y < f.rows; y++) {
         for (let x = 0; x < f.cols; x++) {
           if (Math.hypot(x + 0.5 - p.x, y + 0.5 - p.y) > vision) this.fog.fillRect(x * T, y * T - FEEL.wallFace, T, T);

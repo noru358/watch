@@ -10,7 +10,7 @@ export type WeaponCardId = 'double_newspaper' | 'blue_lightning' | 'lazy_but_ser
 export type CardId = BaseCardId | WeaponCardId; // 강화 카드 (per-run upgrade)
 export type CardSource = 'base' | WeaponId;
 export type ContractId = 'lights_out'; // hand-written story contracts
-export type ContractKind = 'story' | 'general' | 'bounty'; // TEMP until the contract rework
+export type ContractKind = 'main' | 'general'; // 메인 스토리 (hand-written, required to progress) / 일반 의뢰 (generated)
 export type NodeId = 'alley' | 'printshop' | 'arcade' | 'station' | 'motel' | 'rooftop'; // 을지로 작전 지도 노드
 // 일반 의뢰 사연 틀 (each belongs to one objective, src/data/requests.data.ts)
 export type RequestId =

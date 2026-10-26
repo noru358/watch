@@ -300,6 +300,7 @@ export class GameStore {
     this.set({
       ...o,
       trauma: this.state.trauma + settlement.traumaDelta,
+      shards: this.state.shards + settlement.shards,
       solved: this.state.solved + (result.outcome === 'success' ? 1 : 0),
       activeOfferId: null,
       lastRun: { result, settlement, bundled: Math.max(1, night.completed.length) },

@@ -1,7 +1,9 @@
 import { GHOSTS } from '../../data/ghosts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
-import { makeEnemy } from './mapgen';
+import { makeEnemy } from './enemyFactory';
 import { isFloor } from './physics';
+import { wardCharging } from './objectives';
+import { OBJECTIVES } from '../../data/objectives.data';
 import type { Floor } from './types';
 
 // Swarm waves (뱀서류-lite): fodder keeps arriving from out of sight while the
@@ -9,7 +11,7 @@ import type { Floor } from './types';
 export function updateSwarm(f: Floor, dt: number, rng: SeededRNG): void {
   const s = f.swarm;
   if (!s) return;
-  f.swarmTimer -= dt;
+  f.swarmTimer -= dt * (wardCharging(f) ? OBJECTIVES.ward.swarmFaster : 1);
   if (f.swarmTimer > 0) return;
   f.swarmTimer = s.every;
   const alive = f.enemies.filter((e) => e.kind !== 'gumiho' && GHOSTS[e.kind].fodder).length;

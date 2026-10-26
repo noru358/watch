@@ -1,16 +1,21 @@
-import { BOSSES, GHOSTS } from '../../data/ghosts.data';
+import { BOSSES } from '../../data/ghosts.data';
 import { DUNGEON } from '../../data/dungeon.data';
+import { MODIFIERS } from '../../data/modifiers.data';
+import { DEEP } from '../../data/objectives.data';
 import { EXORCISTS } from '../../data/protagonist.data';
 import type { FloorPlan } from '../../data/contracts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
-import type { ActiveId, CardId, EnemyId, PerkId, WeaponId } from '../../types/ids';
+import type { ActiveId, CardId, PerkId, WeaponId } from '../../types/ids';
 import { runHooks } from './hooks';
-import { setupObjective } from './objectives';
-import { assignRoles, bigRoom, centre, randomRooms, roomTile, type Room } from './layout';
+import { makeEnemy } from './enemyFactory';
+import { setupLair } from './lair';
+import { setupObjective, type QuarryCarry } from './objectives';
+import { assignRoles, bigRoom, centre, distances, randomRooms, roomTile, type Room } from './layout';
 import { isFloor } from './physics';
-import type { Enemy, Floor, Pos, Stats, Tile } from './types';
+import type { Floor, Pos, Stats, Tile } from './types';
 
 export { isFloor };
+export { makeEnemy };
 
 export interface FloorCarry {
   hp: number;
@@ -22,37 +27,8 @@ export interface FloorCarry {
   perks: PerkId[];
   used: PerkId[];
   active: ActiveId | null;
-}
-
-export function makeEnemy(f: Floor, kind: EnemyId, at: Pos): Enemy {
-  const boss = kind === 'gumiho';
-  const hp = boss ? BOSSES[kind].hp : GHOSTS[kind].hp;
-  const e: Enemy = {
-    id: f.nextId++,
-    kind,
-    x: at.x,
-    y: at.y,
-    prevX: at.x,
-    prevY: at.y,
-    r: boss ? BOSSES[kind].radius : GHOSTS[kind].radius,
-    hp,
-    maxHp: hp,
-    state: boss ? 'chase' : 'idle',
-    timer: 0,
-    teles: [],
-    warpTimer: boss ? 0 : GHOSTS[kind].teleportEvery,
-    warpTo: null,
-    knockX: 0,
-    knockY: 0,
-    face: 1,
-    speedMult: 1,
-    damageAdd: 0,
-    windupMult: 1,
-    role: 'normal',
-    asleep: false,
-  };
-  f.enemies.push(e);
-  return e;
+  quarry?: QuarryCarry | null; // 추격: the quarry as it left the previous floor
+  last?: boolean; // this is the contract's last floor
 }
 
 function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, plan: FloorPlan): Floor {
@@ -66,7 +42,7 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
     stairs: null,
     objective: null,
     goal: plan.kind === 'normal' && plan.goal,
-    arena: plan.kind === 'arena',
+    lair: null,
     payphone: null,
     payphoneArmed: true,
     player: {
@@ -104,7 +80,7 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
     enemies: [],
     pickups: [],
     boss: null,
-    swarm: plan.swarm,
+    swarm: plan.swarm ? { ...plan.swarm } : null,
     swarmTimer: plan.swarm ? plan.swarm.every / 2 : 0,
     weapon: carry.weapon,
     stats: carry.stats,
@@ -118,6 +94,8 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
     vision: null,
     time: 0,
     loot: carry.loot,
+    shards: 0,
+    bossShards: plan.kind === 'boss' ? (plan.shards ?? 0) : 0,
     status: 'playing',
     nextId: 1,
     flow: new Int16Array(DUNGEON.cols * DUNGEON.rows).fill(-1),
@@ -127,10 +105,14 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
 }
 
 // Rooms with roles (layout.ts), then what stands in them: stairs and 2 guards in the exit room,
-// a payphone and the other strong ghosts in side rooms, a spirit heap in the treasure room.
+// a payphone and the other strong ghosts in side rooms, the objective (quiet side rooms), a spirit
+// heap in the treasure room. Modifiers and "deep" floors (past the goal) add on top; a plain clear
+// floor draws exactly the same RNG as before, so main-story maps stay the same for a given seed.
 function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>, rng: SeededRNG, carry: FloorCarry): Floor {
   const { tiles, rooms } = randomRooms(rng);
   const { start, exit, treasure, side } = assignRoles(tiles, rooms, rng);
+  const mods = plan.mods ?? [];
+  const deep = plan.deep ?? 0;
   const used = new Set<string>([`${start.x},${start.y}`]);
   const free = (from: Room[]): Pos => {
     for (let i = 0; i < 50; i++) {
@@ -142,26 +124,29 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
     }
     return roomTile(rng.pick(from), rng);
   };
+  let quiet = side.filter((r) => r !== treasure);
+  // 괴이 소굴 takes one quiet side room for itself (decided first so nothing else is put there).
+  const lairRoom = mods.includes('lair') && quiet.length > 1 ? rng.pick(quiet) : null;
+  if (lairRoom) quiet = quiet.filter((r) => r !== lairRoom);
+  const spread = side.filter((r) => r !== lairRoom);
   const f = baseFloor(index, tiles, start, carry, plan);
   f.stairs = free([exit]);
-  if (plan.payphone) f.payphone = free(side);
-  for (let i = 0; i < plan.enemies; i++) makeEnemy(f, rng.pick(plan.pool), free(i < DUNGEON.exitGuards ? [exit] : side));
-  // A clear objective draws no RNG, so sealed story floors keep the same maps for a given seed.
+  if (plan.payphone) f.payphone = free(spread);
+  for (let i = 0; i < plan.enemies; i++) makeEnemy(f, rng.pick(plan.pool), free(i < DUNGEON.exitGuards ? [exit] : spread));
   if (plan.objective) {
-    const quiet = side.filter((r) => r !== treasure);
-    f.objective = setupObjective(plan.objective, () => free(quiet.length > 0 ? quiet : side));
+    const pool = quiet.length > 0 ? quiet : spread;
+    const dist = distances(tiles, start);
+    const walk = (r: Room) => dist[Math.floor(r.y + r.h / 2) * f.cols + Math.floor(r.x + r.w / 2)] ?? -1;
+    const nest = pool.reduce((best, r) => (walk(r) > walk(best) ? r : best), pool[0]!);
+    f.objective = setupObjective(f, plan, { quiet: () => free(pool), nest: () => free([nest]), quarry: carry.quarry ?? null, last: carry.last ?? false, rng });
   }
-  for (let i = 0; i < DUNGEON.spiritPickupsPerFloor; i++) f.pickups.push({ ...free(rooms), value: DUNGEON.spiritPickupValue });
-  if (treasure) for (let i = 0; i < DUNGEON.treasurePickups; i++) f.pickups.push({ ...free([treasure]), value: DUNGEON.treasureValue });
-  return f;
-}
-
-// A bounty's last floor: one big room, the pack waits in the top half and comes at once.
-function arenaFloor(index: number, plan: Extract<FloorPlan, { kind: 'arena' }>, rng: SeededRNG, carry: FloorCarry): Floor {
-  const { tiles, room } = bigRoom(DUNGEON.arenaRoom);
-  const f = baseFloor(index, tiles, centre(room.x + Math.floor(room.w / 2), room.y + room.h - 2), carry, plan);
-  const top = { ...room, h: Math.floor(room.h / 2) };
-  for (let i = 0; i < plan.enemies; i++) makeEnemy(f, rng.pick(plan.pool), roomTile(top, rng)).state = 'chase';
+  const value = (v: number) => Math.round(v * (1 + DEEP.lootPerFloor * deep));
+  for (let i = 0; i < DUNGEON.spiritPickupsPerFloor; i++) f.pickups.push({ ...free(rooms), value: value(DUNGEON.spiritPickupValue) });
+  if (treasure) for (let i = 0; i < DUNGEON.treasurePickups; i++) f.pickups.push({ ...free([treasure]), value: value(DUNGEON.treasureValue) });
+  if (treasure && deep > 0 && carry.last) for (let i = 0; i < DEEP.shardOnLast; i++) f.pickups.push({ ...free([treasure]), value: 0, shard: true });
+  if (lairRoom) f.lair = setupLair(f, lairRoom, plan.pool, rng);
+  const vision = mods.map((m) => MODIFIERS[m].vision).find((v) => v !== undefined);
+  if (vision !== undefined) f.vision = vision;
   return f;
 }
 
@@ -177,8 +162,7 @@ function bossFloor(index: number, plan: Extract<FloorPlan, { kind: 'boss' }>, ca
 }
 
 export function generateFloor(index: number, plan: FloorPlan, rng: SeededRNG, carry: FloorCarry): Floor {
-  const f =
-    plan.kind === 'boss' ? bossFloor(index, plan, carry) : plan.kind === 'arena' ? arenaFloor(index, plan, rng, carry) : normalFloor(index, plan, rng, carry);
+  const f = plan.kind === 'boss' ? bossFloor(index, plan, carry) : normalFloor(index, plan, rng, carry);
   runHooks(f, 'onRoomEnter', {});
   return f;
 }

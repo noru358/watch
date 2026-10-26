@@ -77,6 +77,7 @@ export class Overlay {
       `${t('result.total')}  ${s.moneyDelta}`,
     ];
     if (s.traumaDelta > 0) lines.push(`${t('result.trauma')}  +${s.traumaDelta}`);
+    if (s.shards > 0) lines.push(t('result.shards', { shards: s.shards }));
     this.layer.add(crispText(this.scene, W / 2, 150, title, { ...TEXT, fontSize: '36px' }).setOrigin(0.5));
     this.layer.add(crispText(this.scene, W / 2, 270, lines.join('\n'), { ...TEXT, fontSize: '20px', align: 'center', lineSpacing: 10 }).setOrigin(0.5));
     this.layer.add(crispText(this.scene, W / 2, 410, t('end.continue'), { ...TEXT, fontSize: '16px', color: PALETTE.textDim }).setOrigin(0.5));

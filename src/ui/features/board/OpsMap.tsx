@@ -52,7 +52,7 @@ export function OpsMap({ contamination, board, selected, onPick }: Props) {
               <text x={n.x} y={cy + r + 3.6} textAnchor="middle" fontSize={2.6} fill={isSel ? L.ink : L.dim} fontWeight={isSel ? 700 : 400}>{t(n.nameKey)}</text>
               {pins.map((o, i) => (
                 <rect key={o.id} x={n.x - (pins.length * 2.6) / 2 + i * 2.6 + 0.3} y={cy - r - 4.2} width={2} height={2.6} rx={0.3}
-                  fill={o.kind === 'story' ? L.accent : o.kind === 'bounty' ? L.bounty : L.general} />
+                  fill={o.kind === 'main' ? L.accent : o.target ? L.bounty : L.general} />
               ))}
             </g>
           );

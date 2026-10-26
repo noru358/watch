@@ -74,6 +74,35 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
       playSfx('block');
     }),
     bus.on('pickupCollected', () => playSfx('pickup')),
+    bus.on('shardCollected', (e) => {
+      ring(scene, e.x, e.y, 14, PALETTE.shard);
+      playSfx('clear');
+    }),
+    bus.on('skillUsed', (e) => {
+      ring(scene, e.x, e.y, e.skill === 'salt_burst' ? 40 : e.skill === 'barrier' ? 30 : 10, e.skill === 'talisman' ? PALETTE.talisman : PALETTE.barrier);
+      playSfx(e.skill === 'talisman' ? 'slash' : 'block');
+    }),
+    bus.on('shotHit', (e) => {
+      ring(scene, e.x, e.y, 10, PALETTE.talisman);
+      playSfx('hit');
+    }),
+    bus.on('lastBreath', (e) => {
+      ring(scene, e.x, e.y, 24, PALETTE.shield);
+      playSfx('parry');
+    }),
+    bus.on('quarryFled', (e) => {
+      ring(scene, e.x, e.y, 18, PALETTE.bountyMark);
+      playSfx('dash');
+    }),
+    bus.on('wardSealed', (e) => {
+      ring(scene, e.x, e.y, 28, PALETTE.barrier);
+      playSfx('clear');
+    }),
+    bus.on('lairLocked', () => {
+      cam.shake(FEEL.shakeBossPhase.duration / 2, FEEL.shakeBossPhase.intensity / 2);
+      playSfx('phase');
+    }),
+    bus.on('objectiveDone', () => playSfx('clear')),
     bus.on('slash', () => playSfx('slash')),
     bus.on('dash', (e) => {
       ring(scene, e.x, e.y + 4, 8, PALETTE.textDimHex);

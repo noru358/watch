@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
-import { PALETTE, SCREEN } from '../../data/feel.data';
+import { FEEL, PALETTE, SCREEN } from '../../data/feel.data';
+import { ACTIVES } from '../../data/skills.data';
+import { OBJECTIVES } from '../../data/objectives.data';
 import { t, type TKey } from '../../i18n';
-import { counterable, strongLeft, survivorOf, type Floor } from '../../systems/rift';
+import { counterable, isStrong, strongStanding, survivorOf, type Floor, type Pos } from '../../systems/rift';
 import { crisp } from '../shared/text';
 
 const W = SCREEN.width;
@@ -17,10 +19,12 @@ const CRY_SHOW = 1.6; // seconds the cry arrow stays after a cry
 export interface HudInfo {
   floor: number; // 1-based
   total: number;
-  goalFloor: number | null; // 1-based floor where the contract ends early (rescue), if any
+  goalFloor: number | null; // 1-based floor where the contract ends early, if any
+  targetName: string | null; // 현상수배 / 추격: the named ghost
 }
 
-type SlotId = 'attack' | 'dash' | 'draw' | 'ally';
+type SlotId = 'attack' | 'dash' | 'draw' | 'skill';
+const VIEW_TILES = { x: SCREEN.width / 2 / (FEEL.tile * FEEL.zoom), y: SCREEN.height / 2 / (FEEL.tile * FEEL.zoom) };
 
 // Night HUD (docs/design/1-foundation/ui.md "밤 HUD"): objective on top, floor and loot top-right,
 // health and focus bottom-left, the four action slots bottom-right. No key legend: that lives in the pause menu.
@@ -50,7 +54,7 @@ export class RiftHud {
       attack: text(0, 0, t('hud.slot.attack'), { ...TEXT, fontSize: '10px', color: PALETTE.textDim }).setOrigin(0.5, 0),
       dash: text(0, 0, t('hud.slot.dash'), { ...TEXT, fontSize: '10px', color: PALETTE.textDim }).setOrigin(0.5, 0),
       draw: text(0, 0, t('hud.slot.draw'), { ...TEXT, fontSize: '10px', color: PALETTE.textDim }).setOrigin(0.5, 0),
-      ally: text(0, 0, t('hud.slot.ally'), { ...TEXT, fontSize: '10px', color: PALETTE.textDim }).setOrigin(0.5, 0),
+      skill: text(0, 0, '', { ...TEXT, fontSize: '10px', color: PALETTE.textDim }).setOrigin(0.5, 0),
     };
     layer.add([this.g, this.goalText, this.floorText, this.lootText, this.hpLabel, this.focusLabel, this.bareText, this.cryText, ...Object.values(this.slotLabels)]);
   }
@@ -58,45 +62,105 @@ export class RiftHud {
   render(f: Floor, info: HudInfo, dt: number): void {
     this.clock += dt;
     this.g.clear();
-    this.renderGoal(f);
+    this.renderGoal(f, info);
     this.renderFloor(f, info);
     this.renderVitals(f);
     this.renderSlots(f);
     this.renderCry(f);
+    this.renderPointers(f);
+  }
+
+  // An arrow on the screen edge toward a spot off screen (nothing when it is on screen).
+  private edgeArrow(f: Floor, at: Pos, color: number, alpha = 1, always = false): { x: number; y: number; a: number } | null {
+    const p = f.player;
+    const dx = at.x - p.x;
+    const dy = at.y - p.y;
+    if (!always && Math.abs(dx) < VIEW_TILES.x - 0.5 && Math.abs(dy) < VIEW_TILES.y - 0.5) return null;
+    const a = Math.atan2(dy, dx);
+    const rx = W / 2 - 46;
+    const ry = H / 2 - 46;
+    const k = Math.min(rx / Math.abs(Math.cos(a) || 1e-6), ry / Math.abs(Math.sin(a) || 1e-6));
+    const ax = W / 2 + Math.cos(a) * k;
+    const ay = H / 2 + Math.sin(a) * k;
+    const tip = { x: ax + Math.cos(a) * 16, y: ay + Math.sin(a) * 16 };
+    const l = { x: ax + Math.cos(a + 2.4) * 14, y: ay + Math.sin(a + 2.4) * 14 };
+    const r = { x: ax + Math.cos(a - 2.4) * 14, y: ay + Math.sin(a - 2.4) * 14 };
+    this.g.fillStyle(color, alpha).fillTriangle(tip.x, tip.y, l.x, l.y, r.x, r.y);
+    return { x: ax, y: ay, a };
+  }
+
+  // Edge arrows the objective and perks give: the named target, unfinished ward sites, the stairs
+  // on the first floor (지도 사본), strong ghosts off screen (귀신 눈).
+  private renderPointers(f: Floor): void {
+    const o = f.objective;
+    if ((o?.kind === 'bounty' || o?.kind === 'chase') && !o.done) {
+      const e = f.enemies.find((x) => x.id === (o.kind === 'bounty' ? o.targetId : o.targetId) && x.hp > 0);
+      if (e) this.edgeArrow(f, e, PALETTE.bountyMark, 0.9);
+    }
+    if (o?.kind === 'ward' && !o.done) {
+      for (const site of o.sites) if (site.progress < 1) this.edgeArrow(f, site, PALETTE.accent, 0.8);
+    }
+    const open = !o || (o.kind === 'chase' ? o.done || o.fled : o.kind === 'rescue' ? o.survivor.state === 'following' : o.done);
+    if (f.stairs && (open || (f.index === 0 && f.perks.includes('map_copy')))) this.edgeArrow(f, f.stairs, PALETTE.textDimHex, 0.7);
+    if (f.perks.includes('ghost_eye')) for (const e of f.enemies) if (e.hp > 0 && isStrong(e)) this.edgeArrow(f, e, PALETTE.parriable, 0.45);
   }
 
   // Top centre: one line saying what opens the way, plus a gauge when the objective has one.
-  private renderGoal(f: Floor): void {
+  private renderGoal(f: Floor, info: HudInfo): void {
     const g = this.g;
     const x = W / 2 - GOAL_W / 2;
     let line = t('hud.obj.free');
-    let gauge: { value: number; color: number } | null = null;
+    let gauge: { value: number; color: number; label: string; ticks?: number[] } | null = null;
     const boss = f.boss && f.enemies.find((e) => e.id === f.boss!.id);
     const o = f.objective;
+    const name = info.targetName ?? '';
+    let open = true;
     if (boss) {
+      open = false;
       line = t(`enemy.${boss.kind}` as TKey);
-      gauge = { value: Math.max(0, boss.hp) / boss.maxHp, color: f.boss!.phase === 2 ? PALETTE.neonPhase2 : PALETTE.gumihoFire };
-    } else if (f.arena) line = t('rift.arena', { count: strongLeft(f) });
-    else if (o?.kind === 'clear') line = o.done ? t('rift.sealOpen') : t('rift.sealed', { count: strongLeft(f) });
-    else if (o?.kind === 'rescue') {
+      gauge = { value: Math.max(0, boss.hp) / boss.maxHp, color: f.boss!.phase === 2 ? PALETTE.neonPhase2 : PALETTE.gumihoFire, label: '' };
+    } else if (o?.kind === 'clear') {
+      open = o.done;
+      line = o.done ? t('rift.sealOpen') : t('rift.sealed', { count: strongStanding(f) });
+    } else if (o?.kind === 'rescue') {
       const s = o.survivor;
+      open = s.state === 'following';
       line = s.state === 'hidden' ? t('hud.obj.find') : t('hud.obj.lead');
-      gauge = s.state === 'hidden' ? { value: o.fear, color: PALETTE.fear } : { value: s.hp / s.maxHp, color: PALETTE.survivor };
+      gauge = s.state === 'hidden' ? { value: o.fear, color: PALETTE.fear, label: t('hud.fear') } : { value: s.hp / s.maxHp, color: PALETTE.survivor, label: t('hud.survivor') };
+    } else if (o?.kind === 'bounty') {
+      open = o.done;
+      const e = f.enemies.find((x) => x.id === o.targetId);
+      line = o.done ? t('hud.obj.bountyDone') : t('hud.obj.bounty', { name });
+      if (e && !o.done) gauge = { value: e.hp / e.maxHp, color: PALETTE.bountyMark, label: '' };
+    } else if (o?.kind === 'chase') {
+      open = o.done || o.fled;
+      const e = f.enemies.find((x) => x.id === o.targetId && x.hp > 0);
+      line = o.done ? t('hud.obj.chaseDone') : o.fled ? t('hud.obj.chaseFled') : e?.asleep ? t('hud.obj.chaseNest', { name }) : t('hud.obj.chase', { name });
+      if (e && !o.done && !o.fled) gauge = { value: e.hp / e.maxHp, color: PALETTE.bountyMark, label: '', ticks: [...OBJECTIVES.chase.fleeAt] };
+    } else if (o?.kind === 'ward') {
+      open = o.done;
+      const finished = o.sites.filter((s) => s.progress >= 1).length;
+      line = o.done ? t('hud.obj.wardDone') : t('hud.obj.ward', { done: finished, total: o.sites.length });
+      const live = o.sites.find((s) => s.progress > 0 && s.progress < 1);
+      if (!o.done) gauge = { value: live ? live.progress : 0, color: PALETTE.accent, label: o.charging ? t('hud.obj.wardCharging') : '' };
+    } else if (o?.kind === 'firsttrain') {
+      open = o.done;
+      const left = Math.ceil(o.left);
+      line = o.done ? t('hud.obj.trainDone') : t('hud.obj.train', { time: `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}` });
+      if (!o.done) gauge = { value: 1 - o.left / o.total, color: PALETTE.accent, label: '' };
     }
     const h = gauge ? 54 : 36;
     g.fillStyle(PALETTE.hudPanel, 0.82).fillRoundedRect(x, 10, GOAL_W, h, 8);
     g.lineStyle(1, PALETTE.hudLine, 1).strokeRoundedRect(x, 10, GOAL_W, h, 8);
     // Icon: a small diamond, accent when the way is open.
-    const open = o ? (o.kind === 'clear' ? o.done : o.survivor.state === 'following') : !boss && !f.arena;
     g.fillStyle(open ? PALETTE.accent : PALETTE.parriable, 1).fillTriangle(x + 18, 20, x + 26, 28, x + 18, 36).fillTriangle(x + 18, 20, x + 10, 28, x + 18, 36);
-    this.goalText.setText(line);
+    this.goalText.setText(gauge?.label ? `${line}   ·   ${gauge.label}` : line);
     if (!gauge) return;
     const gx = x + 34;
     const gw = GOAL_W - 48;
-    const label = o?.kind === 'rescue' && o.survivor.state === 'hidden' ? t('hud.fear') : o?.kind === 'rescue' ? t('hud.survivor') : '';
     g.fillStyle(PALETTE.hudLine, 1).fillRect(gx, 46, gw, 8);
-    g.fillStyle(gauge.color, 1).fillRect(gx, 46, gw * Math.min(1, gauge.value), 8);
-    if (label) this.goalText.setText(`${line}   ·   ${label}`);
+    g.fillStyle(gauge.color, 1).fillRect(gx, 46, gw * Math.max(0, Math.min(1, gauge.value)), 8);
+    for (const k of gauge.ticks ?? []) g.fillStyle(0xffffff, 0.8).fillRect(gx + gw * k - 1, 44, 2, 12);
   }
 
   // Top right: floor counter, a bar per floor (goal floor marked), spirit collected.
@@ -134,14 +198,14 @@ export class RiftHud {
     this.bareText.setVisible(p.bare > 0);
   }
 
-  // Bottom right: 베기 · 돌진 · 발도 (shows what a press would do) · 동료 (empty until Gate 2-B).
+  // Bottom right: 베기 · 돌진 · 발도 (shows what a press would do) · L 액티브 기술 (dashed when none).
   private renderSlots(f: Floor): void {
     const g = this.g;
     const p = f.player;
     const cue = counterable(f).length > 0;
     const full = p.focus >= f.stats.focusMax;
-    const sizes: Record<SlotId, number> = { attack: SLOT, dash: SLOT, draw: DRAW_SLOT, ally: SLOT };
-    const order: SlotId[] = ['attack', 'dash', 'draw', 'ally'];
+    const sizes: Record<SlotId, number> = { attack: SLOT, dash: SLOT, draw: DRAW_SLOT, skill: SLOT };
+    const order: SlotId[] = ['attack', 'dash', 'draw', 'skill'];
     let x = W - 18 - order.reduce((sum, id) => sum + sizes[id], 0) - SLOT_GAP * (order.length - 1);
     const base = H - 34;
     for (const id of order) {
@@ -150,7 +214,22 @@ export class RiftHud {
       const cx = x + s / 2;
       const cy = top + s / 2;
       this.slotLabels[id].setPosition(cx, base + 4);
-      if (id === 'ally') {
+      if (id === 'skill' && f.active) {
+        const ready = f.skillCd <= 0;
+        g.fillStyle(PALETTE.hudPanel, 0.85).fillRoundedRect(x, top, s, s, 8);
+        g.lineStyle(2, ready ? PALETTE.accent : PALETTE.slotIdle, 1).strokeRoundedRect(x, top, s, s, 8);
+        g.lineStyle(2, ready ? PALETTE.accent : PALETTE.slotIdle, 1);
+        if (f.active === 'talisman') g.strokeRect(cx - 6, cy - 11, 12, 22).lineBetween(cx - 3, cy - 4, cx + 3, cy - 4).lineBetween(cx - 3, cy + 2, cx + 3, cy + 2);
+        if (f.active === 'barrier') g.strokeCircle(cx, cy, 13).strokeCircle(cx, cy, 6);
+        if (f.active === 'salt_burst') for (let k = 0; k < 6; k++) g.fillStyle(ready ? PALETTE.accent : PALETTE.slotIdle, 1).fillCircle(cx + Math.cos(k * 1.05) * 10, cy + Math.sin(k * 1.05) * 10, 2.5);
+        const cd = f.skillCd / ACTIVES[f.active].cooldown;
+        if (cd > 0) g.fillStyle(0x000000, 0.6).fillRoundedRect(x, top + s * (1 - Math.min(1, cd)), s, s * Math.min(1, cd), 8);
+        this.slotLabels.skill.setText(`L ${t(ACTIVES[f.active].nameKey)}`);
+        x += s + SLOT_GAP;
+        continue;
+      }
+      if (id === 'skill') {
+        this.slotLabels.skill.setText(t('hud.slot.skillNone'));
         g.lineStyle(2, PALETTE.hudLine, 1);
         for (let k = 0; k < s; k += 8) {
           g.lineBetween(x + k, top, x + Math.min(s, k + 4), top).lineBetween(x + k, top + s, x + Math.min(s, k + 4), top + s);
@@ -183,17 +262,8 @@ export class RiftHud {
     const show = s && o?.kind === 'rescue' && s.state === 'hidden' && o.sinceCry < CRY_SHOW;
     this.cryText.setVisible(!!show);
     if (!show || !s || o?.kind !== 'rescue') return;
-    const a = Math.atan2(s.y - f.player.y, s.x - f.player.x);
-    const rx = W / 2 - 46;
-    const ry = H / 2 - 46;
-    const k = Math.min(rx / Math.abs(Math.cos(a) || 1e-6), ry / Math.abs(Math.sin(a) || 1e-6));
-    const ax = W / 2 + Math.cos(a) * k;
-    const ay = H / 2 + Math.sin(a) * k;
     const alpha = 1 - o.sinceCry / CRY_SHOW;
-    const tip = { x: ax + Math.cos(a) * 16, y: ay + Math.sin(a) * 16 };
-    const l = { x: ax + Math.cos(a + 2.4) * 14, y: ay + Math.sin(a + 2.4) * 14 };
-    const r = { x: ax + Math.cos(a - 2.4) * 14, y: ay + Math.sin(a - 2.4) * 14 };
-    this.g.fillStyle(PALETTE.fear, alpha).fillTriangle(tip.x, tip.y, l.x, l.y, r.x, r.y);
-    this.cryText.setPosition(ax - Math.cos(a) * 26, ay - Math.sin(a) * 26).setAlpha(alpha);
+    const at = this.edgeArrow(f, s, PALETTE.fear, alpha, true);
+    if (at) this.cryText.setPosition(at.x - Math.cos(at.a) * 26, at.y - Math.sin(at.a) * 26).setAlpha(alpha);
   }
 }

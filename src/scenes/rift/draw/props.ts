@@ -26,6 +26,7 @@ export function drawProps(g: G, f: Floor, clock: number): void {
     drawPixelSprite(g, gridSprite(PAYPHONE_ART.rows, PAYPHONE_ART.pal), sx, sy + 1, false);
   }
   for (const k of f.pickups) {
+    if (k.shard) continue; // drawn by marks.ts
     const px = k.x * T;
     const py = k.y * T - 3 + Math.sin(clock * 4 + k.x) * 1.5;
     g.fillStyle(PALETTE.pickup).fillTriangle(px, py - 4, px + 3, py, px - 3, py).fillTriangle(px, py + 4, px + 3, py, px - 3, py);

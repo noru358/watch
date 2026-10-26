@@ -70,11 +70,11 @@ describe('run flow', () => {
 describe('settlement', () => {
   it('success pays fee + loot, death keeps part of loot and adds trauma', () => {
     const fee = CONTRACTS.lights_out.fee;
-    expect(settleRun({ offerId: 0, outcome: 'success', loot: 50, fee }, 0).moneyDelta).toBe(50 + fee);
-    const died = settleRun({ offerId: 0, outcome: 'died', loot: 50, fee: 0 }, 100);
+    expect(settleRun({ offerId: 0, outcome: 'success', loot: 50, fee, shards: 0 }, 0).moneyDelta).toBe(50 + fee);
+    const died = settleRun({ offerId: 0, outcome: 'died', loot: 50, fee: 0, shards: 0 }, 100);
     expect(died.lootKept).toBe(Math.floor(50 * RUN_PENALTIES.deathLootKeepRatio));
     expect(died.traumaDelta).toBe(RUN_PENALTIES.deathTrauma);
-    expect(settleRun({ offerId: 0, outcome: 'extracted', loot: 50, fee: 0 }, 0).moneyDelta).toBe(50);
+    expect(settleRun({ offerId: 0, outcome: 'extracted', loot: 50, fee: 0, shards: 0 }, 0).moneyDelta).toBe(50);
   });
 
   it('store applies results and notifies subscribers', () => {
@@ -82,7 +82,7 @@ describe('settlement', () => {
     let calls = 0;
     store.subscribe(() => calls++);
     const story = store.getState().board.find((o) => o.story === 'lights_out')!;
-    store.applyRunResult({ offerId: story.id, outcome: 'success', loot: 20, fee: story.fee });
+    store.applyRunResult({ offerId: story.id, outcome: 'success', loot: 20, fee: story.fee, shards: 0 });
     expect(store.getState().money).toBe(20 + CONTRACTS.lights_out.fee);
     expect(store.getState().day).toBe(2);
     expect(store.getState().solved).toBe(1);

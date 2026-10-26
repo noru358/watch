@@ -18,4 +18,6 @@ export const BOARD_LOOK = {
   stamp: '#c2333f',
   clip: '#8f8aa0',
   bundle: '#7dffb0',
+  accentInk: '#1f7f72', // 메인 스토리 stamp on paper
+  shardInk: '#5b3fc4', // 심연 파편 on paper
 } as const;

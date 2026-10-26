@@ -1,11 +1,14 @@
 import { CONTRACTS } from '../../data/contracts.data';
+import { FACILITY_EFFECTS } from '../../data/facilities.data';
+import { MODIFIER_COUNT, MODIFIERS } from '../../data/modifiers.data';
 import { NODES } from '../../data/nodes.data';
+import { GENERAL_OBJECTIVES, OBJECTIVES } from '../../data/objectives.data';
 import { OFFICE } from '../../data/office.data';
 import { REQUESTS } from '../../data/requests.data';
 import type { SeededRNG } from '../../core/SeededRNG';
-import type { ContractId, NodeId, RequestId } from '../../types/ids';
-import { bundleWith, generalFee, generalFloors } from './contracts';
-import type { Contamination, ContractOffer, MorningReport, NightResolution, OfficeState } from './types';
+import type { ContractId, GhostId, ModifierId, NodeId, RequestId } from '../../types/ids';
+import { bundleWith, goalFloorFor, offerFee } from './contracts';
+import type { Contamination, ContractOffer, MorningReport, NightResolution, OfferTarget, OfficeState, WantedTarget } from './types';
 
 const NODE_IDS = Object.keys(NODES) as NodeId[];
 const clamp = (v: number) => Math.max(0, Math.min(OFFICE.contamination.max, v));
@@ -27,76 +30,110 @@ function weightedNode(candidates: readonly NodeId[], c: Contamination, rng: Seed
   return candidates[candidates.length - 1]!;
 }
 
-function generalOffer(s: OfficeState, rng: SeededRNG): ContractOffer {
-  const request = rng.pick(Object.keys(REQUESTS) as RequestId[]);
+const OBJECTIVE_IDS = Object.keys(GENERAL_OBJECTIVES) as (keyof typeof GENERAL_OBJECTIVES)[];
+const MODIFIER_IDS = Object.keys(MODIFIERS) as ModifierId[];
+
+function weighted<T>(items: readonly T[], weight: (t: T) => number, rng: SeededRNG): T {
+  const total = items.reduce((s, t) => s + weight(t), 0);
+  let r = rng.range(0, total);
+  for (const t of items) {
+    r -= weight(t);
+    if (r < 0) return t;
+  }
+  return items[items.length - 1]!;
+}
+
+function rollMods(rng: SeededRNG): ModifierId[] {
+  let r = rng.range(0, 1);
+  let count = 0;
+  for (; count < MODIFIER_COUNT.length - 1; count++) {
+    r -= MODIFIER_COUNT[count]!;
+    if (r < 0) break;
+  }
+  const mods: ModifierId[] = [];
+  while (mods.length < count) {
+    const m = weighted(MODIFIER_IDS.filter((id) => !mods.includes(id)), (id) => MODIFIERS[id].weight, rng);
+    mods.push(m);
+  }
+  return mods;
+}
+
+const newTarget = (pool: readonly GhostId[], rng: SeededRNG): OfferTarget => ({
+  ghost: rng.pick(pool),
+  name: [rng.int(0, OFFICE.wantedNames.pre - 1), rng.int(0, OFFICE.wantedNames.suf - 1)],
+  level: 0,
+});
+
+// One 일반 의뢰 (docs/rules/office.md "의뢰 한 장 만드는 법"): roll the objective, then one of its story
+// frames, the node (contaminated ones post more), length, goal floor, modifiers; the fee comes last.
+// A 현상수배 target that got away before comes back first (`wanted`).
+function generalOffer(s: OfficeState, rng: SeededRNG, wanted: WantedTarget | null): ContractOffer {
+  const objective = wanted ? 'bounty' : weighted(OBJECTIVE_IDS, (id) => GENERAL_OBJECTIVES[id].weight, rng);
+  const request = rng.pick((Object.keys(REQUESTS) as RequestId[]).filter((id) => REQUESTS[id].objective === objective));
   const frame = REQUESTS[request];
-  const node = weightedNode(frame.nodes ?? NODE_IDS, s.contamination, rng);
-  const risk = s.contamination[node];
-  const floors = generalFloors(risk);
-  return {
+  const node = wanted?.node ?? weightedNode(frame.nodes ?? NODE_IDS, s.contamination, rng);
+  const rule = GENERAL_OBJECTIVES[objective];
+  const floors = rng.int(rule.floors[0], rule.floors[1]);
+  const pool = wanted ? [wanted.ghost] : [...(frame.pool ?? NODES[node].pool)];
+  const target = wanted ? { ghost: wanted.ghost, name: wanted.name, level: wanted.level } : objective === 'bounty' || objective === 'chase' ? newTarget(pool, rng) : null;
+  const offer: ContractOffer = {
     id: s.nextOfferId++,
     kind: 'general',
     node,
     story: null,
+    objective,
     request,
-    target: null,
-    pool: [...(frame.pool ?? NODES[node].pool)],
-    risk,
+    mods: rollMods(rng),
+    target,
+    pool,
+    risk: s.contamination[node],
     floors,
-    fee: generalFee(risk, floors),
-    deadline: s.day + rng.int(OFFICE.deadline.min, OFFICE.deadline.max),
+    goalFloor: goalFloorFor(objective, floors, () => rng.range(0, 1)),
+    fee: 0,
+    shards: rule.shards + (objective === 'bounty' ? (target?.level ?? 0) : 0),
+    deadline: s.day + rng.int(OFFICE.deadline.min, OFFICE.deadline.max) + deskBonus(s).deadline,
   };
+  offer.fee = offerFee(offer);
+  return offer;
 }
 
-function bountyOffer(s: OfficeState, node: NodeId, rng: SeededRNG): ContractOffer {
-  const risk = s.contamination[node];
-  const floors = generalFloors(risk);
-  return {
-    id: s.nextOfferId++,
-    kind: 'bounty',
-    node,
-    story: null,
-    request: null,
-    target: rng.pick(NODES[node].pool),
-    pool: [...NODES[node].pool],
-    risk,
-    floors,
-    fee: Math.round(generalFee(risk, floors) * OFFICE.bounty.feeMult),
-    deadline: s.day + OFFICE.deadline.max,
-  };
-}
-
-function storyOffer(s: OfficeState, id: ContractId): ContractOffer {
+function mainOffer(s: OfficeState, id: ContractId): ContractOffer {
   const c = CONTRACTS[id];
   return {
     id: s.nextOfferId++,
-    kind: 'story',
+    kind: 'main',
     node: c.node,
     story: id,
+    objective: null,
     request: null,
+    mods: [],
     target: null,
     pool: [],
     risk: s.contamination[c.node],
     floors: c.floors.length,
+    goalFloor: c.floors.length - 1,
     fee: c.fee,
+    shards: 0,
     deadline: null,
   };
 }
 
-// Tops the board up: open story contracts, a bounty on any badly contaminated node, general offers.
+// 경리 책상 (facilities.data.ts): a bigger board, longer deadlines.
+function deskBonus(s: OfficeState) {
+  const d = FACILITY_EFFECTS.desk;
+  return { board: s.deskLevel >= d.boardPlusAt ? 1 : 0, deadline: s.deskLevel >= d.deadlinePlusAt ? 1 : 0 };
+}
+
+// Tops the board up: open main story contracts, then 일반 의뢰 (targets that got away first).
 // Returns how many offers were added.
 export function refillBoard(s: OfficeState, rng: SeededRNG): number {
   const before = s.board.length;
   for (const id of Object.keys(CONTRACTS) as ContractId[]) {
     if (CONTRACTS[id].unlockDay > s.day || s.storyDone.includes(id) || s.board.some((o) => o.story === id)) continue;
-    s.board.push(storyOffer(s, id));
+    s.board.push(mainOffer(s, id));
   }
-  for (const node of NODE_IDS) {
-    const chance = OFFICE.bountyChance[s.contamination[node]] ?? 0;
-    if (chance <= 0 || s.board.some((o) => o.kind === 'bounty' && o.node === node)) continue;
-    if (rng.chance(chance)) s.board.push(bountyOffer(s, node, rng));
-  }
-  while (s.board.filter((o) => o.kind !== 'story').length < OFFICE.boardSize) s.board.push(generalOffer(s, rng));
+  const size = OFFICE.boardSize + deskBonus(s).board;
+  while (s.board.filter((o) => o.kind === 'general').length < size) s.board.push(generalOffer(s, rng, s.wanted.shift() ?? null));
   return s.board.length - before;
 }
 
@@ -106,11 +143,20 @@ export function resolveNight(s: OfficeState, offerId: number, success: boolean):
   const offer = s.board.find((o) => o.id === offerId);
   if (!offer) return { completed: [], fee: 0 };
   if (!s.known.includes(offer.node)) s.known.push(offer.node);
-  if (!success) return { completed: [], fee: 0 };
+  if (!success) {
+    // The named ghost got away tonight: it is stronger next time (and pays more).
+    if (offer.target) {
+      offer.target = { ...offer.target, level: Math.min(OBJECTIVES.bounty.maxLevel, offer.target.level + 1) };
+      if (offer.objective === 'bounty') offer.shards = GENERAL_OBJECTIVES.bounty.shards + offer.target.level;
+      offer.fee = offerFee(offer);
+    }
+    return { completed: [], fee: 0 };
+  }
   const done = bundleWith(s.board, offer);
   const ids = done.map((o) => o.id);
   s.board = s.board.filter((o) => !ids.includes(o.id));
-  s.contamination[offer.node] = clamp(s.contamination[offer.node] - OFFICE.contamination.cleanse[offer.kind]);
+  const cleanse = offer.kind === 'main' ? OFFICE.contamination.cleanse.main : GENERAL_OBJECTIVES[offer.objective ?? 'clear'].cleanse;
+  s.contamination[offer.node] = clamp(s.contamination[offer.node] - cleanse);
   if (offer.story && !s.storyDone.includes(offer.story)) s.storyDone.push(offer.story);
   return { completed: ids, fee: done.reduce((sum, o) => sum + o.fee, 0) };
 }
@@ -144,7 +190,11 @@ export function advanceDay(s: OfficeState, rng: SeededRNG): MorningReport {
   }
 
   const expired = s.board.filter((o) => o.deadline !== null && o.deadline < s.day);
-  for (const o of expired) bump(o.node, c.expireRise);
+  for (const o of expired) {
+    bump(o.node, c.expireRise);
+    // A 현상수배 left too long comes back one level stronger.
+    if (o.objective === 'bounty' && o.target) s.wanted.push({ ...o.target, level: Math.min(OBJECTIVES.bounty.maxLevel, o.target.level + 1), node: o.node });
+  }
   s.board = s.board.filter((o) => !expired.includes(o));
   report.expired = expired.length;
   report.worsened = NODE_IDS.filter((id) => worse.has(id));

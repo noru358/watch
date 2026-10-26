@@ -116,6 +116,13 @@ export const PALETTE = {
   accent: 0x41e0c8,
   accentText: '#41e0c8',
   fear: 0xff3cac,
+  bountyMark: 0xff3b4f, // 현상수배 / 추격 target: HP bar, edge arrow, body tint
+  eliteTint: 0xff6a5a,
+  salt: 0xf4f1e8, // 소금 자국
+  barrier: 0x41e0c8, // 결계 펴기 circle, ward sites
+  talisman: 0xffd166,
+  lairDoor: 0x8a2f5a, // sealed doorway of a 괴이 소굴
+  shard: 0x9b7bff, // 심연 파편 pickup
   fearText: '#ffd0ea',
   survivor: 0xffd0a0, // the missing person's health bar
   survivorCoat: 0x7d6a9e, // the missing person (shapes until the art lands)

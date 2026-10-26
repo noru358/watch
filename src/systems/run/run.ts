@@ -3,7 +3,7 @@ import type { FloorPlan } from '../../data/contracts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import type { ActiveId, CardId, PerkId, WeaponId } from '../../types/ids';
 import { EMPTY_LOADOUT, type Loadout } from '../growth';
-import { generateFloor, type Floor } from '../rift';
+import { generateFloor, type Floor, type QuarryCarry } from '../rift';
 import { computeExorcistStats, type TrainingLevels } from './stats';
 
 // 'failed': the contract's objective was lost (e.g. the missing person) — no fee, loot kept.
@@ -14,6 +14,7 @@ export interface RunResult {
   outcome: RunOutcome;
   loot: number;
   fee: number;
+  shards: number; // 심연 파편 earned tonight (the settlement decides what is kept)
 }
 
 export interface RunSetup {
@@ -35,6 +36,8 @@ export interface RunState {
   active: ActiveId | null;
   cardOffer: number;
   used: PerkId[]; // once-a-night perks spent
+  quarry: QuarryCarry | null; // 추격: the quarry between floors
+  shards: number;
   floorIndex: number;
   hp: number;
   focus: number;
@@ -59,6 +62,8 @@ export function startRun(setup: RunSetup): RunState {
     active: l.active,
     cardOffer: l.cardOffer,
     used: [],
+    quarry: null,
+    shards: 0,
     floorIndex: 0,
     hp: 0,
     focus: 0,
@@ -87,15 +92,25 @@ export function enterFloor(run: RunState, rng: SeededRNG): Floor {
     perks: run.perks,
     used: run.used,
     active: run.active,
+    quarry: run.quarry,
+    last: run.floorIndex === run.floors.length - 1,
   });
 }
 
 // Banks a finished floor. Returns the outcome if the run ended.
-export function leaveFloor(run: RunState, f: Floor): RunOutcome | null {
+// What every way off a floor banks: HP, focus, loot, shards, spent perks, the chase quarry.
+function bank(run: RunState, f: Floor): void {
   run.used = [...f.used];
   run.hp = f.player.hp;
   run.focus = f.player.focus;
   run.loot = f.loot;
+  run.shards += f.shards;
+  f.shards = 0;
+  if (f.objective?.kind === 'chase') run.quarry = f.objective.quarry;
+}
+
+export function leaveFloor(run: RunState, f: Floor): RunOutcome | null {
+  bank(run, f);
   if (f.status === 'dead') run.outcome = 'died';
   else if (f.status === 'failed') run.outcome = 'failed';
   else if (f.status === 'extracted') run.outcome = 'extracted';
@@ -111,14 +126,12 @@ export function leaveFloor(run: RunState, f: Floor): RunOutcome | null {
 // the night may end here with the fee (docs/design/2-night/objectives.md "목표 달성 시 귀환").
 export function goalReached(run: RunState, f: Floor): boolean {
   const plan = run.floors[run.floorIndex];
-  return f.status === 'stairs' && plan?.kind === 'normal' && plan.goal && run.floorIndex < totalFloors(run) - 1;
+  return f.status === 'stairs' && plan?.kind === 'normal' && plan.goal && f.objective?.done === true && run.floorIndex < totalFloors(run) - 1;
 }
 
 // Go home after the goal: a success, fee included.
 export function finishAtGoal(run: RunState, f: Floor): RunOutcome {
-  run.hp = f.player.hp;
-  run.focus = f.player.focus;
-  run.loot = f.loot;
+  bank(run, f);
   run.outcome = 'success';
   return run.outcome;
 }
@@ -149,5 +162,6 @@ export function runResult(run: RunState): RunResult {
     outcome: run.outcome,
     loot: run.loot,
     fee: run.outcome === 'success' ? run.fee : 0,
+    shards: run.shards,
   };
 }

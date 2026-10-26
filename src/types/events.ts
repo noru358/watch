@@ -22,6 +22,11 @@ export interface GameEventMap {
   survivorHurt: { x: number; y: number; amount: number };
   objectiveDone: { x: number; y: number };
   lastBreath: { x: number; y: number }; // 마지막 숨 kept the director at 1 HP
+  quarryFled: { x: number; y: number }; // 추격: the quarry bolted to the next floor
+  wardSealed: { x: number; y: number }; // 결계: one site finished
+  lairLocked: { x: number; y: number }; // 괴이 소굴: the doors sealed (the map redraws)
+  lairOpened: { x: number; y: number };
+  shardCollected: { x: number; y: number };
   skillUsed: { x: number; y: number; skill: 'talisman' | 'barrier' | 'salt_burst' };
   shotHit: { x: number; y: number };
   roomCleared: { boss: boolean };

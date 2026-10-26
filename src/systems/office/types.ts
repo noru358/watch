@@ -1,27 +1,35 @@
-import type { ContractId, ContractKind, GhostId, NodeId, RequestId } from '../../types/ids';
+import type { ContractId, ContractKind, GhostId, ModifierId, NodeId, ObjectiveKind, RequestId } from '../../types/ids';
+
+// The named ghost of a 현상수배 or 추격 contract.
+export interface OfferTarget {
+  ghost: GhostId;
+  name: [number, number]; // indices into the name tables (i18n wanted.pre.N / wanted.suf.N)
+  level: number; // 0 = first posting; +1 every time it got away
+}
 
 // One card on the contract board. Everything a night needs is derived from it (offerFloors).
 export interface ContractOffer {
   id: number;
   kind: ContractKind;
   node: NodeId;
-  story: ContractId | null; // story contracts only
-  request: RequestId | null; // general contracts only (the client's story frame)
-  target: GhostId | null; // bounty only: the named ghost
+  story: ContractId | null; // 메인 스토리 only
+  objective: ObjectiveKind | null; // 일반 의뢰: its one main objective (null for main story)
+  request: RequestId | null; // 일반 의뢰: the client's story frame
+  mods: ModifierId[]; // 현장 변형
+  target: OfferTarget | null; // 현상수배 / 추격
   pool: GhostId[]; // strong ghosts on the floors
-  risk: number; // node contamination when posted (0..5)
-  floors: number; // floors before the end (story: from its table)
+  risk: number; // node contamination when posted (0..5): ghost density and swarm only
+  floors: number;
+  goalFloor: number; // 0-based floor the objective ends on (추격: the last floor, it may end sooner)
   fee: number;
+  shards: number; // 심연 파편 for finishing the objective
   deadline: number | null; // last day it can be taken; null = stays until done
 }
 
 export type Contamination = Record<NodeId, number>;
 
-// A named 현상수배 target that got away (failed night or expired offer): it comes back stronger.
-export interface WantedTarget {
-  ghost: GhostId;
-  name: [number, number]; // indices into the name tables (office.data.ts WANTED_NAMES)
-  level: number; // 0 = first posting; +1 every time it gets away (capped)
+// A named 현상수배 target whose offer expired: it comes back on the board, one level stronger.
+export interface WantedTarget extends OfferTarget {
   node: NodeId;
 }
 

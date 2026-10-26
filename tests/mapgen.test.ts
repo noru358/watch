@@ -74,14 +74,4 @@ describe('floor generation: the seal', () => {
     expect(f.objective?.done).toBe(true);
   });
 
-  it('an arena ends the night when its pack is cleared', () => {
-    const rng = new SeededRNG(4);
-    const f = generateFloor(2, { kind: 'arena', enemies: 5, pool: ['cheonyeo'], swarm: null, theme: 'basement' }, rng, carry());
-    expect(f.arena).toBe(true);
-    expect(f.stairs).toBeNull();
-    expect(strongLeft(f)).toBe(5);
-    f.enemies.forEach((e) => (e.hp = 0));
-    stepFloor(f, NO_INPUT, DT, rng);
-    expect(f.status).toBe('bossDefeated');
-  });
 });
