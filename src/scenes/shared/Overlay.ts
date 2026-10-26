@@ -37,13 +37,13 @@ export class Overlay {
     this.layer.setVisible(false);
   }
 
-  // Up to three numbered cards (강화 카드 or a choice prompt). Select with 1/2/3 or A/D + J.
+  // Up to four numbered cards (강화 카드 or a choice prompt). Select with 1/2/3 or A/D + J.
   showCards(title: string, offer: readonly { name: string; desc: string }[], hint?: string): void {
     this.reset();
     this.layer.add(crispText(this.scene, W / 2, 90, title, { ...TEXT, fontSize: '24px' }).setOrigin(0.5));
     if (hint) this.layer.add(crispText(this.scene, W / 2, 420, hint, { ...TEXT, fontSize: '15px', color: PALETTE.textDim }).setOrigin(0.5));
-    const cardW = 250;
     const gap = 24;
+    const cardW = Math.min(250, (W - 80 - gap * (offer.length - 1)) / offer.length);
     const startX = W / 2 - (offer.length * cardW + (offer.length - 1) * gap) / 2;
     offer.forEach((card, i) => {
       const x = startX + i * (cardW + gap);
@@ -70,7 +70,7 @@ export class Overlay {
 
   showEnd(result: RunResult, s: Settlement): void {
     this.reset();
-    const title = result.outcome === 'success' ? t('end.success') : result.outcome === 'extracted' ? t('end.extracted') : t('end.died');
+    const title = t(`end.${result.outcome}`);
     const lines = [
       `${t('result.loot')}  ${s.lootKept}${s.lootLost > 0 ? `  (-${s.lootLost})` : ''}`,
       `${t('result.fee')}  ${s.fee}`,

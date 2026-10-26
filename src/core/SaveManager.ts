@@ -3,9 +3,9 @@
 // progress is not (quitting mid-night = the night never happened).
 
 import { startingContamination, type ContractOffer, type Contamination } from '../systems/office';
-import type { ContractId, NodeId } from '../types/ids';
+import type { ContractId, NodeId, SceneId } from '../types/ids';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export interface SaveData {
   schemaVersion: typeof SAVE_VERSION;
@@ -22,6 +22,8 @@ export interface SaveData {
   board: ContractOffer[];
   nextOfferId: number;
   storyDone: ContractId[];
+  // v3: story scenes already shown (dialogue box)
+  seen: SceneId[];
 }
 
 // The part of localStorage we use; tests pass a Map-backed fake.
@@ -46,6 +48,8 @@ const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
     nextOfferId: 1,
     storyDone: isNum(old.solved) && old.solved > 0 ? ['lights_out'] : [],
   }),
+  // v2 → v3: story scenes. Anyone who has already played a night has seen the opening.
+  2: (old) => ({ ...old, seen: isNum(old.runCounter) && old.runCounter > 0 ? ['intro'] : [] }),
 };
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
@@ -63,9 +67,9 @@ export function migrate(raw: unknown): SaveData | null {
     data = { ...step(data), schemaVersion: v + 1 };
     v += 1;
   }
-  const { money, trauma, solved, seedBase, runCounter, day, debt, contamination, known, board, nextOfferId, storyDone } = data;
+  const { money, trauma, solved, seedBase, runCounter, day, debt, contamination, known, board, nextOfferId, storyDone, seen } = data;
   if (![money, trauma, solved, seedBase, runCounter, day, debt, nextOfferId].every(isNum)) return null;
-  if (!Array.isArray(known) || !Array.isArray(board) || !Array.isArray(storyDone)) return null;
+  if (!Array.isArray(known) || !Array.isArray(board) || !Array.isArray(storyDone) || !Array.isArray(seen)) return null;
   if (contamination !== null && (typeof contamination !== 'object' || Array.isArray(contamination))) return null;
   return {
     schemaVersion: SAVE_VERSION,
@@ -81,6 +85,7 @@ export function migrate(raw: unknown): SaveData | null {
     board,
     nextOfferId,
     storyDone,
+    seen,
   } as SaveData;
 }
 

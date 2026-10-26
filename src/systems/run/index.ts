@@ -9,6 +9,8 @@ export {
   runResult,
   runStats,
   totalFloors,
+  goalReached,
+  finishAtGoal,
   type RunState,
   type RunResult,
   type RunOutcome,

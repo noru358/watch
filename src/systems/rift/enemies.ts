@@ -3,6 +3,7 @@ import { BOSSES, GHOSTS } from '../../data/ghosts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import { updateBoss } from './boss';
 import { hurtPlayer } from './combat';
+import { hurtObjective, survivorOf } from './objectives';
 import { dist, inTelegraph, isFloor, lineOfSight, moveBody, steer } from './physics';
 import type { Enemy, Floor, Telegraph } from './types';
 
@@ -24,6 +25,8 @@ export function resolveTelegraphs(f: Floor, e: Enemy, dt: number): boolean {
   e.teles = e.teles.filter((t) => t.t > 0);
   for (const t of due) {
     if (inTelegraph(t, f.player, f.player.r)) hurtPlayer(f, t.damage, t.darkness);
+    const s = survivorOf(f);
+    if (s && inTelegraph(t, s, s.r)) hurtObjective(f, t.damage);
     if (t.shape === 'line') dashAlong(f, e, t);
   }
   return e.teles.length === 0;
@@ -82,6 +85,8 @@ function updateGhost(f: Floor, e: Enemy, dt: number, rng: SeededRNG): void {
   if (data.attack === 'none') {
     // Swarm fodder: just rushes in; touching the director burns.
     if (d <= e.r + p.r) hurtPlayer(f, data.contactDamage, 0);
+    const s = survivorOf(f);
+    if (s && dist(e, s) <= e.r + s.r) hurtObjective(f, data.contactDamage);
   } else if (data.attack === 'line') {
     if (d <= data.attackRange && lineOfSight(f, e, p)) {
       e.teles = [tele('line', e, toP, data.attackRange, data.attackSize, data.windup, data.damage, false, data.darkness)];

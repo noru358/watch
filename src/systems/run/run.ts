@@ -5,7 +5,8 @@ import type { CardId, WeaponId } from '../../types/ids';
 import { generateFloor, type Floor } from '../rift';
 import { computeExorcistStats } from './stats';
 
-export type RunOutcome = 'success' | 'extracted' | 'died';
+// 'failed': the contract's objective was lost (e.g. the missing person) — no fee, loot kept.
+export type RunOutcome = 'success' | 'extracted' | 'died' | 'failed';
 
 export interface RunResult {
   offerId: number; // the contract-board offer this night was for
@@ -70,12 +71,29 @@ export function leaveFloor(run: RunState, f: Floor): RunOutcome | null {
   run.focus = f.player.focus;
   run.loot = f.loot;
   if (f.status === 'dead') run.outcome = 'died';
+  else if (f.status === 'failed') run.outcome = 'failed';
   else if (f.status === 'extracted') run.outcome = 'extracted';
   else if (f.status === 'bossDefeated') run.outcome = 'success';
   else if (f.status === 'stairs') {
     run.floorIndex += 1;
     if (run.floorIndex >= totalFloors(run)) run.outcome = 'success';
   }
+  return run.outcome;
+}
+
+// The director just finished the contract's main objective on a floor that is not the last one:
+// the night may end here with the fee (docs/design/2-night/objectives.md "목표 달성 시 귀환").
+export function goalReached(run: RunState, f: Floor): boolean {
+  const plan = run.floors[run.floorIndex];
+  return f.status === 'stairs' && plan?.kind === 'normal' && plan.goal && run.floorIndex < totalFloors(run) - 1;
+}
+
+// Go home after the goal: a success, fee included.
+export function finishAtGoal(run: RunState, f: Floor): RunOutcome {
+  run.hp = f.player.hp;
+  run.focus = f.player.focus;
+  run.loot = f.loot;
+  run.outcome = 'success';
   return run.outcome;
 }
 

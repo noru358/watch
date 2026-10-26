@@ -4,4 +4,5 @@ export { counterable } from './player';
 export { generateFloor, makeEnemy, type FloorCarry } from './mapgen';
 export { isFloor, inTelegraph, dist } from './physics';
 export { NO_INPUT } from './types';
+export { survivorOf, type ObjectiveState, type Survivor } from './objectives';
 export type { Floor, RiftInput, Enemy, Player, Stats, Pos, Telegraph, FloorStatus } from './types';

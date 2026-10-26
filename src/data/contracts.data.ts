@@ -1,5 +1,5 @@
 import type { TKey } from '../i18n';
-import type { BossId, ContractId, FloorTheme, GhostId, NodeId } from '../types/ids';
+import type { BossId, ContractId, FloorTheme, GhostId, NodeId, ObjectiveKind } from '../types/ids';
 
 // Swarm waves: every `every` seconds `group` fodder spawn out of sight (between
 // `near` and `far` tiles from the director), while fewer than `cap` are alive.
@@ -12,11 +12,12 @@ export interface SwarmPlan {
   far: number;
 }
 
-// normal: random rooms; with `seal` the stairs stay shut until every strong ghost on the floor is down.
+// normal: random rooms; the stairs stay shut until the floor's objective is met (null = open from the start).
+// `goal`: the contract's main objective is on this floor, so finishing it offers to go home with the fee.
 // arena: one big room of strong ghosts (a bounty's last floor); clearing it ends the night.
 // boss: the source's room.
 export type FloorPlan =
-  | { kind: 'normal'; enemies: number; pool: readonly GhostId[]; payphone: boolean; swarm: SwarmPlan | null; seal: boolean; theme: FloorTheme }
+  | { kind: 'normal'; enemies: number; pool: readonly GhostId[]; payphone: boolean; swarm: SwarmPlan | null; objective: ObjectiveKind | null; goal: boolean; theme: FloorTheme }
   | { kind: 'arena'; enemies: number; pool: readonly GhostId[]; swarm: SwarmPlan | null; theme: FloorTheme }
   | { kind: 'boss'; boss: BossId; swarm: SwarmPlan | null; theme: FloorTheme };
 
@@ -42,10 +43,10 @@ export const CONTRACTS: Record<ContractId, ContractData> = {
     fee: 300,
     unlockDay: 1,
     floors: [
-      { kind: 'normal', enemies: 5, pool: ['cheonyeo', 'dalgyal'], payphone: false, swarm: wisps(6.5, 4, 10), seal: true, theme: 'alley' },
-      { kind: 'normal', enemies: 6, pool: ['cheonyeo', 'dalgyal'], payphone: false, swarm: wisps(6, 4, 12), seal: true, theme: 'basement' },
-      { kind: 'normal', enemies: 7, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: true, swarm: wisps(5.5, 4, 14), seal: true, theme: 'arcade' },
-      { kind: 'normal', enemies: 7, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: false, swarm: wisps(5, 5, 16), seal: true, theme: 'rooftop' },
+      { kind: 'normal', enemies: 5, pool: ['cheonyeo', 'dalgyal'], payphone: false, swarm: wisps(6.5, 4, 10), objective: 'clear', goal: false, theme: 'alley' },
+      { kind: 'normal', enemies: 6, pool: ['cheonyeo', 'dalgyal'], payphone: false, swarm: wisps(6, 4, 12), objective: 'clear', goal: false, theme: 'basement' },
+      { kind: 'normal', enemies: 7, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: true, swarm: wisps(5.5, 4, 14), objective: 'clear', goal: false, theme: 'arcade' },
+      { kind: 'normal', enemies: 7, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: false, swarm: wisps(5, 5, 16), objective: 'clear', goal: false, theme: 'rooftop' },
       { kind: 'boss', boss: 'gumiho', swarm: wisps(7, 4, 10), theme: 'lot' },
     ],
   },

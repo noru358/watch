@@ -1,3 +1,4 @@
+import { settings } from '../../app/settings';
 import { SFX, type SfxId } from '../../data/sfx.data';
 
 let ctx: AudioContext | null = null;
@@ -20,12 +21,14 @@ function noise(ac: AudioContext): AudioBuffer {
 }
 
 export function playSfx(id: SfxId): void {
+  const master = settings.get().volume;
+  if (master <= 0) return;
   const ac = audio();
   if (!ac) return;
   const s = SFX[id];
   const now = ac.currentTime;
   const gain = ac.createGain();
-  gain.gain.setValueAtTime(s.volume, now);
+  gain.gain.setValueAtTime(s.volume * master, now);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + s.duration);
   gain.connect(ac.destination);
 
@@ -41,7 +44,7 @@ export function playSfx(id: SfxId): void {
     const src = ac.createBufferSource();
     src.buffer = noise(ac);
     const ng = ac.createGain();
-    ng.gain.setValueAtTime(s.volume * 0.6, now);
+    ng.gain.setValueAtTime(s.volume * 0.6 * master, now);
     ng.gain.exponentialRampToValueAtTime(0.0001, now + s.duration);
     src.connect(ng);
     ng.connect(ac.destination);

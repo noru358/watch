@@ -27,4 +27,10 @@ export const OFFICE = {
     arenaEnemiesBase: 4, // + risk
   },
   swarm: { every: 6.5, everyPerRisk: -0.4, group: 4, cap: 12, capPerRisk: 2 },
+  rescue: {
+    goalFloor: 1, // 0-based floor the missing person is on (capped to the last floor)
+  },
+  // 의뢰판 난이도 1..5 (docs/rules/office.md): strong ghosts the player must get through up to the
+  // goal floor (+ the bounty pack, + bossWeight for a boss), compared against these steps.
+  difficulty: { steps: [20, 30, 42, 55], bossWeight: 20 },
 } as const;

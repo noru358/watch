@@ -1,7 +1,9 @@
 import { EXORCISTS } from '../../data/protagonist.data';
 import { WEAPONS } from '../../data/weapons.data';
 import type { SeededRNG } from '../../core/SeededRNG';
+import { OBJECTIVES } from '../../data/objectives.data';
 import { hitEnemy } from './combat';
+import { survivorOf } from './objectives';
 import { angleDiff, dist, inTelegraph, moveBody } from './physics';
 import type { Enemy, Floor, RiftInput } from './types';
 
@@ -154,7 +156,8 @@ export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: Seeded
     p.moving = len > 0;
     if (len > 0) {
       const slowed = p.swingFx < d.swingSlowTime;
-      const speed = d.moveSpeed * (slowed ? d.swingMoveMult : 1);
+      const carrying = survivorOf(f)?.state === 'following';
+      const speed = d.moveSpeed * (slowed ? d.swingMoveMult : 1) * (carrying ? OBJECTIVES.rescue.carryMoveMult : 1);
       moveBody(f, p, (input.moveX / len) * speed * dt, (input.moveY / len) * speed * dt, d.cornerNudge);
     }
   }

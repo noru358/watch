@@ -8,14 +8,15 @@ import { t } from '../../i18n';
 import type { GameEvent } from '../../types/events';
 import type { CardId } from '../../types/ids';
 import { answerPayphone, giveUp, stepFloor, type Floor, type RiftInput } from '../../systems/rift';
-import { enterFloor, leaveFloor, offerCards, pickCard, runResult, startRun, totalFloors, type RunState } from '../../systems/run';
+import { enterFloor, finishAtGoal, goalReached, leaveFloor, offerCards, pickCard, runResult, startRun, totalFloors, type RunOutcome, type RunState } from '../../systems/run';
+import { settings, volumePercent } from '../../app/settings';
 import { Overlay } from '../shared/Overlay';
 import { RiftHud } from './RiftHud';
 import { attachVfx } from '../shared/vfx';
 import { RiftView, tileToPx } from './RiftView';
 import { loadDirectorFrames } from '../shared/draw/directorFrames';
 
-type Mode = 'play' | 'cards' | 'payphone' | 'paused' | 'end';
+type Mode = 'play' | 'cards' | 'payphone' | 'goal' | 'paused' | 'end';
 const END_INPUT_DELAY = 0.6; // seconds before the end panel accepts input
 
 function cardText(id: CardId): { name: string; desc: string } {
@@ -183,15 +184,15 @@ export class RiftScene extends Phaser.Scene {
       }
     } else if (this.mode === 'cards') this.updateCards();
     else if (this.mode === 'payphone') this.updatePayphone();
+    else if (this.mode === 'goal') this.updateGoal();
     else if (this.mode === 'paused') this.updatePause();
     else if (input.consume('pause', 'night')) this.openPause();
     else if (this.freezeLeft > 0) this.freezeLeft -= dt; // hit-stop
     else this.simulate(dt);
     this.followCamera(dt);
     this.view.render(this.floor, this.acc / FEEL.fixedStep, dt);
-    const f = this.floor;
-    const label = f.boss ? t('rift.bossFloor') : t('rift.floor', { current: f.index + 1, total: totalFloors(this.run) });
-    this.hud.render(f, label, dt);
+    const goal = this.run.floors.findIndex((p) => p.kind === 'normal' && p.goal);
+    this.hud.render(this.floor, { floor: this.floor.index + 1, total: totalFloors(this.run), goalFloor: goal >= 0 ? goal + 1 : null }, dt);
   }
 
   private simulate(dt: number): void {
@@ -206,6 +207,7 @@ export class RiftScene extends Phaser.Scene {
       this.floor.events = [];
       events.forEach((e) => eventBus.emitEvent(toPixels(e)));
       if (events.some((e) => e.type === 'bossPhase')) this.view.setNeon(true);
+      if (events.some((e) => e.type === 'survivorFound')) this.overlay.banner(t('rift.found'));
       if (this.floor.status !== 'playing') this.afterFloorChange();
     }
   }
@@ -231,7 +233,22 @@ export class RiftScene extends Phaser.Scene {
       ]);
       return;
     }
-    const outcome = leaveFloor(this.run, f);
+    // The contract's goal is done before the last floor: go home with the fee, or keep going.
+    if (goalReached(this.run, f)) {
+      this.mode = 'goal';
+      this.selected = 0;
+      input.push('modal');
+      this.overlay.showCards(t('rift.goalTitle'), [
+        { name: t('rift.goalHome'), desc: t('rift.goalHomeDesc') },
+        { name: t('rift.goalStay'), desc: t('rift.goalStayDesc') },
+      ]);
+      return;
+    }
+    this.nextFloor(leaveFloor(this.run, f));
+  }
+
+  // After a floor: the night ends (outcome) or the next floor follows a card pick.
+  private nextFloor(outcome: RunOutcome | null): void {
     if (outcome) {
       const result = runResult(this.run);
       const settlement = store.applyRunResult(result);
@@ -254,7 +271,7 @@ export class RiftScene extends Phaser.Scene {
 
   // Shared 1/2/3 + A/D + J/Enter selection for overlay cards. Returns the chosen index or -1.
   private choose(count: number): number {
-    const choices = ['choice1', 'choice2', 'choice3'] as const;
+    const choices = ['choice1', 'choice2', 'choice3', 'choice4'] as const;
     let pick = choices.findIndex((c, i) => i < count && input.consume(c, 'modal'));
     if (input.consume('left', 'modal')) this.selected = (this.selected + count - 1) % count;
     if (input.consume('right', 'modal')) this.selected = (this.selected + 1) % count;
@@ -278,11 +295,17 @@ export class RiftScene extends Phaser.Scene {
     this.mode = 'paused';
     this.selected = 0;
     input.push('modal');
+    this.showPause();
+  }
+
+  private showPause(): void {
     this.overlay.showCards(t('pause.title'), [
       { name: t('pause.resume'), desc: t('pause.resumeDesc') },
       { name: t('pause.controls'), desc: t('pause.controlsDesc') },
+      { name: t('pause.sound'), desc: t('pause.soundDesc', { volume: volumePercent() }) },
       { name: t('pause.giveUp'), desc: t('pause.giveUpDesc') },
     ], t('pause.hint'));
+    this.overlay.select(this.selected);
   }
 
   private closePause(): void {
@@ -293,13 +316,27 @@ export class RiftScene extends Phaser.Scene {
 
   private updatePause(): void {
     if (input.consume('pause', 'modal')) return this.closePause();
-    const pick = this.choose(3);
+    const pick = this.choose(4);
     if (pick === 0) this.closePause();
     if (pick === 2) {
+      this.selected = 2;
+      settings.stepVolume(-1, true);
+      this.showPause();
+    }
+    if (pick === 3) {
       this.closePause();
       giveUp(this.floor);
       this.afterFloorChange();
     }
+  }
+
+  private updateGoal(): void {
+    const pick = this.choose(2);
+    if (pick < 0) return;
+    this.overlay.hide();
+    input.pop();
+    this.mode = 'play';
+    this.nextFloor(pick === 0 ? finishAtGoal(this.run, this.floor) : leaveFloor(this.run, this.floor));
   }
 
   private updatePayphone(): void {

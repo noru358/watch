@@ -1,6 +1,6 @@
 import { SAVE_VERSION, type SaveData } from '../core/SaveManager';
 import { SeededRNG } from '../core/SeededRNG';
-import type { ContractId, NodeId, Phase } from '../types/ids';
+import type { ContractId, NodeId, Phase, SceneId } from '../types/ids';
 import { settleRun, type RunResult, type Settlement } from '../systems/run';
 import {
   advanceDay,
@@ -37,6 +37,7 @@ export interface GameState {
   board: ContractOffer[];
   nextOfferId: number;
   storyDone: ContractId[];
+  seen: SceneId[]; // story scenes already shown
   // not saved
   activeOfferId: number | null; // chosen on the board, played tonight
   lastRun: LastRun | null;
@@ -69,7 +70,12 @@ export class GameStore {
   private listeners = new Set<Listener>();
 
   constructor(initial: Partial<GameState> = {}) {
-    this.state = {
+    this.state = GameStore.fresh(initial);
+  }
+
+  // A full game state: defaults, then `initial` (a loaded save or test values), then the first board.
+  private static fresh(initial: Partial<GameState>): GameState {
+    let state: GameState = {
       phase: 'day',
       money: 0,
       trauma: 0,
@@ -83,17 +89,26 @@ export class GameStore {
       board: [],
       nextOfferId: 1,
       storyDone: [],
+      seen: [],
       activeOfferId: null,
       lastRun: null,
       lastMorning: null,
       ...initial,
     };
     // A new game (or a migrated v1 save) starts with an empty board: post the first offers.
-    if (this.state.board.length === 0) {
-      const o = office(this.state);
-      refillBoard(o, new SeededRNG(morningSeed(this.state.seedBase, this.state.day)));
-      this.state = { ...this.state, ...o };
+    if (state.board.length === 0) {
+      const o = office(state);
+      refillBoard(o, new SeededRNG(morningSeed(state.seedBase, state.day)));
+      state = { ...state, ...o };
     }
+    return state;
+  }
+
+  // 새로 시작 (title screen): everything back to day 1 with a new base seed. The autosave
+  // then overwrites the old save.
+  newGame(seedBase: number): void {
+    this.state = GameStore.fresh({ seedBase, phase: this.state.phase });
+    this.listeners.forEach((fn) => fn());
   }
 
   getState = (): GameState => this.state;
@@ -110,7 +125,7 @@ export class GameStore {
 
   // What goes into the save file (long-lived office state only).
   toSave(): SaveData {
-    const { money, trauma, solved, seedBase, runCounter, day, debt, contamination, known, board, nextOfferId, storyDone } = this.state;
+    const { money, trauma, solved, seedBase, runCounter, day, debt, contamination, known, board, nextOfferId, storyDone, seen } = this.state;
     return {
       schemaVersion: SAVE_VERSION,
       money,
@@ -125,10 +140,16 @@ export class GameStore {
       board: board.map((o) => ({ ...o, pool: [...o.pool] })),
       nextOfferId,
       storyDone: [...storyDone],
+      seen: [...seen],
     };
   }
 
   // ---- actions ----
+
+  markSeen(id: SceneId): void {
+    if (this.state.seen.includes(id)) return;
+    this.set({ seen: [...this.state.seen, id] });
+  }
 
   setPhase(phase: Phase): void {
     this.set({ phase });

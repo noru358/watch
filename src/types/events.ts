@@ -17,6 +17,10 @@ export interface GameEventMap {
   drawStance: { x: number; y: number }; // 발도 pressed: stance before the cut
   drawCut: { x: number; y: number }; // plain 발도 lands
   bossPhase: { phase: 2 };
+  survivorCry: { x: number; y: number }; // rescue: the hidden person cries (HUD points the way)
+  survivorFound: { x: number; y: number };
+  survivorHurt: { x: number; y: number; amount: number };
+  objectiveDone: { x: number; y: number };
   roomCleared: { boss: boolean };
   darkness: { duration: number };
   phaseChanged: { phase: Phase };

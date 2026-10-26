@@ -56,6 +56,7 @@ export const FEEL = {
     cheonyeo: { radius: 1.6, color: 0xcfd0ff, alpha: 0.06 },
     stairs: { radius: 2.2, color: 0x2fd8c8, alpha: 0.08 },
     payphone: { radius: 2, color: 0x9be0c0, alpha: 0.08 },
+    survivor: { radius: 1.6, color: 0xffd0a0, alpha: 0.07 }, // the missing person's phone screen
   },
 } as const;
 
@@ -109,6 +110,17 @@ export const PALETTE = {
   focus: 0x9ff3e6,
   panel: 0x1d1830,
   panelBorder: 0x41e0c8,
+  // Night HUD (docs/design/1-foundation/ui.md "밤 HUD")
+  hudPanel: 0x0e0b18,
+  hudLine: 0x3b2f5c,
+  accent: 0x41e0c8,
+  accentText: '#41e0c8',
+  fear: 0xff3cac,
+  fearText: '#ffd0ea',
+  survivor: 0xffd0a0, // the missing person's health bar
+  survivorCoat: 0x7d6a9e, // the missing person (shapes until the art lands)
+  lootText: '#6ef0ff',
+  slotIdle: 0xf6e7c1,
   font: "'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif",
 } as const;
 

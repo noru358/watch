@@ -15,6 +15,10 @@ export function settleRun(result: RunResult, wallet: number): Settlement {
   let traumaDelta = 0;
   let walletLoss = 0;
   if (result.outcome === 'extracted') keepRatio = RUN_PENALTIES.extractLootKeepRatio;
+  if (result.outcome === 'failed') {
+    keepRatio = RUN_PENALTIES.failLootKeepRatio;
+    traumaDelta = RUN_PENALTIES.failTrauma;
+  }
   if (result.outcome === 'died') {
     keepRatio = RUN_PENALTIES.deathLootKeepRatio;
     traumaDelta = RUN_PENALTIES.deathTrauma;

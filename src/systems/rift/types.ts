@@ -2,6 +2,7 @@ import type { SwarmPlan } from '../../data/contracts.data';
 import type { AttackShape } from '../../data/ghosts.data';
 import type { CardId, EnemyId, FloorTheme, WeaponId } from '../../types/ids';
 import type { GameEvent } from '../../types/events';
+import type { ObjectiveState } from './objectives/types';
 
 // Positions are in TILE units (floats); tile (x, y) covers [x, x+1) × [y, y+1).
 export type Tile = 'wall' | 'floor';
@@ -108,7 +109,8 @@ export interface BossState {
 }
 
 // 'payphone': the director reached the payphone and must choose (extract / continue).
-export type FloorStatus = 'playing' | 'stairs' | 'payphone' | 'extracted' | 'dead' | 'bossDefeated';
+// 'failed': the floor's objective was lost (e.g. the missing person) — the night ends without the fee.
+export type FloorStatus = 'playing' | 'stairs' | 'payphone' | 'extracted' | 'dead' | 'failed' | 'bossDefeated';
 
 export interface Floor {
   index: number;
@@ -117,8 +119,8 @@ export interface Floor {
   tiles: Tile[]; // row-major
   theme: FloorTheme; // which tile look this floor uses
   stairs: Pos | null; // tile centre; null on boss / arena floors
-  seal: boolean; // stairs stay shut while strong ghosts remain (normal floors)
-  sealOpen: boolean; // the seal has broken this floor
+  objective: ObjectiveState | null; // what opens the stairs (normal floors); null = open from the start
+  goal: boolean; // the contract's main objective is on this floor (finishing it offers to go home)
   arena: boolean; // bounty arena: clearing every strong ghost ends the night
   payphone: Pos | null;
   payphoneArmed: boolean; // re-arms once the director walks away

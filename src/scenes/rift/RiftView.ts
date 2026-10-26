@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
 import { EXORCISTS } from '../../data/protagonist.data';
 import { FEEL, PALETTE } from '../../data/feel.data';
-import type { Floor } from '../../systems/rift';
+import { survivorOf, type Floor } from '../../systems/rift';
 import { T } from '../shared/draw/common';
 import { drawDirector } from './draw/director';
 import { directorSprite } from '../shared/draw/directorFrames';
 import { drawGhost } from './draw/ghosts';
+import { drawSurvivor } from './draw/survivor';
 import { drawProps } from './draw/props';
 import { drawTelegraph } from './draw/telegraph';
 import { drawTiles } from './draw/tiles';
@@ -74,6 +75,8 @@ export class RiftView {
     }
     if (f.stairs) pool(f.stairs.x, f.stairs.y, FEEL.lights.stairs);
     if (f.payphone) pool(f.payphone.x, f.payphone.y - 0.5, FEEL.lights.payphone);
+    const s = survivorOf(f);
+    if (s) pool(s.x, s.y - 0.5, FEEL.lights.survivor);
   }
 
   render(f: Floor, alpha: number, dt: number): void {
@@ -89,6 +92,8 @@ export class RiftView {
       y: e.y,
       fn: () => drawGhost(g, e, alpha, this.clock, this.flashing(e.id, dt), f.boss?.phase === 2),
     }));
+    const s = survivorOf(f);
+    if (s) draws.push({ y: s.y, fn: () => drawSurvivor(g, s, alpha, this.clock) });
     draws.push({ y: f.player.y, fn: () => drawDirector(g, f.player, f, alpha, this.clock, (anim, n) => directorSprite(this.scene, anim, n)) });
     draws.sort((a, b) => a.y - b.y).forEach((d) => d.fn());
 

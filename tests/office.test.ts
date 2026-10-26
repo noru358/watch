@@ -5,7 +5,7 @@ import { CONTRACTS } from '../src/data/contracts.data';
 import { NODES } from '../src/data/nodes.data';
 import { OFFICE } from '../src/data/office.data';
 import { GameStore } from '../src/store/gameStore';
-import { advanceDay, bundleWith, offerFloors, refillBoard, resolveNight, startingContamination, type ContractOffer, type OfficeState } from '../src/systems/office';
+import { advanceDay, bundleWith, offerDifficulty, offerFloors, offerGoal, refillBoard, resolveNight, startingContamination, type ContractOffer, type OfficeState } from '../src/systems/office';
 import type { NodeId } from '../src/types/ids';
 import { playNight, skilled } from './bots';
 
@@ -132,7 +132,7 @@ describe('office: the day loop', () => {
     expect(floors).toHaveLength(3);
     for (const f of floors) {
       expect(f.kind).toBe('normal');
-      if (f.kind === 'normal') expect(f.seal).toBe(true);
+      if (f.kind === 'normal') expect(f.objective).toBe('clear');
       expect(NODES.arcade.themes).toContain(f.theme);
     }
   });
@@ -161,6 +161,48 @@ describe('office: store and save', () => {
     const store = new GameStore(v2 ?? {});
     expect(store.getState().board.length).toBeGreaterThan(0);
     expect(store.getState().board.some((o) => o.story === 'lights_out')).toBe(false);
+  });
+
+  it('migrates a v2 save to v3: the opening counts as seen once a night was played', () => {
+    const base = { money: 1, trauma: 0, solved: 0, seedBase: 2, day: 3, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [] };
+    expect(migrate({ schemaVersion: 2, ...base, runCounter: 2 })?.seen).toEqual(['intro']);
+    expect(migrate({ schemaVersion: 2, ...base, runCounter: 0 })?.seen).toEqual([]);
+  });
+});
+
+describe('office: objectives on the board', () => {
+  it('a rescue request puts the missing person on the goal floor and ends the contract there', () => {
+    const s = fresh();
+    const rescue = { ...general(s, 'arcade', 2), request: 'crying' as const, floors: 4 };
+    const goal = offerGoal(rescue);
+    expect(goal).toEqual({ kind: 'rescue', floor: OFFICE.rescue.goalFloor });
+    const plans = offerFloors(rescue);
+    plans.forEach((p, i) => {
+      if (p.kind !== 'normal') return;
+      expect(p.objective).toBe(i === goal.floor ? 'rescue' : 'clear');
+      expect(p.goal).toBe(i === goal.floor);
+    });
+  });
+
+  it('clear contracts end on the last floor; bounty and story goals are the arena and the boss', () => {
+    const s = fresh();
+    expect(offerGoal({ ...general(s, 'alley', 1), floors: 3 })).toEqual({ kind: 'clear', floor: 2 });
+    const story = s.board.find((o) => o.kind === 'story')!;
+    expect(offerGoal(story)).toEqual({ kind: 'boss', floor: CONTRACTS.lights_out.floors.length - 1 });
+  });
+
+  it('difficulty follows what the night really holds: more risk is harder, the story is hard', () => {
+    const s = fresh();
+    const easy = offerDifficulty({ ...general(s, 'alley', 0), floors: 3 });
+    const hard = offerDifficulty({ ...general(s, 'alley', 5), floors: 5 });
+    expect(easy).toBe(1);
+    expect(hard).toBe(5);
+    const story = offerDifficulty(s.board.find((o) => o.kind === 'story')!);
+    expect(story).toBeGreaterThanOrEqual(4);
+    for (const o of s.board) {
+      expect(offerDifficulty(o)).toBeGreaterThanOrEqual(1);
+      expect(offerDifficulty(o)).toBeLessThanOrEqual(5);
+    }
   });
 });
 

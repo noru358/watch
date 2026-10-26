@@ -4,7 +4,7 @@ import { GHOSTS } from '../src/data/ghosts.data';
 import { generateFloor, NO_INPUT, stairsOpen, stepFloor, strongLeft, type Floor } from '../src/systems/rift';
 import { carry, DT } from './helpers';
 
-const sealed = { kind: 'normal', enemies: 6, pool: ['cheonyeo', 'dalgyal'], payphone: true, swarm: null, seal: true, theme: 'alley' } as const;
+const sealed = { kind: 'normal', enemies: 6, pool: ['cheonyeo', 'dalgyal'], payphone: true, swarm: null, objective: 'clear', goal: false, theme: 'alley' } as const;
 
 // Walking distance (tiles) from the start to every floor tile.
 function walk(f: Floor): Int32Array {
@@ -59,7 +59,7 @@ describe('floor generation: the seal', () => {
     expect(strongLeft(f)).toBeGreaterThan(0);
     f.enemies.forEach((e) => (e.hp = 0));
     stepFloor(f, NO_INPUT, DT, rng);
-    expect(f.sealOpen).toBe(true);
+    expect(f.objective?.done).toBe(true);
     stepFloor(f, NO_INPUT, DT, rng);
     expect(f.status).toBe('stairs');
   });
@@ -71,7 +71,7 @@ describe('floor generation: the seal', () => {
     f.enemies.push({ ...f.enemies[0]!, id: 999, kind: 'dokkaebibul', hp: GHOSTS.dokkaebibul.hp });
     f.player.iframes = 99;
     stepFloor(f, NO_INPUT, DT, rng);
-    expect(f.sealOpen).toBe(true);
+    expect(f.objective?.done).toBe(true);
   });
 
   it('an arena ends the night when its pack is cleared', () => {

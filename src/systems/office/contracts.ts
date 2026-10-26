@@ -1,5 +1,6 @@
 import { CONTRACTS, wisps, type FloorPlan, type SwarmPlan } from '../../data/contracts.data';
 import { NODES } from '../../data/nodes.data';
+import { REQUESTS } from '../../data/requests.data';
 import { OFFICE } from '../../data/office.data';
 import type { ContractOffer } from './types';
 
@@ -15,15 +16,18 @@ export function offerFloors(offer: ContractOffer): readonly FloorPlan[] {
   const themes = NODES[offer.node].themes;
   const normals = offer.kind === 'bounty' ? offer.floors - 1 : offer.floors;
   const payphoneAt = offer.floors >= g.payphoneFrom ? Math.floor(offer.floors / 2) : -1;
+  const goal = offerGoal(offer);
   const plans: FloorPlan[] = [];
   for (let i = 0; i < normals; i++) {
+    const rescueHere = goal.kind === 'rescue' && i === goal.floor;
     plans.push({
       kind: 'normal',
       enemies: g.enemiesBase + offer.risk + i,
       pool: offer.pool,
       payphone: i === payphoneAt && i < offer.floors - 1,
       swarm: swarmFor(offer.risk, i),
-      seal: true,
+      objective: rescueHere ? 'rescue' : 'clear',
+      goal: rescueHere && i < offer.floors - 1,
       theme: themes[i % themes.length]!,
     });
   }
@@ -37,6 +41,31 @@ export function offerFloors(offer: ContractOffer): readonly FloorPlan[] {
     });
   }
   return plans;
+}
+
+// What the contract asks and on which floor (0-based) it is done. The board shows this as the
+// objective icon and the "ends on floor N" bar.
+export type GoalKind = 'clear' | 'rescue' | 'arena' | 'boss';
+export function offerGoal(offer: ContractOffer): { kind: GoalKind; floor: number } {
+  const last = offer.floors - 1;
+  if (offer.kind === 'story') return { kind: 'boss', floor: last };
+  if (offer.kind === 'bounty') return { kind: 'arena', floor: last };
+  const objective = offer.request ? REQUESTS[offer.request].objective : 'clear';
+  if (objective === 'rescue') return { kind: 'rescue', floor: Math.min(OFFICE.rescue.goalFloor, last) };
+  return { kind: 'clear', floor: last };
+}
+
+// 난이도 1..5 from what the night really holds up to its goal (not the node's contamination).
+export function offerDifficulty(offer: ContractOffer): number {
+  const d = OFFICE.difficulty;
+  const goal = offerGoal(offer);
+  let score = 0;
+  offerFloors(offer).forEach((p, i) => {
+    if (i > goal.floor) return;
+    if (p.kind === 'boss') score += d.bossWeight;
+    else score += p.enemies;
+  });
+  return 1 + d.steps.filter((s) => score >= s).length;
 }
 
 export function generalFee(risk: number, floors: number): number {

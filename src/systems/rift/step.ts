@@ -1,7 +1,7 @@
 import { DUNGEON } from '../../data/dungeon.data';
-import { GHOSTS } from '../../data/ghosts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import { updateEnemies } from './enemies';
+import { completeAtStairs, objectiveReady, strongLeft, updateObjective } from './objectives';
 import { dist, savePrev, updateFlow } from './physics';
 import { updatePlayer } from './player';
 import { updateSwarm } from './spawner';
@@ -26,17 +26,15 @@ function updatePickups(f: Floor, dt: number): void {
   f.pickups = keep;
 }
 
-// Strong (non-fodder) ghosts still standing on this floor.
-export function strongLeft(f: Floor): number {
-  return f.enemies.filter((e) => e.hp > 0 && e.kind !== 'gumiho' && !GHOSTS[e.kind].fodder).length;
-}
+export { strongLeft };
 
+// The stairs open once the floor's objective allows it (docs/design/2-night/objectives.md).
 export function stairsOpen(f: Floor): boolean {
-  return !f.seal || f.sealOpen;
+  return objectiveReady(f);
 }
 
-// The seal breaks once the last strong ghost is down; an arena ends the night the same way.
-function updateSeal(f: Floor): void {
+// An arena ends the night once its pack is down; other floors follow their objective.
+function updateGoal(f: Floor, dt: number): void {
   if (f.arena && strongLeft(f) === 0) {
     for (const k of f.pickups) f.loot += k.value;
     f.pickups = [];
@@ -46,14 +44,15 @@ function updateSeal(f: Floor): void {
     f.events.push({ type: 'roomCleared', boss: true });
     return;
   }
-  if (!f.seal || f.sealOpen || strongLeft(f) > 0) return;
-  f.sealOpen = true;
-  f.events.push({ type: 'roomCleared', boss: false });
+  updateObjective(f, dt);
 }
 
 function updateExits(f: Floor): void {
   const p = f.player;
-  if (f.stairs && stairsOpen(f) && dist(p, f.stairs) <= DUNGEON.touchRange) f.status = 'stairs';
+  if (f.stairs && stairsOpen(f) && dist(p, f.stairs) <= DUNGEON.touchRange) {
+    completeAtStairs(f);
+    f.status = 'stairs';
+  }
   if (!f.payphone) return;
   const d = dist(p, f.payphone);
   if (f.payphoneArmed && d <= DUNGEON.touchRange) {
@@ -72,7 +71,7 @@ export function stepFloor(f: Floor, input: RiftInput, dt: number, rng: SeededRNG
   updatePlayer(f, input, dt, rng);
   updateEnemies(f, dt, rng);
   if (f.status !== 'playing') return;
-  updateSeal(f);
+  updateGoal(f, dt);
   if (f.status !== 'playing') return;
   updateSwarm(f, dt, rng);
   updatePickups(f, dt);

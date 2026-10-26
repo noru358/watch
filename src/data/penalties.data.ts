@@ -3,6 +3,8 @@ export const RUN_PENALTIES = {
   deathLootKeepRatio: 0.5, // fraction of run loot kept when the director falls
   deathTrauma: 1, // trauma points gained on death
   extractLootKeepRatio: 1, // payphone extraction keeps everything
+  failLootKeepRatio: 1, // the objective was lost (missing person): loot kept, no fee
+  failTrauma: 1,
   // Held as toggles per the design doc; 0 = disabled.
   deathExpLoss: 0,
   deathWalletLossRatio: 0,

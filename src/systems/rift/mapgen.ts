@@ -5,6 +5,7 @@ import type { FloorPlan } from '../../data/contracts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import type { CardId, EnemyId, WeaponId } from '../../types/ids';
 import { runCardHooks } from './hooks';
+import { setupObjective } from './objectives';
 import { assignRoles, bigRoom, centre, randomRooms, roomTile, type Room } from './layout';
 import { isFloor } from './physics';
 import type { Enemy, Floor, Pos, Stats, Tile } from './types';
@@ -55,8 +56,8 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
     tiles,
     theme: plan.theme,
     stairs: null,
-    seal: plan.kind === 'normal' && plan.seal,
-    sealOpen: false,
+    objective: null,
+    goal: plan.kind === 'normal' && plan.goal,
     arena: plan.kind === 'arena',
     payphone: null,
     payphoneArmed: true,
@@ -126,6 +127,11 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
   f.stairs = free([exit]);
   if (plan.payphone) f.payphone = free(side);
   for (let i = 0; i < plan.enemies; i++) makeEnemy(f, rng.pick(plan.pool), free(i < DUNGEON.exitGuards ? [exit] : side));
+  // A clear objective draws no RNG, so sealed story floors keep the same maps for a given seed.
+  if (plan.objective) {
+    const quiet = side.filter((r) => r !== treasure);
+    f.objective = setupObjective(plan.objective, () => free(quiet.length > 0 ? quiet : side));
+  }
   for (let i = 0; i < DUNGEON.spiritPickupsPerFloor; i++) f.pickups.push({ ...free(rooms), value: DUNGEON.spiritPickupValue });
   if (treasure) for (let i = 0; i < DUNGEON.treasurePickups; i++) f.pickups.push({ ...free([treasure]), value: DUNGEON.treasureValue });
   return f;

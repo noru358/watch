@@ -15,7 +15,7 @@ export function carry(cards: CardId[] = []) {
 
 export function floorWith(seed = 1, cards: CardId[] = []): { f: Floor; rng: SeededRNG } {
   const rng = new SeededRNG(seed);
-  const f = generateFloor(0, { kind: 'normal', enemies: 4, pool: ['cheonyeo', 'dalgyal'], payphone: false, swarm: null, seal: false, theme: 'basement' }, rng, carry(cards));
+  const f = generateFloor(0, { kind: 'normal', enemies: 4, pool: ['cheonyeo', 'dalgyal'], payphone: false, swarm: null, objective: null, goal: false, theme: 'basement' }, rng, carry(cards));
   return { f, rng };
 }
 
