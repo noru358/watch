@@ -21,6 +21,6 @@ export const panelCss = {
     border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: PALETTE.font,
   },
   chip: { padding: '5px 9px', fontSize: 12, background: 'rgba(20,16,31,0.8)', border: '1px solid #3b2f5c', borderRadius: 4, cursor: 'pointer', fontFamily: PALETTE.font },
-  cardWide: { width: 'min(720px, calc(100% - 32px))' },
+  cardWide: { width: 'min(940px, calc(100% - 32px))' },
   hint: { textAlign: 'center', fontSize: 12, color: PALETTE.textDim },
 } satisfies Record<string, React.CSSProperties>;

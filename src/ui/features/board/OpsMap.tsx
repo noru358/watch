@@ -1,13 +1,16 @@
 import { NODES } from '../../../data/nodes.data';
+import { OFFICE } from '../../../data/office.data';
 import { t } from '../../../i18n';
 import type { ContractOffer, Contamination } from '../../../systems/office';
 import type { NodeId } from '../../../types/ids';
+import { BOARD_LOOK as L } from './look';
 
-// The Euljiro operations map: nodes coloured by contamination, links, a pin per offer.
-// Presentation only: it reads state and reports clicks.
+// The Euljiro operations map (docs/design/1-foundation/ui.md "의뢰판"): a district's state is its
+// colour only (no numbers, no "contamination" word); links that are about to carry it blink.
+// Presentation only: it reads state and reports clicks. Only districts with an offer are clickable.
 
-const HEAT = ['#3c6f8c', '#4f8a7a', '#b8a24a', '#d4813f', '#d9544f', '#ff3cac'];
 const NODE_IDS = Object.keys(NODES) as NodeId[];
+const VIEW = { w: 100, h: 66 };
 
 interface Props {
   contamination: Contamination;
@@ -16,32 +19,55 @@ interface Props {
   onPick: (node: NodeId) => void;
 }
 
+// A link "spreads" when one end is bad enough to spread and the other can still get worse.
+const spreading = (c: Contamination, a: NodeId, b: NodeId) =>
+  (c[a] >= OFFICE.contamination.spreadAt && c[b] < OFFICE.contamination.max) || (c[b] >= OFFICE.contamination.spreadAt && c[a] < OFFICE.contamination.max);
+
 export function OpsMap({ contamination, board, selected, onPick }: Props) {
   const links = NODE_IDS.flatMap((a) => NODES[a].links.filter((b) => a < b).map((b) => [a, b] as const));
+  const y = (id: NodeId) => NODES[id].y * 0.6 + 3;
   return (
-    <svg viewBox="0 0 100 60" style={{ width: '100%', display: 'block', background: 'rgba(14,11,24,0.9)', borderRadius: 6 }}>
-      {links.map(([a, b]) => (
-        <line key={`${a}-${b}`} x1={NODES[a].x} y1={NODES[a].y * 0.6} x2={NODES[b].x} y2={NODES[b].y * 0.6} stroke="#3b2f5c" strokeWidth={0.8} />
-      ))}
-      {NODE_IDS.map((id) => {
-        const n = NODES[id];
-        const c = contamination[id];
-        const pins = board.filter((o) => o.node === id);
-        const isSel = selected?.node === id;
-        return (
-          <g key={id} onClick={() => pins.length > 0 && onPick(id)} style={{ cursor: pins.length > 0 ? 'pointer' : 'default' }}>
-            <circle cx={n.x} cy={n.y * 0.6} r={3 + c * 0.45} fill={HEAT[c] ?? HEAT[HEAT.length - 1]} opacity={0.9} />
-            {isSel && <circle cx={n.x} cy={n.y * 0.6} r={6.2 + c * 0.45} fill="none" stroke="#41e0c8" strokeWidth={0.7} />}
-            <text x={n.x} y={n.y * 0.6 + 0.9} textAnchor="middle" fontSize={2.6} fill="#14101f" fontWeight={700}>{c}</text>
-            <text x={n.x} y={n.y * 0.6 + 7.4} textAnchor="middle" fontSize={2.6} fill="#c9bfe8">{t(n.nameKey)}</text>
-            {pins.map((o, i) => (
-              <rect key={o.id} x={n.x - (pins.length * 2.6) / 2 + i * 2.6 + 0.3} y={n.y * 0.6 - 7.6 - c * 0.45} width={2} height={2.6} rx={0.3}
-                fill={o.kind === 'story' ? '#41e0c8' : o.kind === 'bounty' ? '#ff3b4f' : '#ffd166'} />
-            ))}
-          </g>
-        );
-      })}
-      <text x={2} y={58} fontSize={2.4} fill="#9d8fc4">{t('board.mapLegend')}</text>
-    </svg>
+    <div style={{ position: 'relative', background: L.mapBg, border: `1px solid ${L.line}`, borderRadius: 6, overflow: 'hidden' }}>
+      <style>{'@keyframes nwBlink{0%,100%{opacity:.25}50%{opacity:1}}'}</style>
+      <svg viewBox={`0 0 ${VIEW.w} ${VIEW.h}`} style={{ width: '100%', display: 'block' }} role="img" aria-label={t('board.mapTitle')}>
+        {links.map(([a, b]) => {
+          const hot = spreading(contamination, a, b);
+          return (
+            <line key={`${a}-${b}`} x1={NODES[a].x} y1={y(a)} x2={NODES[b].x} y2={y(b)} stroke={hot ? L.spread : L.line} strokeWidth={hot ? 0.8 : 0.6}
+              strokeDasharray={hot ? '1.8 1.4' : undefined} style={hot ? { animation: 'nwBlink 1.4s ease-in-out infinite' } : undefined} />
+          );
+        })}
+        {NODE_IDS.map((id) => {
+          const n = NODES[id];
+          const c = contamination[id];
+          const pins = board.filter((o) => o.node === id);
+          const isSel = selected?.node === id;
+          const r = 2.6 + c * 0.55;
+          const cy = y(id);
+          return (
+            <g key={id} onClick={() => pins.length > 0 && onPick(id)} style={{ cursor: pins.length > 0 ? 'pointer' : 'default' }}>
+              {c >= OFFICE.contamination.spreadAt && <circle cx={n.x} cy={cy} r={r + 5} fill={L.spread} opacity={0.08} />}
+              <circle cx={n.x} cy={cy} r={r} fill={L.heat[c] ?? L.heat[L.heat.length - 1]} />
+              {isSel && <circle cx={n.x} cy={cy} r={r + 1.6} fill="none" stroke={L.accent} strokeWidth={0.7} />}
+              <text x={n.x} y={cy + r + 3.6} textAnchor="middle" fontSize={2.6} fill={isSel ? L.ink : L.dim} fontWeight={isSel ? 700 : 400}>{t(n.nameKey)}</text>
+              {pins.map((o, i) => (
+                <rect key={o.id} x={n.x - (pins.length * 2.6) / 2 + i * 2.6 + 0.3} y={cy - r - 4.2} width={2} height={2.6} rx={0.3}
+                  fill={o.kind === 'story' ? L.accent : o.kind === 'bounty' ? L.bounty : L.general} />
+              ))}
+            </g>
+          );
+        })}
+      </svg>
+      <div style={{ position: 'absolute', left: 10, bottom: 8, display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: L.dim }}>
+        <span>{t('board.legendCalm')}</span>
+        <span style={{ display: 'flex', gap: 2 }} aria-hidden="true">
+          {L.heat.map((h) => <span key={h} style={{ width: 14, height: 7, background: h }} />)}
+        </span>
+        <span>{t('board.legendHot')}</span>
+        <span style={{ marginLeft: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span aria-hidden="true" style={{ width: 18, borderTop: `2px dashed ${L.spread}` }} />{t('board.legendSpread')}
+        </span>
+      </div>
+    </div>
   );
 }

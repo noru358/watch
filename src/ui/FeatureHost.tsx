@@ -7,14 +7,24 @@ import type { LobbyFeatureId } from '../types/ids';
 import { LedgerPanel } from './features/ledger/LedgerPanel';
 import { panelCss as css } from './features/panel';
 import { BoardPanel } from './features/board/BoardPanel';
+import { DialogueBox } from './DialogueBox';
 
 const PANELS: Record<LobbyFeatureId, ComponentType> = {
   sortie: BoardPanel,
   ledger: LedgerPanel,
 };
 
-// Day overlay: shows the one open hub panel, or nothing (the hub canvas stays clickable).
+// Day overlay: the story dialogue box, the one open hub panel, or nothing (the hub canvas stays clickable).
 export function FeatureHost() {
+  return (
+    <>
+      <Panels />
+      <DialogueBox />
+    </>
+  );
+}
+
+function Panels() {
   const open = useSyncExternalStore(openPanel.subscribe, openPanel.get);
 
   useEffect(() => input.onAction((action, ctx) => ctx === 'modal' && action === 'pause' && closeFeature()), []);

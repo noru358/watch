@@ -36,7 +36,7 @@
 ### Rule 4 — Unified input & focus safety (`src/core/InputManager.ts`)
 - Never attach keyboard/gamepad listeners to the Phaser canvas or to React components directly. All input is read from `window` through `InputManager`.
 - `InputManager` holds a context stack: `night` / `day` / `modal`. Only the top context receives input.
-- Night: React overlay is unmounted, Phaser renders; keyboard and mouse are still read only through `InputManager` (mouse buttons bind like keys: `Mouse0`, `Mouse2`). Day: the rift scene is stopped; the hub scene reads the `day` context, and a React panel opened from it pushes `modal` (the hub then reads as idle). Panels open and close only through `openFeature(id)` / `closeFeature()` (`src/app/features.ts`), which push/pop the context. Switching phase goes through one function (`setPhase`) — never toggle visibility ad hoc.
+- Night: React overlay is unmounted, Phaser renders; keyboard and mouse are still read only through `InputManager` (mouse buttons bind like keys: `Mouse0`, `Mouse2`). Day: the rift scene is stopped; the hub scene reads the `day` context, and a React panel opened from it pushes `modal` (the hub then reads as idle). Panels open and close only through `openFeature(id)` / `closeFeature()` (`src/app/features.ts`), which push/pop the context. Title (boot phase): only the title scene runs and reads the `day` context. A story dialogue (`src/app/dialogue.ts`) pushes `modal` like a panel. Switching phase (`title` / `day` / `night`) goes through one function (`setPhase`) — never toggle visibility ad hoc.
 - Touch (mobile, after Steam) will be one more input source inside `InputManager` that produces the same actions (tap-to-walk in the hub, on-screen buttons at night). Scenes and panels never read touch events themselves.
 - Night combat uses at most 4 action buttons (now: slash, dash, 발도, plus one free slot for the companion call) besides movement and mouse aim; `Esc` is menu only. A new combat action must replace one, not add a fifth.
 - Regression to prevent: "after closing a window, the game needs a click before keys work." Any UI change must be checked against this.
@@ -70,14 +70,14 @@ src/
  ├── types/       # Shared interfaces, ID union types (ids.ts), event map (events.ts)
  ├── i18n/        # ko.ts (source of keys), en.ts, t() helper
  ├── data/        # Static typed tables: protagonist, weapons, cards, ghosts, dungeon, contracts,
- │                #   penalties, feel (night presentation), hubLook (day presentation), sfx, input, save, sprites (sprite anim tables), lobby (hub layout + feature registry), office (rent, board, contamination numbers), nodes (operations map), requests (general-contract story frames); later recruit, shop
+ │                #   penalties, feel (night presentation), hubLook (day presentation), titleLook, objectives (rescue numbers), story (scenes, speakers, chatter), settings (volume steps), sfx, input, save, sprites (sprite anim tables), lobby (hub layout + feature registry), office (rent, board, contamination numbers), nodes (operations map), requests (general-contract story frames); later recruit, shop
  ├── registry/    # Behaviour by ID: cardEffects.ts (upgrade-card hooks); later companion skills
  ├── store/       # GameStore (single source of truth) + actions
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
- │                #   rift/ (one floor: layout = rooms + roles, mapgen = what stands in them, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement), hub/ (walking, who is in reach, what is unlocked),
+ │                #   rift/ (one floor: layout = rooms + roles, mapgen = what stands in them, objectives/ = one file per floor objective, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement), hub/ (walking, who is in reach, what is unlocked), story/ (which scene plays next),
  │                #   office/ (day loop, rent and debt, contract board, node contamination, offer → floor plans); later: recruit/, dispatch/, rental/, shop/
- ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view = draw order, HUD; draw/ = one file per drawn thing, the art swap points), hub/ (day: walkable office interior), shared/ (Overlay panels, vfx, sfx, crisp text; draw/ = sprite kit shared by every scene)
- └── ui/          # React: FeatureHost (mounts the open panel), features/<featureId>/ (one folder per hub panel)
+ ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view = draw order, HUD; draw/ = one file per drawn thing, the art swap points), hub/ (day: walkable office interior + chatter bubble), title/ (title menu), shared/ (Overlay panels, vfx, sfx, crisp text; draw/ = sprite kit shared by every scene)
+ └── ui/          # React: FeatureHost (mounts the open panel + DialogueBox), features/<featureId>/ (one folder per hub panel)
 tests/            # Vitest specs mirroring src/systems and src/store
 maps/             # Tiled source maps (.tmx/.json) and tilesets
 assets/           # source/ = raw generated or commissioned art (never deleted), sprites/ = cleaned game sprites (see assets/README.md)

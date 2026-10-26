@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { input, store } from '../../app/services';
 import { openFeature } from '../../app/features';
+import { playScene } from '../../app/dialogue';
+import { nextScene } from '../../systems/story';
 import { PALETTE } from '../../data/feel.data';
 import { HUB_LOOK } from '../../data/hubLook.data';
 import { HUB, HUB_SPOTS } from '../../data/lobby.data';
@@ -11,6 +13,7 @@ import { T } from '../shared/draw/common';
 import { loadDirectorFrames } from '../shared/draw/directorFrames';
 import { crisp } from '../shared/text';
 import { HubView } from './HubView';
+import { CHATTER } from '../../data/story.data';
 
 // Day: inside the office, walked around souls-style. E on someone opens their panel;
 // the front door opens tonight's contract. Panels are React; while one is open the input
@@ -19,6 +22,9 @@ export class HubScene extends Phaser.Scene {
   private hub!: HubState;
   private view!: HubView;
   private prompt!: Phaser.GameObjects.Text;
+  private bubble!: Phaser.GameObjects.Text;
+  private chatterT: number = CHATTER.firstAfter;
+  private chatterLine = 0;
   private acc = 0;
   private clock = 0;
 
@@ -41,8 +47,26 @@ export class HubScene extends Phaser.Scene {
         .setScale(1 / HUB_LOOK.zoom)
         .setOrigin(0.5, 1);
     this.prompt = text(HUB_LOOK.promptSize).setVisible(false);
+    this.bubble = crisp(
+      this.add.text(0, 0, '', {
+        fontFamily: PALETTE.font,
+        fontSize: `${HUB_LOOK.bubbleSize}px`,
+        color: HUB_LOOK.bubbleInk,
+        backgroundColor: HUB_LOOK.bubbleBg,
+        padding: { x: 10, y: 6 },
+        wordWrap: { width: HUB_LOOK.bubbleWidth, useAdvancedWrap: true },
+      }),
+    )
+      .setScale(1 / HUB_LOOK.zoom)
+      .setOrigin(0.5, 1)
+      .setVisible(false);
+    this.chatterT = CHATTER.firstAfter;
     text(HUB_LOOK.hintSize).setText(t('hub.hint')).setPosition((HUB.cols * T) / 2, HUB.rows * T + 14).setColor(PALETTE.textDim);
     input.clearPressed();
+    // A story scene that is due plays as soon as the director is home (once each).
+    const s = store.getState();
+    const scene = nextScene({ seen: s.seen, solved: s.solved, storyDone: s.storyDone });
+    if (scene) this.time.delayedCall(HUB_LOOK.sceneDelay, () => playScene(scene));
     // Dev-only read access for automated play-testing; stripped from production builds.
     if (import.meta.env.DEV) (window as unknown as { __hub?: unknown }).__hub = this;
   }
@@ -67,7 +91,29 @@ export class HubScene extends Phaser.Scene {
     const near = spotInReach(this.hub, this.progress());
     if (near && input.consume('interact', ctx)) openFeature(HUB_SPOTS[near].feature);
     this.showPrompt(input.context === ctx ? near : null);
+    this.updateChatter(dt, input.context === ctx);
     this.view.render(this.hub, this.acc / HUB.step, this.clock, unlockedSpots(this.progress()));
+  }
+
+  // Mockup B: the bookkeeper now and then says one short line above her desk (only while the office
+  // is idle; never the same line twice in a row).
+  private updateChatter(dt: number, idle: boolean): void {
+    const here = unlockedSpots(this.progress()).includes('bookkeeper');
+    if (!here || !idle) {
+      this.bubble.setVisible(false);
+      return;
+    }
+    this.chatterT -= dt;
+    if (this.chatterT > 0) {
+      if (this.chatterT < CHATTER.every - CHATTER.show) this.bubble.setVisible(false);
+      return;
+    }
+    this.chatterT = CHATTER.every;
+    const lines = CHATTER.bookkeeper;
+    const key = lines[this.chatterLine % lines.length]!;
+    this.chatterLine += 1;
+    const spot = HUB_SPOTS.bookkeeper;
+    this.bubble.setText(t(key)).setPosition(spot.x * T, spot.y * T - 40).setVisible(true);
   }
 
   private showPrompt(spot: HubSpotId | null): void {

@@ -17,6 +17,8 @@ function browserStorage(): SaveStorage | null {
 export const input = new InputManager(window);
 export const saves = new SaveManager(browserStorage(), SAVE.key, SAVE.badSuffix);
 const saved = saves.load();
+// The title offers 이어하기 only when there was a save to continue.
+export const startedWithSave = saved !== null;
 // No save yet: the wall clock only picks the base seed; gameplay uses SeededRNG from it.
 export const store = new GameStore(saved ?? { seedBase: Date.now() >>> 0 });
 // Dev-only handle for automated play-testing (like window.__rift / __hub); stripped from production builds.

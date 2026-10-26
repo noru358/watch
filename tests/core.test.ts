@@ -106,6 +106,8 @@ describe('PhaseController', () => {
   it('runs exit then enter handlers once per change', () => {
     const calls: string[] = [];
     const pc = new PhaseController({
+      enterTitle: () => calls.push('enterTitle'),
+      exitTitle: () => calls.push('exitTitle'),
       enterDay: () => calls.push('enterDay'),
       exitDay: () => calls.push('exitDay'),
       enterNight: () => calls.push('enterNight'),
@@ -123,6 +125,6 @@ describe('i18n', () => {
     expect(Object.keys(en).sort()).toEqual(Object.keys(ko).sort());
   });
   it('fills params', () => {
-    expect(t('rift.floor', { current: 2, total: 3 })).toBe('2층 / 3');
+    expect(t('title.continueInfo', { day: 2, money: 300 })).toBe('2일째 · ₩300');
   });
 });

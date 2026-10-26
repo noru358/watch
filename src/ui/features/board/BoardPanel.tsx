@@ -1,13 +1,11 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { input, requestPhase, store } from '../../../app/services';
-import { NODES } from '../../../data/nodes.data';
 import { OFFICE } from '../../../data/office.data';
-import { t, type TKey } from '../../../i18n';
+import { t } from '../../../i18n';
 import { bundleWith, type ContractOffer } from '../../../systems/office';
 import type { NodeId } from '../../../types/ids';
-import { outcomeLabel } from '../lastRun';
-import { panelCss as css } from '../panel';
-import { kindLabel, offerBody, offerTitle } from './offerText';
+import { BOARD_LOOK as L } from './look';
+import { OfferSheet } from './OfferSheet';
 import { OpsMap } from './OpsMap';
 
 const ORDER: Record<ContractOffer['kind'], number> = { story: 0, bounty: 1, general: 2 };
@@ -25,9 +23,13 @@ function step(by: number): void {
   store.selectOffer(list[(i + by + list.length) % list.length]!.id);
 }
 
-const stars = (n: number) => '●'.repeat(n) + '○'.repeat(OFFICE.contamination.max - n);
+const arrow = {
+  flex: '0 0 52px', height: 52, boxSizing: 'border-box' as const, borderRadius: 6, border: `1px solid ${L.line}`, background: L.mapBg, color: L.ink,
+  display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 1, cursor: 'pointer', padding: 0, fontFamily: 'inherit',
+};
 
-// The front door: the contract board over the Euljiro operations map, then 출동.
+// The front door (mockup A, docs/design/1-foundation/ui.md): the Euljiro map on the left, the chosen
+// offer as a sheet on a clipboard on the right, then ‹ 출동 ›.
 export function BoardPanel() {
   const s = useSyncExternalStore(store.subscribe, store.getState);
   const list = sorted(s.board);
@@ -50,54 +52,40 @@ export function BoardPanel() {
   };
   const rentIn = OFFICE.rentEvery - (s.day % OFFICE.rentEvery);
   const bundle = sel ? bundleWith(s.board, sel).slice(1) : [];
-  const known = sel ? s.known.includes(sel.node) : false;
-  const pool = sel ? (sel.kind === 'story' ? null : sel.pool) : null;
 
   return (
-    <>
-      <div style={{ ...css.row, fontSize: 13 }}>
-        <span>{t('board.day', { day: s.day })}</span>
-        <span>{t('board.rentIn', { days: rentIn })}</span>
-        {s.debt > 0 && <span style={{ color: '#ff5d7a' }}>{t('board.debt', { debt: s.debt })}</span>}
-      </div>
-      <OpsMap contamination={s.contamination} board={s.board} selected={sel} onPick={pickNode} />
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {list.map((o) => (
-          <button key={o.id} onClick={() => store.selectOffer(o.id)} style={{
-            ...css.chip, borderColor: o.id === sel?.id ? '#41e0c8' : '#3b2f5c', color: o.kind === 'bounty' ? '#ff8a9a' : o.kind === 'story' ? '#41e0c8' : '#f6e7c1',
-          }}>
-            {kindLabel(o)} · {t(NODES[o.node].nameKey)}
+    <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+      <section aria-label={t('board.mapTitle')} style={{ flex: '1 1 460px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, color: L.dim, gap: 12 }}>
+          <span style={{ fontSize: 17, color: L.ink, fontWeight: 700 }}>{t('board.mapTitle')}</span>
+          <span style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <span>{t('board.day', { day: s.day })}</span>
+            <span style={{ color: L.general }}>{t('board.rentIn', { days: rentIn })}</span>
+            {s.debt > 0 && <span style={{ color: L.bounty }}>{t('board.debt', { debt: s.debt })}</span>}
+            <span style={{ fontFamily: 'monospace', fontSize: 16, color: L.ink }}>₩ {s.money}</span>
+          </span>
+        </div>
+        <OpsMap contamination={s.contamination} board={s.board} selected={sel} onPick={pickNode} />
+      </section>
+      <section aria-label={t('board.pick')} style={{ flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {sel ? <OfferSheet offer={sel} day={s.day} known={s.known.includes(sel.node)} others={list.length - 1} /> : <div style={{ color: L.dim, padding: 20 }}>{t('board.pick')}</div>}
+        {bundle.length > 0 && (
+          <div style={{ fontSize: 13, color: L.bundle }}>{t('board.bundle', { count: bundle.length, fee: bundle.reduce((sum, o) => sum + o.fee, 0) })}</div>
+        )}
+        <div style={{ display: 'flex', gap: 8, height: 52 }}>
+          <button style={arrow} onClick={() => step(-1)} aria-label={t('board.prev')}>
+            <span style={{ fontSize: 20, lineHeight: 1 }}>‹</span><span style={{ fontSize: 10, color: L.dim, lineHeight: 1 }}>A</span>
           </button>
-        ))}
-      </div>
-      {sel ? (
-        <div style={css.box}>
-          <div style={{ ...css.row, ...css.dim }}><span>{kindLabel(sel)} · {offerTitle(sel)}</span><span>{t(NODES[sel.node].nameKey)}</span></div>
-          <div style={{ fontSize: 15, margin: '6px 0 8px' }}>{offerBody(sel)}</div>
-          <div style={css.row}><span>{t('board.risk')}</span><span>{stars(Math.min(sel.kind === 'story' ? s.contamination[sel.node] : sel.risk, OFFICE.contamination.max))}</span></div>
-          <div style={css.row}><span>{t('board.floors', { floors: sel.floors })}</span><span>{sel.deadline === null ? t('board.noDeadline') : t('board.deadline', { days: sel.deadline - s.day })}</span></div>
-          <div style={css.row}>
-            <span>{t('board.ghosts')}</span>
-            <span>{pool === null ? '—' : known ? pool.map((g) => t(`enemy.${g}` as TKey)).join(' · ') : t('board.unknown')}</span>
-          </div>
-          <div style={css.row}><span>{t('board.fee')}</span><span>{sel.fee}</span></div>
-          {bundle.length > 0 && (
-            <div style={{ fontSize: 13, color: '#7dffb0', marginTop: 6 }}>
-              {t('board.bundle', { count: bundle.length, fee: bundle.reduce((sum, o) => sum + o.fee, 0) })}
-            </div>
-          )}
+          <button onClick={sortie} disabled={!sel}
+            style={{ flex: 1, height: 52, boxSizing: 'border-box', borderRadius: 6, border: 'none', background: L.accent, color: '#14101f', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: sel ? 'pointer' : 'default', opacity: sel ? 1 : 0.5, fontFamily: 'inherit' }}>
+            <span style={{ fontSize: 19, fontWeight: 700 }}>{t('day.sortie')}</span>
+            <span style={{ fontSize: 11, padding: '2px 6px', border: '1px solid rgba(20,16,31,0.45)', borderRadius: 3 }}>Enter</span>
+          </button>
+          <button style={arrow} onClick={() => step(1)} aria-label={t('board.next')}>
+            <span style={{ fontSize: 20, lineHeight: 1 }}>›</span><span style={{ fontSize: 10, color: L.dim, lineHeight: 1 }}>D</span>
+          </button>
         </div>
-      ) : (
-        <div style={{ ...css.box, ...css.dim }}>{t('board.pick')}</div>
-      )}
-      {s.lastRun && (
-        <div style={{ ...css.row, ...css.dim, fontSize: 13 }}>
-          <span>{t('day.lastResult')}: {outcomeLabel(s.lastRun)}</span><span>+{s.lastRun.settlement.moneyDelta}</span>
-        </div>
-      )}
-      <button style={{ ...css.button, opacity: sel ? 1 : 0.5 }} onClick={sortie} disabled={!sel}>🌙 {t('day.sortie')}</button>
-      <div style={css.hint}>{t('board.keys')}</div>
-      <div style={{ ...css.hint, textAlign: 'left' }}>{t('day.controls')}: {t('day.controlsBody')}</div>
-    </>
+      </section>
+    </div>
   );
 }

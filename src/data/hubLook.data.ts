@@ -36,5 +36,10 @@ export const HUB_LOOK = {
   bookkeeperHair: 0x2a1a14,
   skin: 0xefd2b0,
   promptSize: 22, // px text size (drawn at half scale for crispness)
+  sceneDelay: 400, // ms after arriving before a due story scene opens
+  bubbleSize: 20, // chatter speech bubble text size (px, drawn at half scale)
+  bubbleWidth: 300, // px before wrapping (at that text scale)
+  bubbleBg: '#f6e7c1',
+  bubbleInk: '#2a2233',
   hintSize: 18,
 } as const;

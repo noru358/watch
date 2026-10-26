@@ -2,12 +2,14 @@ import Phaser from 'phaser';
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { forgetFeature } from './app/features';
-import { bindPhaseSwitch, input, store } from './app/services';
+import { forgetScene } from './app/dialogue';
+import { bindPhaseSwitch, input, requestPhase, store } from './app/services';
 import { eventBus } from './core/EventBus';
 import { PhaseController } from './core/phase';
 import { PALETTE, SCREEN } from './data/feel.data';
 import { HubScene } from './scenes/hub/HubScene';
 import { RiftScene } from './scenes/rift/RiftScene';
+import { TitleScene } from './scenes/title/TitleScene';
 import { FeatureHost } from './ui/FeatureHost';
 
 const dayEl = document.getElementById('day-root')!;
@@ -28,8 +30,16 @@ const game = new Phaser.Game({
 });
 game.scene.add('rift', RiftScene, false);
 game.scene.add('hub', HubScene, false);
+game.scene.add('title', TitleScene, false);
 
 const phases = new PhaseController({
+  enterTitle() {
+    input.resetContext('day');
+    game.scene.start('title');
+  },
+  exitTitle() {
+    game.scene.stop('title');
+  },
   enterDay() {
     input.resetContext('day');
     game.scene.start('hub');
@@ -38,6 +48,7 @@ const phases = new PhaseController({
   },
   exitDay() {
     forgetFeature();
+    forgetScene();
     game.scene.stop('hub');
     dayRoot.render(null); // React overlay is unmounted at night
     dayEl.style.display = 'none';
@@ -59,4 +70,4 @@ bindPhaseSwitch((phase) => {
   eventBus.emit('phaseChanged', { phase });
 });
 
-phases.setPhase('day');
+requestPhase('title');
