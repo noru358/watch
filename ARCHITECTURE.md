@@ -74,7 +74,7 @@ src/
  ├── registry/    # Behaviour by ID: cardEffects.ts (upgrade-card hooks); later companion skills
  ├── store/       # GameStore (single source of truth) + actions
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
- │                #   rift/ (one floor: map gen, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement), hub/ (walking, who is in reach, what is unlocked),
+ │                #   rift/ (one floor: layout = rooms + roles, mapgen = what stands in them, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement), hub/ (walking, who is in reach, what is unlocked),
  │                #   office/ (day loop, rent and debt, contract board, node contamination, offer → floor plans); later: recruit/, dispatch/, rental/, shop/
  ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view = draw order, HUD; draw/ = one file per drawn thing, the art swap points), hub/ (day: walkable office interior), shared/ (Overlay panels, vfx, sfx, crisp text; draw/ = sprite kit shared by every scene)
  └── ui/          # React: FeatureHost (mounts the open panel), features/<featureId>/ (one folder per hub panel)

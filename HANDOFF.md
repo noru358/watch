@@ -1,78 +1,67 @@
 # HANDOFF
 
-Branch: `main` (the user merged all work into main on 2026-10-26; work directly there unless told otherwise). Read `ARCHITECTURE.md` first, then this file. The human's map is `GUIDE.md` (Korean, keep in sync). What is decided vs open (2026-10-26 design review): `docs/design/1-foundation/direction.md`. The plan per gate, what is missing and why: `docs/design/roadmap.md`. Story frame and open questions: `docs/design/1-foundation/story.md`.
+Branch: `main` only (2026-10-26: old `claude/*` branches were fully contained in main and deleted). Work directly on main unless told otherwise.
+Read order: `ARCHITECTURE.md` → this file → `docs/design/1-foundation/direction.md` (decided vs open) → `docs/design/roadmap.md` (per-gate plan, gaps). The human's map is `GUIDE.md` (Korean, keep in sync).
 
 ## Status (2026-10-26)
-- 2026-10-26 (fourth session, docs): the user does not draw pixels. Art roles changed in `art-pipeline.md` ("사용자는 찍지 않는다"): user judges only; PixelLab for animation frames (user trials the web app first, MCP later); AI does mechanical pixel fixes and master layer splitting by script. LibreSprite optional for viewing. The linked computer in this chat is a Windows PC (desktop-6189or2), not the user's MacBook, so nothing was installed. User's local checkout was likely still on the old branch (`claude/admiring-keller-rdwk4w`): told to `git checkout main`.
-- 2026-10-26 (third session, code): **Gate 2-A day loop + contract board + operations map built**, and floors reworked. New `src/systems/office/` (pure): day counter, rent every 7 days (450) with debt, generated general contracts (7 story frames × 6 Euljiro nodes) and bounties (node contamination 4–5), bundling (a success also finishes general offers on the same node), node contamination (daily rise, spread along links, expired offers), fog (a node's ghosts show once visited). The front door now opens the board + SVG map (`src/ui/features/board/`), the bookkeeper's ledger shows day / rent / debt and a morning report. Runs take floor plans from the chosen offer (`RunSetup.floors/fee/offerId`, `store.nightPlan()`). Save v2 with v1 migration. Floors: room roles (start / exit = farthest walk with 2 guards / treasure heap / rest), **sealed stairs** until the floor's strong ghosts are down, bounty **arena** floor, per-floor **themes** (code-drawn colours in `FLOOR_THEMES`). Story contract is now 4 floors + boss. Master sprite + 26-colour palette in `assets/master/`, `assets/palette/master.gpl`; master-frame procedure and the Soul Knight review in `art-pipeline.md`.
-- 2026-10-26 (second session, docs only): proposals written, none decided — art pipeline steps `docs/design/5-business/art-pipeline.md` (master-frame editing instead of regenerating, fixed palette + checks, editor pass, PixelLab trial), contract board + operations map with node contamination + squad operations `docs/design/4-day/contracts-map-ops.md`, reference `docs/reference/dispatch-games.md` (MGSV, XCOM 2, AC Brotherhood, Dragon Age). User asked whether more floors fix run length: yes as one data edit in `contracts.data.ts`, but measure a human run first (bot 70 s ≈ 23 s/floor).
-- 2026-10-26 was a design review only (no code change): the user compared our plan with another AI's summary. Recorded in `direction.md`; open items must not be treated as decided (see Decisions to respect).
-- **Gate 1** (night combat) is feature-complete and waits on the user's playtest; art/sound polish is a parallel track, not a gate condition.
-- **Gate 2** (office & growth): hub + 2-A day loop (board, map, rent) are in. Left in 2-A: dialogue box, title / new game.
-- Flow now: office hub (walk, `E`) → front door → contract board + map (A/D or click, Enter) → night on the chosen offer (sealed floors, then boss / arena / last stairs) → settlement (bundle fees) → next morning (rent, contamination, new offers) → hub. The bookkeeper appears after 1 solved contract (`E` → ledger). Autosave, save v2.
+- **Gate 1** (night combat): feature-complete, waits on the user's playtest. Story contract 「불 꺼지는 동네」 = 4 sealed floors (alley → basement → arcade ☎ → rooftop) + gumiho.
+- **Gate 2** (office & growth): 2-A day loop is mostly in — walkable office, day counter, weekly rent (450) with debt, contract board (story / generated general / bounty, bundling), Euljiro operations map (6 nodes, contamination rise + spread, fog), bookkeeper ledger with a morning report, save v2. Left in 2-A: dialogue box, title / new game, retuning the numbers after a week of play. 2-B (growth) waits on user decisions.
+- Floors: room roles (start / exit = farthest walk with 2 guards / treasure heap / side rooms), **sealed stairs** until the floor's strong ghosts are down (fodder does not count), bounty **arena** last floor, per-floor **themes** (code-drawn colours).
+- Art: the user does **not** draw pixels; they judge only. Procedure in `docs/design/5-business/art-pipeline.md`: frames come from one master (`assets/master/director-master.png`, palette `assets/palette/master.gpl`), PixelLab for animation (user trials the web app first), AI does mechanical pixel fixes by script. None of the new art tools exist yet.
+- Flow: office hub (walk, `E`) → front door → contract board + map (A/D or click, Enter) → night on the chosen offer → settlement (bundle fees) → next morning (rent, contamination, new offers) → hub. Bookkeeper appears after 1 solved contract. Autosave.
 
 ## Functional modules (where things live)
 | Function | Code | Design doc |
 |----------|------|------------|
-| Input (single owner, context stack, mouse as `Mouse0/2`, `pause`=Esc, `interact`=E) | `src/core/InputManager.ts`, `src/data/input.data.ts` | `docs/design/1-foundation/platform.md` |
-| Save (schemaVersion 2, v1 → v2 migration, migrate, `.bad` backup, autosave on store change) | `src/core/SaveManager.ts`, `src/app/services.ts`, `src/store/gameStore.ts` | `1-foundation/save.md` |
-| One floor (pure, fixed 1/60 tick, tile units) | `src/systems/rift/` — `mapgen`, `physics`, `player` (move / dash / 3-hit combo with finisher recovery / 발도: outcome on press, `drawStartup` stance, `releaseDraw`), `enemies`, `boss`, `spawner`, `combat`, `step`, `hooks`; public API `index.ts` (incl. `makeEnemy` for tests) | `2-night/combat.md`, `enemies.md`, `contract.md` |
-| One night (floors, cards, stats incl. `drawSlash`, settlement) | `src/systems/run/` | `2-night/run-result.md`, `3-growth/party.md` |
-| Office day loop (day, rent, debt, board generation, bundling, contamination, offer → floor plans) | `src/systems/office/`, `src/data/office.data.ts`, `nodes.data.ts`, `requests.data.ts`, `contracts.data.ts` (story), `src/ui/features/board/`, `src/ui/features/ledger/` | `4-day/contracts-map-ops.md`, `2-night/contract.md` |
+| Input (single owner, context stack, `Mouse0/2`, `pause`=Esc, `interact`=E) | `src/core/InputManager.ts`, `src/data/input.data.ts` | `1-foundation/platform.md` |
+| Save (v2, v1 → v2 migration, `.bad` backup, autosave on store change) | `src/core/SaveManager.ts`, `src/app/services.ts`, `src/store/gameStore.ts` | `1-foundation/save.md` |
+| One floor — layout (rooms, corridors, roles, walk distances) | `src/systems/rift/layout.ts` | `2-night/contract.md` |
+| One floor — placement and play (fixed 1/60 tick, tile units, seal, arena) | `src/systems/rift/` — `mapgen`, `physics`, `player`, `enemies`, `boss`, `spawner`, `combat`, `step`, `hooks`; API `index.ts` | `2-night/combat.md`, `enemies.md` |
+| One night (floor plans from the offer, cards, stats, settlement) | `src/systems/run/` (`RunSetup.floors/fee/offerId`) | `2-night/run-result.md`, `3-growth/party.md` |
+| Office day loop (day, rent, debt, board generation, bundling, contamination, offer → floor plans) | `src/systems/office/`, `src/data/office.data.ts`, `nodes.data.ts`, `requests.data.ts`, `contracts.data.ts` (story) | `4-day/contracts-map-ops.md`, `4-day/economy.md` |
+| Day panels | `src/ui/FeatureHost.tsx`, `src/ui/features/board/` (board + SVG map), `ledger/` (books + morning report), `panel.ts`, `lastRun.ts` | `4-day/hub.md` |
+| Day hub (walk, `E` spots, unlocks) | `src/systems/hub/`, `src/data/lobby.data.ts`, `hubLook.data.ts`, `src/scenes/hub/`, `src/app/features.ts` | `4-day/hub.md` |
 | Card effects (fixed hook points) | `src/registry/cardEffects.ts`, `src/data/cards.data.ts` | `3-growth/party.md` |
-| Night screen flow (fixed step, hit-stop, cameras, aim, pause/cards/payphone/end modes) | `src/scenes/rift/RiftScene.ts`, `RiftHud.ts`, `src/scenes/shared/Overlay.ts` | `2-night/combat.md` |
-| Night drawing (layers, y-sort, lighting) | `src/scenes/rift/RiftView.ts`; `draw/` per thing: `director` (pose picking: combo steps, back view, 발도 stance/cut/sheathe), `sword` (blade, smear, 발도 FX), `ghosts` + `art/ghostArt` (incl. `GUMIHO_ART` phase 1/2), `props` + `art/propArt`, `tiles`, `telegraph` | `5-business/art.md` |
-| Shared sprite kit (both scenes) | `src/scenes/shared/draw/` — `pixelSprite` (runs, anchors, `stackSprites`, `gridSprite` cached per rows + palette), `directorFrames` (load + `directorSprite`: body anchor, stable head), `common` | `5-business/art.md` |
-| Director sprite tables | `src/data/sprites.data.ts` (frames, `combo`, `back`, hands, 발도 show times) | `5-business/director-sprite-spec.md` |
-| Day hub (walk, `E` spots, unlocks, panels) | `src/systems/hub/`, `src/data/lobby.data.ts`, `src/data/hubLook.data.ts`, `src/scenes/hub/`, `src/app/features.ts`, `src/ui/FeatureHost.tsx`, `src/ui/features/{sortie,ledger}/` | `4-day/hub.md` |
-| Feel numbers (tile 24px, zoom 1.75, hit-stop incl. `hitStopDraw`, shake, smear, popups, palette, lights) | `src/data/feel.data.ts` | `2-night/combat.md`, `5-business/art.md` |
-| Presentation listeners (popups, shake, sfx incl. `stance`/`cut`) | `src/scenes/shared/vfx.ts`, `sfx.ts`, `src/data/sfx.data.ts` | — |
-| Assets | `assets/source/` (raw, never delete), `assets/sprites/` (cleaned; v3 has `face_edit.done`); rules in `assets/README.md` | `5-business/art.md` |
-| Asset tools (outside the build) | `tools/spritekit/clean_sheet.py`, `tools/spritekit/face_edit.py` (open eyes, hurt frown; run once per cleaned folder); `tools/artlab/` (letter-grid lab, `gumiho_grid.py`) | `5-business/art.md` |
-| Tests | `tests/core`, `rift`, `run`, `save`, `balance`, `hub` (+ `bots.ts`, `helpers.ts`) | — |
+| Night screen flow (hit-stop, cameras, aim, pause/cards/payphone/end) | `src/scenes/rift/RiftScene.ts`, `RiftHud.ts` (seal count), `src/scenes/shared/Overlay.ts` | `2-night/combat.md` |
+| Night drawing (layers, y-sort, lighting, themes) | `src/scenes/rift/RiftView.ts`; `draw/`: `director`, `sword`, `ghosts` + `art/ghostArt`, `props` (sealed stairs) + `art/propArt`, `tiles` (`FLOOR_THEMES`), `telegraph` | `5-business/art.md` |
+| Shared sprite kit | `src/scenes/shared/draw/` — `pixelSprite`, `directorFrames`, `common` | `5-business/art.md` |
+| Director sprite tables | `src/data/sprites.data.ts` | `5-business/director-sprite-spec.md` |
+| Feel numbers, palette, floor themes | `src/data/feel.data.ts` | `2-night/combat.md`, `5-business/art.md` |
+| Presentation listeners | `src/scenes/shared/vfx.ts`, `sfx.ts`, `src/data/sfx.data.ts` | — |
+| Assets | `assets/source/` (raw, never delete), `assets/sprites/` (cleaned), `assets/master/`, `assets/palette/`; rules in `assets/README.md` | `5-business/art-pipeline.md` |
+| Asset tools (outside the build) | `tools/spritekit/clean_sheet.py`, `face_edit.py`; `tools/artlab/` | `5-business/art-pipeline.md` |
+| Tests | `tests/core`, `rift`, `mapgen`, `run`, `office`, `save`, `balance`, `hub` (+ `bots.ts`, `helpers.ts` incl. `storySetup`) | — |
+| Dev handles (dev builds only) | `window.__rift`, `window.__hub`, `window.__store` | — |
 
 ## Decisions to respect
-- Art: chunky Soul Knight–style pixels, 2-head chibi; the user likes the mob ghosts' pixel density. Director Gemini sheet v1 is the style master. Right-facing frames only, left mirrored; blade and smear rotate to the aim; only upward attacks use the back view. Judge art in the game screen.
-- Damage order: any normal hit < plain 발도 < counter = focus strike (tested). 발도 outcome is judged on the press; damage lands after the 0.12 s stance.
-- Hub is the office interior (not the rooftop outside); the rooftop is only where the office is.
-- Boss/story: visual appeal first, not tied to real places/industries.
-- Gemini prompts: `docs/design/5-business/gemini-asset-specs.md` (0-B = director combo / back view / face).
-- Personal reference photos and third-party screenshots are not committed.
-- Open, not decided (do not build as if decided): the big story and ending (decide together with the user), the first companion (gumiho as companion is undecided; the user is considering a tutorial-like first sortie that just defeats one strong ghost), recruiting by story episodes vs chance/rarity (monetization trade-off), human exorcist companions, how heavy squad operations are (for now: Girls' Frontline–style logistics that bring back resources; may change; tied to the "take along or send out" choice), keeping per-run cards, night length, the cat's role, rental market and weapon B.
-- Scope: Gate 2 + the art/sound track. Gate 3+ out of scope. Bash calls sometimes fail with an auto-mode classifier error; retry once. Do not `pkill -f` a pattern that matches your own shell command (it kills the shell); kill by port (`kill $(lsof -ti :5199)`).
+- Art: chunky Soul Knight–style pixels, 2-head chibi; director Gemini sheet v1 is the style master; right-facing frames only, left mirrored; blade and smear rotate to the aim; only upward attacks use the back view. Judge art in the game screen. The user does not draw: never hand them an editing task; give them a comparison image to judge.
+- Damage order: any normal hit < plain 발도 < counter = focus strike (tested). 발도 outcome is judged on the press; damage after the 0.12 s stance. Attacks show the strike pose first (no wind-up frame).
+- Hub is the office interior. The front door opens the contract board (not the bookkeeper, who only appears after 1 solve).
+- A day's board is fixed by `seedBase` + day (`morningSeed`); a reload replays it. Generated offers keep the risk they were posted with; the story offer shows the node's current contamination.
+- Boss/story: visual appeal first, not tied to real places/industries. Personal reference photos and third-party screenshots are not committed.
+- Open, not decided (do not build as if decided): the big story and ending, the first companion (gumiho undecided; tutorial-like first sortie considered), recruiting by episodes vs chance, human exorcist companions, squad operation weight (design in `contracts-map-ops.md` §3, waits for a companion), keeping per-run cards, night length target, the cat's role, rental market, weapon B.
+- Scope: Gate 2 + the art/sound track. Gate 3+ out of scope.
+- Shell: do not `pkill -f` a pattern matching your own command; kill a dev server by port (`kill $(lsof -ti :5199)`). Vitest hides `console.log` of passing tests: write to a file to inspect bot runs. Headless Chromium is at `/opt/pw-browsers/chromium-1243/chrome-linux64/chrome` in the cloud sandbox.
 
-## Verified (last, 2026-10-26)
-- `npm run check`: tsc clean, 75 tests pass (new: `tests/office.test.ts` board / rent / expiry / bounty / bundling / store / v1→v2 migration / generated nights playable by the bot; `tests/mapgen.test.ts` exit room far from start, treasure, seal, fodder does not hold the seal, arena end).
-- Balance (story contract, 8 seeds): naive 0/8, skilled 8/8, skilled clear time 137–237 s (was 22–95 s with 3 open-stairs floors).
-- Playwright smoke (headless Chromium, dev server): board opens from the door, A/D changes the selection, Enter starts a night on the chosen general offer (alley theme, "계단 봉인 · 강적 6" in the HUD); after 6 simulated nights the board shows day 7, bounties on contaminated nodes, and the ledger shows the rent paid and the morning report. No page errors (one 404 is the missing favicon).
-- Not verified: real-time play by a human of sealed floors / arena / themes; contamination pacing and rent size; the map on a phone-sized window.
+## Verified (2026-10-26)
+- `npm run check`: tsc clean, 75 tests pass. Balance (story contract, 8 seeds): naive 0/8, skilled 8/8, skilled clear 137–237 s.
+- Playwright smoke: board opens from the door, A/D changes selection, Enter starts a night on the chosen offer (HUD "계단 봉인 · 강적 n", alley theme); after 6 simulated nights the board shows day 7, bounties on contaminated nodes; the ledger shows rent paid and the morning report. No page errors (one 404 = missing favicon).
+- The `layout.ts` split (2026-10-26 cleanup) kept the RNG call order: same seeds, same maps (tests unchanged and passing).
+- Not verified: human play of sealed floors / arena / themes; economy pacing; the map at phone width.
 
-## Known issues / unverified
-- No human playtest: parry window 0.22 s, 발도 stance 0.12 s, speeds, run length are bot-tuned.
-- Run length: bot ≈ 3 min on the story contract after the seal + 4th floor; the 10–15 min target is still unmet and may be the wrong target (user measured 1–2 min before this change). Decide after a human run.
-- Economy numbers (rent 450, fees, contamination 25%/day) are guesses; a week of play is needed.
-- Squad operations (3 in `contracts-map-ops.md`) not built: waits for the first companion.
-- No volume / mute setting.
-- Hub art is shapes; cat, Esc full menu, rent, contract board, dialogue not built; unlocks use "solved ≥ N".
-- Trauma is only a number with no effect.
-- Subway ghost, sword, stairs still shapes; gumiho has one static frame; combo reuses v3 frames; no back-view walk; walls not y-sorted with bodies; black jacket can sink into dark floors.
-- Keyboard + mouse only; synth SFX; dev-only `window.__rift` / `window.__hub`.
+## Known issues
+- No human playtest: parry window, stance, speeds, run length and all office numbers are bot-tuned or guessed.
+- No volume / mute setting. No title / new game. No dialogue box (unlocks use "solved ≥ N").
+- Trauma is a number with no effect. Squad operations not built.
+- Hub art is shapes; subway ghost, sword, stairs are shapes; gumiho one static frame; combo reuses v3 frames; walls not y-sorted with bodies; black jacket can sink into dark floors; floor themes are colour swaps only.
+- Hero outline has purple fringe (`#22011e`, `#40043a`) from magenta keying.
 
-## Next steps (detail and reasoning in `docs/design/roadmap.md`)
-Gate 1 (pass):
-1. User playtest → retune; decide the night length target; add a volume/mute line to the pause menu.
-Gate 2-A (day loop):
-2. ✅ day counter, rent, debt, generated contracts, board + map (2026-10-26). Next: playtest a week, retune `office.data.ts`.
-3. Floor-gen next steps: hand-made room templates per theme (Spelunky / Isaac style prefabs), monster-house room, tileset art per theme.
-4. Minimal dialogue box (name, portrait slot, lines) for story beats (bookkeeper arrival, a recruit).
-5. ✅ Save v2. Title / new game still open.
-Gate 2-B (growth) — needs the user's decisions first (recruit method, first companion, first sortie, story):
-6. First companion: party slot, call skill on the 4th combat button, 3 companion cards.
-7. Minimal squad operation (send a companion out, resources come back; capped below night income) so "take along or send out" becomes a choice.
-8. Trauma effects (card hooks) + recovery; companion traits (기질). Reputation and weapon B only after the above proves fun.
-9. Ask the user: cat's Gate 2 role (proposal: trauma recovery now, appraisal/black market with relics in Gate 3).
-Design (with the user): big story and ending (`story.md` questions), recruit method (`3-growth/recruit.md` table).
-Art/sound track (parallel): Gemini 0-B frames → subway ghost, sword, tiles, props → gumiho pattern poses → office/bookkeeper/cat art → signs → real SFX/BGM; spritekit master palette / target height / in-game comparison.
+## Next steps (reasons in `docs/design/roadmap.md`)
+1. User: play a few nights and a week of days → retune `office.data.ts`, combat feel, and decide the night length target. Add volume/mute to the pause menu.
+2. 2-A: minimal dialogue box (name, portrait slot, lines); title / new game.
+3. Art tools (user judges, AI builds): master palette enforcement in `clean_sheet.py`, size/thickness/off-palette check, in-game comparison image, master part split; then the walk-cycle trial (PixelLab result from the user vs AI part script).
+4. Floor generation: hand-made room templates per theme, monster-house room — only if the human run length says more content is needed.
+5. 2-B after user decisions (recruit method, first companion, first sortie, story): party slot + call skill + companion cards → squad operations (scout / seal) → trauma effects and recovery.
 
 ## History (short)
-Action prototype (auto-aim) lost to a stand-still bot → turn-based grid → user disliked it → Core Keeper–style real-time on a tile grid (old code: `d170e4b`, `0278d77`). Then: swarm fodder, keyboard-only play, one key per action, 발도 tiers, quieter effects, design docs in 5 groups, SaveManager, `draw/` split, art lab, Gemini pipeline, 24px tiles, pause menu, boss → gumiho, director poses. 2026-10-25: director motion cleanup (stable head, anchors) → Gate 2 start with a walkable hub, then the office interior → feel pass (damage order, 3-hit combo + smears, back-view attacks, 발도 stance, face fixes, gumiho pixel art) → module cleanup (shared sprite kit, hub look data, tests via module index) and the gate roadmap review. 2026-10-26: design review against another AI's summary → `direction.md` (decided / open), `story.md` (frame only), recruit / economy / contract / roadmap updated; gumiho-as-first-companion withdrawn as undecided.
+Action prototype (auto-aim) lost to a stand-still bot → turn-based grid → user disliked it → Core Keeper–style real-time on a tile grid (old code: `d170e4b`, `0278d77`). 2026-10-25: swarm fodder, 발도 tiers, design docs in 5 groups, save, art lab, Gemini pipeline, 24px tiles, gumiho boss, director poses, walkable office hub, feel pass, module cleanup. 2026-10-26: design review (`direction.md`, `story.md`); art pipeline and dispatch-game research; Gate 2-A day loop + board + map + save v2; floor roles, seal, arena, themes; hero master + palette; user does not draw → art roles; cleanup (`rift/layout.ts` split, doc consolidation, single `main` branch).

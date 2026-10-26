@@ -9,7 +9,7 @@ const files = import.meta.glob('../../../../assets/sprites/director-gemini-*/fra
   import: 'default',
 }) as Record<string, string>;
 
-export const directorKey = (frame: DirectorFrame) => `director:${frame}`;
+const directorKey = (frame: DirectorFrame) => `director:${frame}`;
 
 export function loadDirectorFrames(scene: Phaser.Scene): void {
   const S = DIRECTOR_SPRITE;

@@ -4,7 +4,6 @@ export const en: Record<TKey, string> = {
   'game.title': 'Seoul Nightwatch',
   'game.subtitle': 'Euljiro Exorcism Office',
 
-  'day.office': 'Euljiro Exorcism Office',
   'day.money': 'Balance',
   'day.trauma': 'Trauma',
   'day.runs': 'Contracts solved',
@@ -15,7 +14,6 @@ export const en: Record<TKey, string> = {
   'hub.prompt.door': 'E Head out',
   'hub.prompt.bookkeeper': 'E Talk to the bookkeeper',
   'hub.hint': 'WASD move · E talk / use',
-  'hub.name.bookkeeper': 'Bookkeeper',
   'feature.sortie.title': 'Front door — tonight\'s contract',
   'feature.ledger.title': 'Bookkeeper — office ledger',
   'feature.ledger.line': 'Boss, the books.',
@@ -115,7 +113,6 @@ export const en: Record<TKey, string> = {
   'request.smoke.text': 'Someone keeps taking my laundry in. Nobody on the CCTV.',
   'bounty.client': 'Bounty',
   'bounty.text': 'A named {ghost} has settled in at {node}. The neighbourhood is in danger.',
-  'board.title': 'Contract board',
   'board.day': 'Day {day}',
   'board.rentIn': 'Rent in {days} days',
   'board.debt': 'Debt {debt}',

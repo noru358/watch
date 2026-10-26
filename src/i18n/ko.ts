@@ -3,7 +3,6 @@ export const ko = {
   'game.title': '서울 나이트워치',
   'game.subtitle': '을지로 퇴마 사무소',
 
-  'day.office': '을지로 퇴마 사무소',
   'day.money': '잔고',
   'day.trauma': '트라우마',
   'day.runs': '해결한 의뢰',
@@ -14,7 +13,6 @@ export const ko = {
   'hub.prompt.door': 'E 출동',
   'hub.prompt.bookkeeper': 'E 경리와 이야기',
   'hub.hint': 'WASD 이동 · E 말 걸기/사용',
-  'hub.name.bookkeeper': '경리',
   'feature.sortie.title': '현관문 — 의뢰판과 을지로 지도',
   'feature.ledger.title': '경리 — 사무소 장부',
   'feature.ledger.line': '소장님, 장부 보세요.',
@@ -114,7 +112,6 @@ export const ko = {
   'request.smoke.text': '빨래를 널면 누가 자꾸 걷어 가요. CCTV엔 아무도 없고요.',
   'bounty.client': '현상수배',
   'bounty.text': '{node}에 이름 붙은 {ghost}가 눌러앉았다. 동네가 위험하다.',
-  'board.title': '의뢰판',
   'board.day': '{day}일째',
   'board.rentIn': '월세까지 D-{days}',
   'board.debt': '빚 {debt}',
