@@ -1,6 +1,6 @@
 # HANDOFF
 
-Branch: `main` only (2026-10-26: old `claude/*` branches were fully contained in main and deleted). Work directly on main unless told otherwise.
+Branch: `main`. The old `claude/admiring-keller-rdwk4w` and `claude/vigilant-turing-c8w4ga` branches are fully contained in main (checked with `merge-base --is-ancestor`); deleting them from the sandbox was refused (HTTP 403), so the user deletes them on GitHub. Never work on them; work on main.
 Read order: `ARCHITECTURE.md` → this file → `docs/design/1-foundation/direction.md` (decided vs open) → `docs/design/roadmap.md` (per-gate plan, gaps). The human's map is `GUIDE.md` (Korean, keep in sync).
 
 ## Status (2026-10-26)
@@ -64,4 +64,4 @@ Read order: `ARCHITECTURE.md` → this file → `docs/design/1-foundation/direct
 5. 2-B after user decisions (recruit method, first companion, first sortie, story): party slot + call skill + companion cards → squad operations (scout / seal) → trauma effects and recovery.
 
 ## History (short)
-Action prototype (auto-aim) lost to a stand-still bot → turn-based grid → user disliked it → Core Keeper–style real-time on a tile grid (old code: `d170e4b`, `0278d77`). 2026-10-25: swarm fodder, 발도 tiers, design docs in 5 groups, save, art lab, Gemini pipeline, 24px tiles, gumiho boss, director poses, walkable office hub, feel pass, module cleanup. 2026-10-26: design review (`direction.md`, `story.md`); art pipeline and dispatch-game research; Gate 2-A day loop + board + map + save v2; floor roles, seal, arena, themes; hero master + palette; user does not draw → art roles; cleanup (`rift/layout.ts` split, doc consolidation, single `main` branch).
+Action prototype (auto-aim) lost to a stand-still bot → turn-based grid → user disliked it → Core Keeper–style real-time on a tile grid (old code: `d170e4b`, `0278d77`). 2026-10-25: swarm fodder, 발도 tiers, design docs in 5 groups, save, art lab, Gemini pipeline, 24px tiles, gumiho boss, director poses, walkable office hub, feel pass, module cleanup. 2026-10-26: design review (`direction.md`, `story.md`); art pipeline and dispatch-game research; Gate 2-A day loop + board + map + save v2; floor roles, seal, arena, themes; hero master + palette; user does not draw → art roles; cleanup (`rift/layout.ts` split, doc consolidation, main as the only working branch).
