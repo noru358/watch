@@ -67,6 +67,7 @@
 cd ~
 git clone https://github.com/noru358/watch.git
 cd watch
+git checkout main
 npm install
 ```
 - `git clone`에서 비밀번호를 물으면: 비공개 저장소라 GitHub 비밀번호 대신 **Personal Access Token**이 필요합니다. 어려우면 **GitHub Desktop** 앱으로 `noru358/watch`를 받은 뒤 그 폴더로 `cd` 하세요.
