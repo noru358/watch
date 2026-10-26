@@ -5,7 +5,7 @@
 >
 > **마지막 업데이트: 2026-10-25 (모듈 정리 · 주인공 베기/발도 자세 · 구미호 보스 · 일시정지 · 크기 맞춤)**
 >
-> 작업은 전부 `claude/admiring-keller-rdwk4w` 브랜치에 있습니다(`main` 아님).
+> 작업은 `main` 브랜치에 있습니다(2026-10-26 병합).
 
 ---
 
@@ -65,7 +65,6 @@
 cd ~
 git clone https://github.com/noru358/watch.git
 cd watch
-git checkout claude/admiring-keller-rdwk4w
 npm install
 ```
 - `git clone`에서 비밀번호를 물으면: 비공개 저장소라 GitHub 비밀번호 대신 **Personal Access Token**이 필요합니다. 어려우면 **GitHub Desktop** 앱으로 `noru358/watch`를 받은 뒤 그 폴더로 `cd` 하세요.

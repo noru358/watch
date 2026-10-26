@@ -1,8 +1,9 @@
 # HANDOFF
 
-Branch: work continues on `claude/vigilant-turing-c8w4ga` (fast-forwarded from `claude/admiring-keller-rdwk4w`, which holds everything up to `e500602`; `main` is still only the first docs commit). Read `ARCHITECTURE.md` first, then this file. The human's map is `GUIDE.md` (Korean, keep in sync). What is decided vs open (2026-10-26 design review): `docs/design/1-foundation/direction.md`. The plan per gate, what is missing and why: `docs/design/roadmap.md`. Story frame and open questions: `docs/design/1-foundation/story.md`.
+Branch: `main` (the user merged all work into main on 2026-10-26; work directly there unless told otherwise). Read `ARCHITECTURE.md` first, then this file. The human's map is `GUIDE.md` (Korean, keep in sync). What is decided vs open (2026-10-26 design review): `docs/design/1-foundation/direction.md`. The plan per gate, what is missing and why: `docs/design/roadmap.md`. Story frame and open questions: `docs/design/1-foundation/story.md`.
 
 ## Status (2026-10-26)
+- 2026-10-26 (second session, docs only): proposals written, none decided — art pipeline steps `docs/design/5-business/art-pipeline.md` (master-frame editing instead of regenerating, fixed palette + checks, editor pass, PixelLab trial), contract board + operations map with node contamination + squad operations `docs/design/4-day/contracts-map-ops.md`, reference `docs/reference/dispatch-games.md` (MGSV, XCOM 2, AC Brotherhood, Dragon Age). User asked whether more floors fix run length: yes as one data edit in `contracts.data.ts`, but measure a human run first (bot 70 s ≈ 23 s/floor).
 - 2026-10-26 was a design review only (no code change): the user compared our plan with another AI's summary. Recorded in `direction.md`; open items must not be treated as decided (see Decisions to respect).
 - **Gate 1** (night combat) is feature-complete and waits on the user's playtest; art/sound polish is a parallel track, not a gate condition.
 - **Gate 2** (office & growth) has started: only the walkable office hub exists. Next is 2-A, the day loop (see Next steps).

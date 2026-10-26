@@ -16,11 +16,11 @@
 | [1 기준](1-foundation/README.md) — 모든 모듈이 따르는 약속 | [기획 방향(확정·미정)](1-foundation/direction.md) · [이야기](1-foundation/story.md) · [세계관·톤](1-foundation/world.md) · [플랫폼·입력](1-foundation/platform.md) · [플레이 흐름](1-foundation/playflow.md) · [저장](1-foundation/save.md) | 🟢 입력·저장 / 📝 나머지 | `core/InputManager.ts`, `core/SaveManager.ts`, `data/input.data.ts` |
 | [2 밤 — 퇴마 현장](2-night/README.md) | [전투 방식](2-night/combat.md) · [주인공·무기](2-night/protagonist.md) · [괴이 도감](2-night/enemies.md) · [의뢰·현장](2-night/contract.md)(첫 의뢰 「불 꺼지는 동네」, 보스 구미호) · [실패·정산](2-night/run-result.md) | 🟢 (Gate 1 본체, 일시정지 포함) | `systems/rift/`, `systems/run/`, `scenes/rift/` |
 | [3 성장](3-growth/README.md) | [강화 카드·조 편성](3-growth/party.md) · [괴이 영입](3-growth/recruit.md) | 🟢 카드 / 📝 편성·영입 | `data/cards.data.ts`, `registry/cardEffects.ts` |
-| [4 낮 — 사무소](4-day/README.md) | [허브](4-day/hub.md) · [경제·경영](4-day/economy.md) | 🧪 걸어다니는 허브 / 📝 월세·의뢰판·날짜 | `scenes/hub/`, `systems/hub/`, `data/lobby.data.ts`, `data/hubLook.data.ts`, `ui/FeatureHost.tsx`, `ui/features/`, `store/gameStore.ts` |
-| [5 사업·제작](5-business/README.md) | [과금](5-business/monetization.md) · [아트·에셋](5-business/art.md) · [주인공 그림 명세](5-business/director-sprite-spec.md) · [Gate 1 그림 명세](5-business/gemini-asset-specs.md) | 📝 과금 / 🧪 그림 일부(주인공 🟢) | `scenes/rift/draw/`, `scenes/shared/draw/`, `data/sprites.data.ts`, `assets/`, `tools/spritekit/` |
+| [4 낮 — 사무소](4-day/README.md) | [허브](4-day/hub.md) · [경제·경영](4-day/economy.md) · [의뢰판·작전 지도·분대 작전 제안](4-day/contracts-map-ops.md) | 🧪 걸어다니는 허브 / 📝 월세·의뢰판·날짜 | `scenes/hub/`, `systems/hub/`, `data/lobby.data.ts`, `data/hubLook.data.ts`, `ui/FeatureHost.tsx`, `ui/features/`, `store/gameStore.ts` |
+| [5 사업·제작](5-business/README.md) | [과금](5-business/monetization.md) · [아트·에셋](5-business/art.md) · [주인공 그림 명세](5-business/director-sprite-spec.md) · [Gate 1 그림 명세](5-business/gemini-asset-specs.md) · [그림 작업 절차](5-business/art-pipeline.md) | 📝 과금 / 🧪 그림 일부(주인공 🟢) | `scenes/rift/draw/`, `scenes/shared/draw/`, `data/sprites.data.ts`, `assets/`, `tools/spritekit/` |
 
 **지금 무엇을 하나:** 무엇이 확정이고 무엇이 열려 있는지는 [기획 방향](1-foundation/direction.md), 게이트별 할 일·점검·빠진 모듈은 [로드맵](roadmap.md).
 
-참고 게임 역설계는 [`../reference/`](../reference/)에 있다: [탑다운 실시간 액션](../reference/topdown-action.md)(Core Keeper, Death's Door, Ghostlore, Gungeon, Moonlighter, japda), [포켓몬 불가사의 던전](../reference/pokemon-mystery-dungeon.md), [소녀전선](../reference/girls-frontline.md).
+참고 게임 역설계는 [`../reference/`](../reference/)에 있다: [탑다운 실시간 액션](../reference/topdown-action.md)(Core Keeper, Death's Door, Ghostlore, Gungeon, Moonlighter, japda), [포켓몬 불가사의 던전](../reference/pokemon-mystery-dungeon.md), [소녀전선](../reference/girls-frontline.md), [파견·분대 작전 비교](../reference/dispatch-games.md)(MGSV, XCOM 2, AC 브라더후드, 드래곤 에이지).
 
 모듈끼리 규칙: 코드 모듈은 서로의 내부 파일을 직접 가져다 쓰지 않고 각 `systems/<모듈>/index.ts`가 내놓은 함수만 쓴다. 모듈 사이 데이터는 `GameStore`(금고)를 거치고 ID 타입은 `src/types/ids.ts`를 공유한다. 화면(scenes/ui)은 계산 결과를 보여주기만 한다.
