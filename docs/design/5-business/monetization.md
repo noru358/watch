@@ -1,4 +1,6 @@
-# 💳 과금 모듈
+# 💳 과금
+
+← [5 사업·제작](README.md)
 
 **담당 코드:** `src/data/shop.data.ts`, `src/systems/shop/` — **Steam 출시 이후에 만듦. 지금은 기획만.**
 

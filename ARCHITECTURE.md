@@ -66,7 +66,7 @@
 ```
 src/
  ├── app/         # App wiring: singletons (input, store), phase-switch binding, open-panel state (features.ts)
- ├── core/        # Infrastructure: InputManager, EventBus, SeededRNG, SaveManager (schemaVersion 1, live), phase switch
+ ├── core/        # Infrastructure: InputManager, EventBus, SeededRNG, SaveManager (schemaVersion 2, live), phase switch
  ├── types/       # Shared interfaces, ID union types (ids.ts), event map (events.ts)
  ├── i18n/        # ko.ts (source of keys), en.ts, t() helper
  ├── data/        # Static typed tables: protagonist, weapons, cards, ghosts, dungeon, contracts,

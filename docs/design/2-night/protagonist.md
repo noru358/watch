@@ -1,4 +1,6 @@
-# 🧥 주인공·퇴마 도구 모듈
+# 🧥 주인공·퇴마 도구
+
+← [2 밤](README.md) · 싸우는 법은 [전투](combat.md), 숫자는 [한 판 규칙](../../rules/night.md), 그림 상태는 [아트](../5-business/art.md).
 
 **담당 코드:** `src/data/weapons.data.ts`(무기 숫자), `src/data/protagonist.data.ts`(체력 등), `src/systems/rift/player.ts`(베기·발도·돌진 규칙), `src/systems/run/stats.ts`(능력치 계산)
 
@@ -22,6 +24,8 @@
 
 사원증은 다니는 회사 것이다. 1인 사무소 소장이 퇴마 사무소 사원증도 만들어 거는 개그는 나중 선택지로 남겨 둔다.
 
+⚠️ 게임에 들어간 그림(Gemini 1차 시트 → `assets/master/director-master.png`)은 이 사양과 다르다: 가슴께까지 오는 긴 머리라 여성으로 읽힌다. 어느 쪽에 맞출지는 미정 → [기획 방향](../1-foundation/direction.md).
+
 도트(키 24px)에서 반드시 남길 순서: ① 쇄골에서 뻗치는 중단발 실루엣 ② 위 먹색·아래 베이지 대비 ③ 파란 사원증 줄 + 흰 카드 ④ 크로스백 끈 대각선. 시스루 뱅·단추·핀턱은 1~2픽셀 암시로만. 상세 디테일은 대화창 초상화에서 살린다. 견본: [아트 모듈](../5-business/art.md).
 - 플레이 다양성은 직업 선택이 아니라 **퇴마 도구 교체**로 (Hades 무기 교체처럼).
 - 처음엔 **소장 혼자.** 동료는 나중에 얻고, 직접 조작하지 않고 **동행 → 호출 스킬**로 참여 (→ [party.md](../3-growth/party.md)).
@@ -39,6 +43,5 @@
 ## 새 도구 추가하는 법
 `weapons.data.ts`에 숫자 한 줄 + `cards.data.ts`에 그 무기 덱 카드 몇 장. 새 행동이 필요하면 `systems/rift/player.ts`에 추가.
 
-## 지금 들어 있는 것 (무기 A)
-실시간: 마우스 조준 부채꼴 베기 · 3타 콤보(내려베기·올려베기·찌르기, 3타째 마무리) · 진심 게이지 · 발도(0.12초 자세 후 베기, 근접 예고를 맞기 직전에 받아치기 / 게이지 일섬) · 발도 후 검신 노출 · 돌진. 피해 순서 평타 < 일반 발도 < 받아치기 = 일섬.
-숫자는 `src/data/weapons.data.ts`·`protagonist.data.ts`, 규칙은 `src/systems/rift/player.ts` → [combat.md](combat.md)
+## 지금 들어 있는 것
+무기 A만 실시간으로 구현됨(베기 3타 콤보·진심 게이지·발도·검신 노출·돌진) → [전투](combat.md). 무기 B는 Gate 2 이후.

@@ -1,6 +1,6 @@
 # 🛠️ 그림 작업 절차 (1인 + AI 도트 파이프라인) — 2026-10-26
 
-← [아트 모듈](art.md) · 그림체·크기 결정은 art.md가 기준이고, 이 문서는 "누가 어떤 도구로 어떤 순서로 만드나"만 다룬다. Gemini에 넣는 문장은 [그림 명세](gemini-asset-specs.md).
+← [아트 모듈](art.md) · 그림체·크기 결정은 art.md가 기준이고, 이 문서는 "누가 어떤 도구로 어떤 순서로 만드나"만 다룬다. Gemini에 넣는 문장은 [그림 프롬프트 모음](art-prompts.md).
 
 ## 원칙
 지금까지 막힌 지점은 셋이었다. 그림마다 비율·굵기·색이 따로 논다. 프레임을 장마다 새로 그리게 하니 픽셀이 30% 넘게 달라져 번쩍인다(그래서 코드로 머리를 고정하는 `stableHead`가 생김). 한두 픽셀 손질을 할 사람이 없다. 외부 사례의 결론도 같다: 범용 이미지 AI는 "도트처럼 보이는 그림"만 주므로 후처리가 필수이고, 애니메이션이 가장 약하며, 판단은 게임 화면에서 한다.
@@ -37,11 +37,7 @@
 
 필요한 프레임(오른쪽만, 왼쪽은 반전): 서 있기 1(숨쉬기는 코드로 몸 전체 1px), 걷기 4, 3타 콤보 각 타격 1 + 회수 1(6), 발도 자세 1·베기 1(납도는 자세 재사용), 돌진 1, 피격 1, 쓰러짐 1, 위쪽 공격 뒷모습 1. 약 16장. 나중에 뒷모습 걷기 2.
 
-얼굴·비율이 마음에 안 들어 마스터를 다시 뽑을 때의 Gemini 프롬프트(1차 시트와 게임 스크린샷 첨부, 공통 규칙 먼저):
-```
-Use the attached sheet as the master design. Draw ONE frame only: the character standing still, right-facing 3/4 view, empty hands, arms relaxed at the sides so the torso is fully visible, legs slightly apart with both feet flat on the same row. Art size 32x36, feet on the 3rd row from the bottom. Same face, hair, outfit, colours, outline and 2-head proportions as the sheet. Eyes calm and a little open (blue iris 2 px tall). No weapon, no effects.
-```
-팔을 몸에서 떼고 다리를 벌리게 하는 이유: 부품으로 나눌 때 가려진 부분이 적어야 한다.
+얼굴·비율이 마음에 안 들어 마스터를 다시 뽑을 때의 프롬프트는 [그림 프롬프트 모음](art-prompts.md) "주인공".
 
 ## 한 장이 게임에 들어가기까지
 1. **생성**(사용자 또는 AI): Gemini는 새 대화에 1차 시트와 게임 스크린샷을 파일로 첨부, 공통 규칙 → 그림 하나당 메시지 하나, 3~4번 뽑아 실루엣·비율이 제일 나은 것 하나. PixelLab은 마스터를 올리고 바꿀 영역만 칠한다. 원본은 `assets/source/<도구>/<대상>-v<번호>.png`, 안 쓰는 건 `-rejected`.

@@ -1,4 +1,6 @@
-# 👻 귀신 영입 모듈
+# 👻 귀신 영입
+
+← [3 성장](README.md) · 영입 방식은 미정 → [기획 방향](../1-foundation/direction.md).
 
 **담당 코드:** `src/data/recruit.data.ts`(확률·조건), `src/systems/recruit/`(영입 판정)
 

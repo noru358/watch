@@ -1,22 +1,13 @@
-# 🎨 Gate 1 그림 명세 (제미나이용)
+# 🎨 그림 프롬프트 모음 (Gemini·외주용)
 
-← [아트 모듈](art.md) · 2026-10-25. 주인공 명세는 [director-sprite-spec.md](director-sprite-spec.md).
+← [아트 모듈](art.md) · 절차(누가·어떤 순서로)는 [그림 작업 절차](art-pipeline.md), 이 문서는 넣을 문장만 모은다. 2026-10-26 정리: 옛 「Gate 1 그림 명세」와 「주인공 스프라이트 명세」를 합쳤고, 그 두 문서의 결정 기록은 [아트 모듈](art.md) "지난 경위"로 줄였다.
 
 ## 쓰는 법
-- 대화를 시작할 때 **주인공 1차 시트**(`assets/source/gemini/director-sheet-v1.png`)와 **게임 스크린샷 한 장**(주인공·귀신·바닥이 같이 보이는 화면)을 그림체 기준으로 같이 첨부한다. 첫 시도(지하철 망령·처녀귀신·칼)는 비율(8등신), 픽셀 굵기(더 잘음), 색(밝은 스티커 톤)이 따로 놀아서 이 세 조건을 공통 규칙에 넣었다. 모든 그림이 그 시트와 같은 픽셀 굵기·외곽선·색감이어야 한다.
-- 아래 "공통 규칙"을 한 번 붙여 넣고, 그다음 그림마다 프롬프트를 하나씩 보낸다(한 번에 하나).
-- 받은 원본은 `assets/source/gemini/`에 보관하고, `tools/spritekit/clean_sheet.py`로 정리해서 `assets/sprites/`에 넣는다(→ `assets/README.md`). 배경이 단색 분홍이어야 깨끗하게 지워진다.
+- 새 대화를 열고 **주인공 1차 시트**(`assets/source/gemini/director-sheet-v1.png`, 그림체 기준)와 **게임 스크린샷 한 장**(주인공·귀신·바닥이 같이 보이는 화면)을 파일로 첨부한다. 첫 시도(지하철 망령·처녀귀신·칼)가 비율(8등신)·픽셀 굵기(더 잘음)·색(밝은 스티커 톤)이 따로 놀아서, 이 셋을 아래 공통 규칙에 박아 두었다.
+- 공통 규칙을 한 번 붙여 넣고, 그다음 그림 하나당 메시지 하나. 3~4번 뽑아 실루엣·비율이 제일 나은 것을 고른다.
+- 받은 원본은 `assets/source/gemini/<대상>-v<번호>.png`(안 쓰는 건 `-rejected`), 정리는 `tools/spritekit/clean_sheet.py`(→ `assets/README.md`). 배경은 단색 분홍이어야 깨끗하게 지워진다.
 
-## 우선순위
-0. 주인공 4차 프레임(아래 0-B번): 3타 콤보 자세, 뒷모습 공격, 눈 조금 더 뜨기, 피격은 찡그림(울지 않음)
-1. 구미호 「월하」(보스): 몹과 같은 굵기의 도트를 직접 그려 넣었다(`tools/artlab/gumiho_grid.py`). 모션 프레임이 필요해지면 아래 1번으로 요청
-2. 지하철 망령: 지금 도형
-3. 처녀귀신·달걀귀신·도깨비불: 지금 제 견본(픽셀이 주인공보다 굵음)을 같은 굵기로
-4. 신문지 사인검(감싼 칼·드러난 칼)
-5. 바닥·벽 타일과 소품
-
-## 공통 규칙 (먼저 한 번 붙여 넣기)
-
+## 공통 규칙 (먼저 한 번)
 ```
 We are making pixel-art sprites for a top-down action game set in a fantasy version of Seoul at night (urban folklore ghosts, comedic tone). Two images are attached: (1) the main character's sprite sheet, the STYLE MASTER, and (2) a screenshot of the game.
 Everything you draw must look like it was made by the same artist as (1) and belongs in (2):
@@ -32,22 +23,15 @@ Rules for every image I ask for:
 - Characters face RIGHT (3/4 view, the same angle as the attached sheet). The game mirrors them for left.
 ```
 
-## 0. 주인공 추가 프레임 (32×32, 1차 시트 기준)
-1차 시트(`assets/source/gemini/director-sheet-v1.png`)를 반드시 첨부. 디자인은 1차 그대로 두고, 빠진 프레임만 받는다. 오른쪽을 보는 그림만(왼쪽은 게임이 뒤집음). 자세한 배경은 [주인공 명세](director-sprite-spec.md) 15번.
+## 주인공
+동작 프레임은 Gemini로 새로 뽑지 않고 마스터 한 장(`assets/master/director-master.png`)을 고쳐서 만든다([그림 작업 절차](art-pipeline.md)). Gemini에는 아래 두 가지만 맡긴다.
 
+마스터를 다시 뽑아야 할 때(얼굴·비율이 마음에 안 들 때). 팔을 몸에서 떼고 다리를 벌리게 하는 이유는 부품으로 나눌 때 가려진 부분을 줄이려는 것:
 ```
-Use the attached sprite sheet as the master design for this character. Keep the face, hair, outfit, colors, outline and proportions exactly the same. Draw only the right-facing view (the same angle as the attached front frames). No weapon in her hands (the game draws the sword separately), no effects.
-Art size 32x32 per frame, laid out one row per animation:
-Row 1 - idle, 2 frames: standing with EMPTY hands, 1px breathing difference, hair tips swaying slightly.
-Row 2 - walk, 4 frames: legs alternating, hair swinging with the steps.
-Row 3 - attack, 2 frames: (a) right arm pulled back at shoulder height, (b) right arm swung forward and extended, body leaning into the swing.
-Row 4 - draw stance (iaido), 2 frames: (a) crouched low, left hand at the hip as if holding a sheath, right hand near the hip, eyes sharp; (b) explosive forward lunge, right arm extended far forward, hair and jacket blown back.
-Row 5 - hurt, 1 frame: flinching backward.
+Use the attached sheet as the master design. Draw ONE frame only: the character standing still, right-facing 3/4 view, empty hands, arms relaxed at the sides so the torso is fully visible, legs slightly apart with both feet flat on the same row. Art size 32x36, feet on the 3rd row from the bottom. Same face, hair, outfit, colours, outline and 2-head proportions as the sheet. Eyes calm and a little open (blue iris 2 px tall). No weapon, no effects.
 ```
 
-## 0-B. 주인공 4차 프레임 (2026-10-25 피드백 반영)
-1차 시트 + 3차 추가 시트(`assets/source/gemini/director-sheet-v3-extra.png`) + 게임 스크린샷을 첨부. 지금 게임은 3차 프레임을 조합해 쓰고 있고(`src/data/sprites.data.ts`), 아래가 오면 교체한다.
-
+자세 참고용 동작 시트(1차 + 3차 시트 첨부, 결과는 직접 쓰지 않고 마스터를 고칠 때 자세 참고로만):
 ```
 Use the attached sheets as the master design. Keep face, hair, outfit, colors, outline and proportions exactly the same, with two face changes: the eyes are a little MORE OPEN (calm and cool, not sleepy: show the blue iris 2 pixels tall under the lash line), and when hurt she only FROWNS (squinted eyes, pressed lips, no tears, no open crying mouth).
 Right-facing view only, empty hands (the game draws the sword), no effects. Art size 32x32 per frame, one row per animation:
@@ -57,9 +41,10 @@ Row 3 - combo hit 3 (finisher thrust), 3 frames: (a) crouch and pull the arm bac
 Row 4 - back view (seen from behind, facing up-right), 3 frames: (a) standing, (b) arm swung forward/up, (c) walking.
 Row 5 - hurt, 1 frame: flinching backward with a frown (see above).
 ```
+몸 스프라이트에서는 크로스백·노리개·부적을 빼고(대화창 초상화에서 살림), 칼은 그리지 않는다(게임이 따로 그려 조준 방향으로 돌림).
 
-## 1. 보스: 구미호 「월하」 (64×64)
-
+## 보스: 구미호 「월하」 (64×64)
+지금은 몹 굵기 도트 한 장을 직접 그려 넣었다(`tools/artlab/gumiho_grid.py`). 패턴별 자세가 필요해지면:
 ```
 Boss sprite, art size 64x64 per frame.
 Character: "Wolha", a nine-tailed fox spirit (gumiho). A slender white fox with nine long tails fanned out behind it like a peacock fan, each tail tip burning with a small blue fox-fire. Elegant and a little sleepy-looking (half-lidded red eyes), but clearly dangerous. The fanned tails must make a strong, readable silhouette even when small. Colors: white fur (#f4f1ff, shadow #b9bde4), fox-fire cyan (#6fe3ff, white core), eyes red (#e04a5a), outline dark.
@@ -73,8 +58,7 @@ Rows:
 7. defeated, 1 frame: curled up asleep, tails wrapped around itself, fires out.
 ```
 
-## 2. 지하철 망령 (32×32)
-
+## 지하철 망령 (32×32)
 ```
 Enemy sprite, art size 32x32 per frame.
 Character: the ghost of the last subway train, a small floating head-and-shoulders shape like the front of an old Seoul subway car (rounded front, two round headlights as eyes, a dark window as a mouth), trailing a faint ghostly body. Colors: subway silver-blue (#7fb7ff, #4a6fa8), headlights warm yellow (#fff3b0), outline dark.
@@ -85,8 +69,7 @@ Rows:
 4. hurt, 1 frame.
 ```
 
-## 3. 처녀귀신 (32×32)
-
+## 처녀귀신 (32×32)
 ```
 Enemy sprite, art size 32x32 per frame.
 Character: Korean maiden ghost (cheonyeo-gwisin): white hanbok-like burial dress, very long straight black hair hanging over the face so only a pale chin shows, floating with no visible feet. Colors: white dress (#f2f2ff, shadow #b9bde4), black hair (#1a1424), pale skin (#e9e6f5).
@@ -97,8 +80,7 @@ Rows:
 4. hurt, 1 frame.
 ```
 
-## 4. 달걀귀신 (32×32)
-
+## 달걀귀신 (32×32)
 ```
 Enemy sprite, art size 32x32 per frame.
 Character: Korean egg ghost (dalgyal-gwisin): a faceless round egg-shaped head with a small ghostly body under it, no eyes, no mouth, a little unsettling but cute. Colors: egg white (#f4f0d8, shadow #c9c2a2), faint gray body.
@@ -109,16 +91,14 @@ Rows:
 4. hurt, 1 frame.
 ```
 
-## 5. 도깨비불 (16×16)
-
+## 도깨비불 (16×16)
 ```
 Small enemy sprite, art size 16x16 per frame.
 Character: a will-o'-the-wisp (dokkaebi fire): a blue flame with two tiny dark dot eyes, cute. Colors: deep blue edge (#1b3b80), blue (#3a9cf0), light cyan (#9fe6ff), white core.
 Row 1: flicker, 3 frames.
 ```
 
-## 6. 신문지 사인검 (8×24)
-
+## 신문지 사인검 (8×24)
 ```
 Weapon sprite, art size 8x24 per frame, pointing straight UP (the game rotates it).
 Rows:
@@ -126,8 +106,7 @@ Rows:
 2. bare: the same sword unwrapped, a glowing pale cyan blade (#9ff3e6, white core) with torn newspaper strips still hanging near the handle.
 ```
 
-## 7. 바닥·벽 타일 (24×24)
-
+## 바닥·벽 타일 (24×24)
 ```
 Tileset, each tile 24x24 art pixels, top-down 3/4 view, location: an old underground shopping arcade in a fantasy Seoul at night, half the lights dead. Tiles must repeat seamlessly.
 Row 1: worn floor tiles, 3 variants (plain, cracked, with a puddle).
@@ -136,8 +115,7 @@ Row 3: wall top (dark), 1 tile; wall front face, 2 variants (one with a closed m
 Colors: muted purple-gray floor (#575070, #4f4866), shutter blue-gray, a little green paint (#3f7a5c).
 ```
 
-## 8. 소품 (크기는 각각)
-
+## 소품 (크기는 각각)
 ```
 Prop sprites for the same night setting, one per cell:
 1. dead streetlight (bent lamp post), 16x48.
