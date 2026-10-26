@@ -1,8 +1,9 @@
 # HANDOFF
 
-Branch: work continues on `claude/vigilant-turing-c8w4ga` (fast-forwarded from `claude/admiring-keller-rdwk4w`, which holds everything up to `e500602`; `main` is still only the first docs commit). Read `ARCHITECTURE.md` first, then this file. The human's map is `GUIDE.md` (Korean, keep in sync). The plan per gate, what is missing and why: `docs/design/roadmap.md`.
+Branch: work continues on `claude/vigilant-turing-c8w4ga` (fast-forwarded from `claude/admiring-keller-rdwk4w`, which holds everything up to `e500602`; `main` is still only the first docs commit). Read `ARCHITECTURE.md` first, then this file. The human's map is `GUIDE.md` (Korean, keep in sync). What is decided vs open (2026-10-26 design review): `docs/design/1-foundation/direction.md`. The plan per gate, what is missing and why: `docs/design/roadmap.md`. Story frame and open questions: `docs/design/1-foundation/story.md`.
 
-## Status (2026-10-25)
+## Status (2026-10-26)
+- 2026-10-26 was a design review only (no code change): the user compared our plan with another AI's summary. Recorded in `direction.md`; open items must not be treated as decided (see Decisions to respect).
 - **Gate 1** (night combat) is feature-complete and waits on the user's playtest; art/sound polish is a parallel track, not a gate condition.
 - **Gate 2** (office & growth) has started: only the walkable office hub exists. Next is 2-A, the day loop (see Next steps).
 - Flow now: office hub (walk, `E`) → front door → sortie panel → night `lights_out` (3 floors + gumiho) → settlement → back to the hub. The bookkeeper appears after 1 solved contract (`E` → ledger). Autosave, save v1.
@@ -33,6 +34,7 @@ Branch: work continues on `claude/vigilant-turing-c8w4ga` (fast-forwarded from `
 - Boss/story: visual appeal first, not tied to real places/industries.
 - Gemini prompts: `docs/design/5-business/gemini-asset-specs.md` (0-B = director combo / back view / face).
 - Personal reference photos and third-party screenshots are not committed.
+- Open, not decided (do not build as if decided): the big story and ending (decide together with the user), the first companion (gumiho as companion is undecided; the user is considering a tutorial-like first sortie that just defeats one strong ghost), recruiting by story episodes vs chance/rarity (monetization trade-off), human exorcist companions, how heavy squad operations are (for now: Girls' Frontline–style logistics that bring back resources; may change; tied to the "take along or send out" choice), keeping per-run cards, night length, the cat's role, rental market and weapon B.
 - Scope: Gate 2 + the art/sound track. Gate 3+ out of scope. Bash calls sometimes fail with an auto-mode classifier error; retry once. Do not `pkill -f` a pattern that matches your own shell command (it kills the shell); kill by port (`kill $(lsof -ti :5199)`).
 
 ## Verified (last, 2026-10-25)
@@ -56,14 +58,15 @@ Gate 1 (pass):
 Gate 2-A (day loop):
 2. `systems/economy/`: day counter, weekly rent due, debt (pure functions + tests).
 3. 2–3 contracts: generated general contracts from data + SeededRNG; bookkeeper contract board panel; sortie uses the chosen contract.
-4. Minimal dialogue box (name, portrait slot, lines) for story beats (bookkeeper arrival, gumiho recruit).
+4. Minimal dialogue box (name, portrait slot, lines) for story beats (bookkeeper arrival, a recruit).
 5. Save v2 (day, debt, board, …) with migration + test; title / new game.
-Gate 2-B (growth):
-6. Gumiho as the first companion (recruited on clearing `lights_out`): party slot, call skill on the 4th combat button, 3 companion cards.
-7. Trauma effects (card hooks) + recovery; companion traits (기질).
-8. Reputation rank unlocking contracts; weapon B (label gun) + deck.
+Gate 2-B (growth) — needs the user's decisions first (recruit method, first companion, first sortie, story):
+6. First companion: party slot, call skill on the 4th combat button, 3 companion cards.
+7. Minimal squad operation (send a companion out, resources come back; capped below night income) so "take along or send out" becomes a choice.
+8. Trauma effects (card hooks) + recovery; companion traits (기질). Reputation and weapon B only after the above proves fun.
 9. Ask the user: cat's Gate 2 role (proposal: trauma recovery now, appraisal/black market with relics in Gate 3).
+Design (with the user): big story and ending (`story.md` questions), recruit method (`3-growth/recruit.md` table).
 Art/sound track (parallel): Gemini 0-B frames → subway ghost, sword, tiles, props → gumiho pattern poses → office/bookkeeper/cat art → signs → real SFX/BGM; spritekit master palette / target height / in-game comparison.
 
 ## History (short)
-Action prototype (auto-aim) lost to a stand-still bot → turn-based grid → user disliked it → Core Keeper–style real-time on a tile grid (old code: `d170e4b`, `0278d77`). Then: swarm fodder, keyboard-only play, one key per action, 발도 tiers, quieter effects, design docs in 5 groups, SaveManager, `draw/` split, art lab, Gemini pipeline, 24px tiles, pause menu, boss → gumiho, director poses. 2026-10-25: director motion cleanup (stable head, anchors) → Gate 2 start with a walkable hub, then the office interior → feel pass (damage order, 3-hit combo + smears, back-view attacks, 발도 stance, face fixes, gumiho pixel art) → module cleanup (shared sprite kit, hub look data, tests via module index) and the gate roadmap review.
+Action prototype (auto-aim) lost to a stand-still bot → turn-based grid → user disliked it → Core Keeper–style real-time on a tile grid (old code: `d170e4b`, `0278d77`). Then: swarm fodder, keyboard-only play, one key per action, 발도 tiers, quieter effects, design docs in 5 groups, SaveManager, `draw/` split, art lab, Gemini pipeline, 24px tiles, pause menu, boss → gumiho, director poses. 2026-10-25: director motion cleanup (stable head, anchors) → Gate 2 start with a walkable hub, then the office interior → feel pass (damage order, 3-hit combo + smears, back-view attacks, 발도 stance, face fixes, gumiho pixel art) → module cleanup (shared sprite kit, hub look data, tests via module index) and the gate roadmap review. 2026-10-26: design review against another AI's summary → `direction.md` (decided / open), `story.md` (frame only), recruit / economy / contract / roadmap updated; gumiho-as-first-companion withdrawn as undecided.
