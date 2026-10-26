@@ -1,13 +1,14 @@
 # HANDOFF
 
 Branch: `main`. The old `claude/admiring-keller-rdwk4w` and `claude/vigilant-turing-c8w4ga` branches are fully contained in main (checked with `merge-base --is-ancestor`); deleting them from the sandbox was refused (HTTP 403), so the user deletes them on GitHub. Never work on them; work on main.
-Read order: `ARCHITECTURE.md` → this file → `docs/design/1-foundation/direction.md` (decided vs open) → `docs/design/roadmap.md` (per-gate plan, gaps). The human's map is `GUIDE.md` (Korean, keep in sync).
+Read order: `ARCHITECTURE.md` → this file → `docs/design/1-foundation/direction.md` (decided vs open) → `docs/design/roadmap.md` (per-gate plan, gaps). The human's map is `GUIDE.md` (Korean, keep in sync). What the code actually computes (formulas, where each number lives) is in `docs/rules/` — update it in the same commit as any rule change.
 
 ## Status (2026-10-26)
 - **Gate 1** (night combat): feature-complete, waits on the user's playtest. Story contract 「불 꺼지는 동네」 = 4 sealed floors (alley → basement → arcade ☎ → rooftop) + gumiho.
 - **Gate 2** (office & growth): 2-A day loop is mostly in — walkable office, day counter, weekly rent (450) with debt, contract board (story / generated general / bounty, bundling), Euljiro operations map (6 nodes, contamination rise + spread, fog), bookkeeper ledger with a morning report, save v2. Left in 2-A: dialogue box, title / new game, retuning the numbers after a week of play. 2-B (growth) waits on user decisions.
 - Floors: room roles (start / exit = farthest walk with 2 guards / treasure heap / side rooms), **sealed stairs** until the floor's strong ghosts are down (fodder does not count), bounty **arena** last floor, per-floor **themes** (code-drawn colours).
 - Art: the user does **not** draw pixels; they judge only. Procedure in `docs/design/5-business/art-pipeline.md`: frames come from one master (`assets/master/director-master.png`, palette `assets/palette/master.gpl`), PixelLab for animation (user trials the web app first), AI does mechanical pixel fixes by script. None of the new art tools exist yet.
+- 2026-10-26 afternoon (docs only, no code change): rule ledger `docs/rules/` (office, floor, night, hub); design docs `2-night/objectives.md` (objective types reshaped for real time: rescue, chase, ward, escort; "return on objective done"; board shows one indicator set) and `3-growth/progression.md` (money sinks: director training, weapon, office facilities, supplies; trauma effects and recovery; reputation rank); references `mission-structures.md`, `progression-systems.md`, `indie-ui.md`. Screen mockups (12 artboards: board ×3, night HUD ×3, dialogue ×3, title ×3) on the Design canvas https://claude.ai/artifact/FVdNQucCLJbcmNqo3DKhzf — the user picks one per row.
 - Flow: office hub (walk, `E`) → front door → contract board + map (A/D or click, Enter) → night on the chosen offer → settlement (bundle fees) → next morning (rent, contamination, new offers) → hub. Bookkeeper appears after 1 solved contract. Autosave.
 
 ## Functional modules (where things live)
@@ -50,6 +51,8 @@ Read order: `ARCHITECTURE.md` → this file → `docs/design/1-foundation/direct
 - Not verified: human play of sealed floors / arena / themes; economy pacing; the map at phone width.
 
 ## Known issues
+- Story offers show the node's current contamination as risk, but story floors are fixed in `contracts.data.ts`, so that number is cosmetic (see `docs/rules/office.md`).
+- Money has no sink besides rent (~400–500 per night vs rent 450 per week, estimate): see `progression.md`.
 - No human playtest: parry window, stance, speeds, run length and all office numbers are bot-tuned or guessed.
 - No volume / mute setting. No title / new game. No dialogue box (unlocks use "solved ≥ N").
 - Trauma is a number with no effect. Squad operations not built.
@@ -57,11 +60,12 @@ Read order: `ARCHITECTURE.md` → this file → `docs/design/1-foundation/direct
 - Hero outline has purple fringe (`#22011e`, `#40043a`) from magenta keying.
 
 ## Next steps (reasons in `docs/design/roadmap.md`)
-1. User: play a few nights and a week of days → retune `office.data.ts`, combat feel, and decide the night length target. Add volume/mute to the pause menu.
-2. 2-A: minimal dialogue box (name, portrait slot, lines); title / new game.
+0. User picks mockups (board / HUD / dialogue / title). Then build in this order: `FloorPlan.objective` with 섬멸 moved into it (no behaviour change) → "return on objective done" → 수색·구조 objective + generated offers with objective kinds → board indicator rework (difficulty computed from the real floor plan, so story offers stop showing a cosmetic risk) → chosen HUD / dialogue box / title (with volume). Plan: `docs/design/2-night/objectives.md`.
+1. User: play a few nights and a week of days → retune `office.data.ts`, combat feel, and decide the night length target.
+2. Money sinks (`docs/design/3-growth/progression.md`): save v3 → director training (needs a new input to `computeExorcistStats` = architecture change; replace the unused `level`) → trauma effects + sofa rest → facilities → reputation rank.
 3. Art tools (user judges, AI builds): master palette enforcement in `clean_sheet.py`, size/thickness/off-palette check, in-game comparison image, master part split; then the walk-cycle trial (PixelLab result from the user vs AI part script).
 4. Floor generation: hand-made room templates per theme, monster-house room — only if the human run length says more content is needed.
 5. 2-B after user decisions (recruit method, first companion, first sortie, story): party slot + call skill + companion cards → squad operations (scout / seal) → trauma effects and recovery.
 
 ## History (short)
-Action prototype (auto-aim) lost to a stand-still bot → turn-based grid → user disliked it → Core Keeper–style real-time on a tile grid (old code: `d170e4b`, `0278d77`). 2026-10-25: swarm fodder, 발도 tiers, design docs in 5 groups, save, art lab, Gemini pipeline, 24px tiles, gumiho boss, director poses, walkable office hub, feel pass, module cleanup. 2026-10-26: design review (`direction.md`, `story.md`); art pipeline and dispatch-game research; Gate 2-A day loop + board + map + save v2; floor roles, seal, arena, themes; hero master + palette; user does not draw → art roles; cleanup (`rift/layout.ts` split, doc consolidation, main as the only working branch).
+Action prototype (auto-aim) lost to a stand-still bot → turn-based grid → user disliked it → Core Keeper–style real-time on a tile grid (old code: `d170e4b`, `0278d77`). 2026-10-25: swarm fodder, 발도 tiers, design docs in 5 groups, save, art lab, Gemini pipeline, 24px tiles, gumiho boss, director poses, walkable office hub, feel pass, module cleanup. 2026-10-26: design review (`direction.md`, `story.md`); art pipeline and dispatch-game research; Gate 2-A day loop + board + map + save v2; floor roles, seal, arena, themes; hero master + palette; user does not draw → art roles; cleanup (`rift/layout.ts` split, doc consolidation, main as the only working branch). Afternoon: rule ledger, objective and progression designs, reference research, 12 screen mockups (docs only).

@@ -83,7 +83,8 @@ maps/             # Tiled source maps (.tmx/.json) and tilesets
 assets/           # source/ = raw generated or commissioned art (never deleted), sprites/ = cleaned game sprites (see assets/README.md)
 tools/            # Outside the game build: spritekit/ (clean AI pixel sheets), artlab/ (pixel-art lab)
 docs/design/      # Game design in 5 groups: 1-foundation, 2-night, 3-growth, 4-day, 5-business (README.md = module map; each group has its own README)
-docs/reference/   # Reference-game teardowns (Pokémon Mystery Dungeon, Girls' Frontline, top-down action, dispatch games)
+docs/reference/   # Reference-game teardowns (Pokémon Mystery Dungeon, Girls' Frontline, top-down action, dispatch games, mission structures, progression, indie UI)
+docs/rules/       # Rule ledger: what the code actually computes, per module (formulas + where each number lives). Update it in the same commit as a rule change
 GUIDE.md          # Plain-Korean map for the human owner — keep in sync with this tree
 ```
 
