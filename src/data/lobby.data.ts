@@ -27,6 +27,7 @@ export interface HubSpotData {
 
 export interface LobbyFeatureData {
   titleKey: TKey;
+  wide: boolean; // wider card (the contract board's map)
 }
 
 export const HUB = {
@@ -58,6 +59,6 @@ export const HUB_SPOTS: Record<HubSpotId, HubSpotData> = {
 };
 
 export const LOBBY_FEATURES: Record<LobbyFeatureId, LobbyFeatureData> = {
-  sortie: { titleKey: 'feature.sortie.title' },
-  ledger: { titleKey: 'feature.ledger.title' },
+  sortie: { titleKey: 'feature.sortie.title', wide: true },
+  ledger: { titleKey: 'feature.ledger.title', wide: false },
 };

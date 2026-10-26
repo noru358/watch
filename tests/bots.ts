@@ -1,8 +1,10 @@
 // Scripted players for balance checks. Not part of the game.
 import { SeededRNG } from '../src/core/SeededRNG';
 import { WEAPONS } from '../src/data/weapons.data';
-import { answerPayphone, dist, inTelegraph, isFloor, NO_INPUT, stepFloor, type Enemy, type Floor, type Pos, type RiftInput } from '../src/systems/rift';
-import { enterFloor, leaveFloor, offerCards, pickCard, startRun, type RunOutcome } from '../src/systems/run';
+import { GHOSTS } from '../src/data/ghosts.data';
+import { answerPayphone, stairsOpen, dist, inTelegraph, isFloor, NO_INPUT, stepFloor, type Enemy, type Floor, type Pos, type RiftInput } from '../src/systems/rift';
+import { storySetup } from './helpers';
+import { enterFloor, leaveFloor, offerCards, pickCard, startRun, type RunOutcome, type RunSetup } from '../src/systems/run';
 
 const W = WEAPONS.newspaper_sword;
 const DT = 1 / 60;
@@ -50,7 +52,11 @@ export function naive(f: Floor): RiftInput {
     const close = dist(e, p) - e.r <= W.reach * 0.8;
     return { ...NO_INPUT, aim, attack: true, moveX: close ? 0 : Math.cos(aim), moveY: close ? 0 : Math.sin(aim) };
   }
-  const goal = f.stairs ?? f.enemies[0] ?? p;
+  // Sealed stairs: hunt the nearest strong ghost still standing (awake or not).
+  const hunt = f.enemies
+    .filter((x) => x.hp > 0 && x.kind !== 'gumiho' && !GHOSTS[x.kind].fodder)
+    .sort((a, b) => dist(a, p) - dist(b, p))[0];
+  const goal = (f.stairs && stairsOpen(f) ? f.stairs : hunt) ?? f.stairs ?? f.enemies[0] ?? p;
   const d = pathDir(f, goal);
   return { ...NO_INPUT, aim: Math.atan2(d.y, d.x), attack: true, moveX: d.x, moveY: d.y };
 }
@@ -85,9 +91,9 @@ export function skilled(f: Floor): RiftInput {
   return base;
 }
 
-export function playNight(seed: number, bot: (f: Floor) => RiftInput): { outcome: RunOutcome; floor: number; seconds: number } {
+export function playNight(seed: number, bot: (f: Floor) => RiftInput, setup: RunSetup = storySetup): { outcome: RunOutcome; floor: number; seconds: number } {
   const rng = new SeededRNG(seed);
-  const run = startRun({ contractId: 'lights_out', level: 1, weapon: 'newspaper_sword' });
+  const run = startRun(setup);
   let seconds = 0;
   for (;;) {
     const f = enterFloor(run, rng);

@@ -1,4 +1,6 @@
 // Presentation tuning (hit-stop, shake, popups, layout, colours). Read only by scenes/ and ui/.
+import type { FloorTheme } from '../types/ids';
+
 export const SCREEN = { width: 960, height: 540 } as const;
 
 export const FEEL = {
@@ -109,3 +111,32 @@ export const PALETTE = {
   panelBorder: 0x41e0c8,
   font: "'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif",
 } as const;
+
+// Tile looks per floor theme (code-drawn until the tileset art lands). Same keys for every theme.
+// basement = the art-lab sample above; the others shift the paint, plaster and concrete.
+export interface FloorThemeLook {
+  floor: number;
+  floorAlt: number;
+  seam: number;
+  speck: number;
+  crack: number;
+  wallTop: number;
+  wallTopEdge: number;
+  plaster: number;
+  trim: number;
+  face: number;
+  faceHi: number;
+  faceLo: number;
+}
+
+export const FLOOR_THEMES: Record<FloorTheme, FloorThemeLook> = {
+  basement: { floor: 0x4f4866, floorAlt: 0x575070, seam: 0x3d3754, speck: 0x6a6386, crack: 0x36304a, wallTop: 0x2a2338, wallTopEdge: 0x3b3352, plaster: 0x8f8aa0, trim: 0x24202e, face: 0x3f7a5c, faceHi: 0x4f9271, faceLo: 0x2f5e47 },
+  // old alley: worn asphalt, red brick walls
+  alley: { floor: 0x45404f, floorAlt: 0x4b4656, seam: 0x37323f, speck: 0x5f5a6b, crack: 0x302b38, wallTop: 0x2b2230, wallTopEdge: 0x3d3142, plaster: 0x8a7f88, trim: 0x251c25, face: 0x8a4a46, faceHi: 0xa05a54, faceLo: 0x6a3836 },
+  // underground arcade: pale tiles, cream walls with a blue stripe
+  arcade: { floor: 0x5b5872, floorAlt: 0x63607b, seam: 0x4a4760, speck: 0x77749a, crack: 0x413e56, wallTop: 0x2c2840, wallTopEdge: 0x3e3958, plaster: 0xb3aec0, trim: 0x2a2640, face: 0x3e5f8f, faceHi: 0x5175a8, faceLo: 0x2e4a70 },
+  // rooftop: green urethane floor, cement block parapets
+  rooftop: { floor: 0x3e5a52, floorAlt: 0x44615a, seam: 0x324a43, speck: 0x587a70, crack: 0x2b403a, wallTop: 0x2a2a34, wallTopEdge: 0x3a3a48, plaster: 0x8d8c98, trim: 0x23232c, face: 0x6a6878, faceHi: 0x7e7c8e, faceLo: 0x52505e },
+  // empty lot (boss): bare earth and dark fences
+  lot: { floor: 0x4a3f4a, floorAlt: 0x504450, seam: 0x3b313b, speck: 0x655866, crack: 0x332a33, wallTop: 0x221c26, wallTopEdge: 0x342a38, plaster: 0x6f6676, trim: 0x1d1820, face: 0x3a3346, faceHi: 0x4a4258, faceLo: 0x2b2634 },
+};

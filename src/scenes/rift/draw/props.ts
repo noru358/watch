@@ -1,5 +1,5 @@
 import { PALETTE } from '../../../data/feel.data';
-import type { Floor } from '../../../systems/rift';
+import { stairsOpen, type Floor } from '../../../systems/rift';
 import { PAYPHONE_ART } from './art/propArt';
 import { shadow, T, type G } from '../../shared/draw/common';
 import { drawPixelSprite, gridSprite } from '../../shared/draw/pixelSprite';
@@ -10,9 +10,14 @@ export function drawProps(g: G, f: Floor, clock: number): void {
     const sx = f.stairs.x * T;
     const sy = f.stairs.y * T;
     const k = T / 16;
-    g.fillStyle(PALETTE.stairs, 0.25 + 0.15 * Math.sin(clock * 3)).fillCircle(sx, sy, 9 * k);
-    g.fillStyle(PALETTE.stairs).fillRect(sx - 6 * k, sy - 6 * k, 12 * k, 12 * k);
+    const open = stairsOpen(f);
+    if (open) g.fillStyle(PALETTE.stairs, 0.25 + 0.15 * Math.sin(clock * 3)).fillCircle(sx, sy, 9 * k);
+    g.fillStyle(open ? PALETTE.stairs : PALETTE.wall).fillRect(sx - 6 * k, sy - 6 * k, 12 * k, 12 * k);
     g.fillStyle(PALETTE.background).fillRect(sx - 4 * k, sy - k, 8 * k, 3 * k);
+    if (!open) {
+      // sealed: a red talisman cross over the hatch
+      g.fillStyle(PALETTE.unparriable, 0.85).fillRect(sx - 7 * k, sy - k * 0.5, 14 * k, k).fillRect(sx - k * 0.5, sy - 7 * k, k, 14 * k);
+    }
   }
   if (f.payphone) {
     const sx = f.payphone.x * T;

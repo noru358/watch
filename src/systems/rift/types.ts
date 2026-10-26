@@ -1,6 +1,6 @@
 import type { SwarmPlan } from '../../data/contracts.data';
 import type { AttackShape } from '../../data/ghosts.data';
-import type { CardId, EnemyId, WeaponId } from '../../types/ids';
+import type { CardId, EnemyId, FloorTheme, WeaponId } from '../../types/ids';
 import type { GameEvent } from '../../types/events';
 
 // Positions are in TILE units (floats); tile (x, y) covers [x, x+1) × [y, y+1).
@@ -115,7 +115,11 @@ export interface Floor {
   cols: number;
   rows: number;
   tiles: Tile[]; // row-major
-  stairs: Pos | null; // tile centre; null on the boss floor
+  theme: FloorTheme; // which tile look this floor uses
+  stairs: Pos | null; // tile centre; null on boss / arena floors
+  seal: boolean; // stairs stay shut while strong ghosts remain (normal floors)
+  sealOpen: boolean; // the seal has broken this floor
+  arena: boolean; // bounty arena: clearing every strong ghost ends the night
   payphone: Pos | null;
   payphoneArmed: boolean; // re-arms once the director walks away
   player: Player;

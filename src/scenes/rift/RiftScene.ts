@@ -77,7 +77,9 @@ export class RiftScene extends Phaser.Scene {
     this.acc = 0;
     this.freezeLeft = 0;
     this.rng = new SeededRNG(store.takeRunSeed());
-    this.run = startRun({ contractId: 'lights_out', level: 1, weapon: 'newspaper_sword' });
+    // The offer chosen on the contract board (the board always has one selected before 출동).
+    const plan = store.nightPlan() ?? store.firstPlan();
+    this.run = startRun({ ...plan, level: 1, weapon: 'newspaper_sword' });
 
     // Two cameras: the zoomed world camera follows the director; the UI camera stays 1:1.
     this.worldLayer = this.add.layer();
@@ -188,7 +190,8 @@ export class RiftScene extends Phaser.Scene {
     this.followCamera(dt);
     this.view.render(this.floor, this.acc / FEEL.fixedStep, dt);
     const f = this.floor;
-    this.hud.render(f, f.boss ? t('rift.bossFloor') : t('rift.floor', { current: f.index + 1, total: totalFloors(this.run) - 1 }), dt);
+    const label = f.boss ? t('rift.bossFloor') : t('rift.floor', { current: f.index + 1, total: totalFloors(this.run) });
+    this.hud.render(f, label, dt);
   }
 
   private simulate(dt: number): void {

@@ -76,7 +76,11 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
     cols: DUNGEON.cols,
     rows: DUNGEON.rows,
     tiles,
+    theme: plan.theme,
     stairs: null,
+    seal: plan.kind === 'normal' && plan.seal,
+    sealOpen: false,
+    arena: plan.kind === 'arena',
     payphone: null,
     payphoneArmed: true,
     player: {
@@ -125,7 +129,29 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
   };
 }
 
+// Tile distances from `from` over floor tiles (-1 = unreachable).
+function distances(tiles: Tile[], from: Pos): Int32Array {
+  const { cols, rows } = DUNGEON;
+  const d = new Int32Array(cols * rows).fill(-1);
+  const start = Math.floor(from.y) * cols + Math.floor(from.x);
+  d[start] = 0;
+  const q = [start];
+  for (let h = 0; h < q.length; h++) {
+    const i = q[h]!;
+    const x = i % cols;
+    for (const j of [i + 1, i - 1, i + cols, i - cols]) {
+      if (j < 0 || j >= cols * rows || d[j] !== -1 || tiles[j] !== 'floor') continue;
+      if ((j === i + 1 && x === cols - 1) || (j === i - 1 && x === 0)) continue;
+      d[j] = d[i]! + 1;
+      q.push(j);
+    }
+  }
+  return d;
+}
+
 // Random rooms joined in sequence by L-shaped corridors, so every room is reachable.
+// Room roles: the start room; the exit room (farthest walk from the start: stairs + guards);
+// a treasure room (a heap of spirit); everything else holds the rest of the strong ghosts.
 function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>, rng: SeededRNG, carry: FloorCarry): Floor {
   const { cols, rows, corridorWidth: cw } = DUNGEON;
   const tiles: Tile[] = new Array(cols * rows).fill('wall');
@@ -150,6 +176,14 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
 
   const first = rooms[0]!;
   const start = centre(first.x + Math.floor(first.w / 2), first.y + Math.floor(first.h / 2));
+  const dist = distances(tiles, start);
+  const walk = (r: Room) => dist[Math.floor(r.y + r.h / 2) * cols + Math.floor(r.x + r.w / 2)] ?? -1;
+  const others = rooms.length > 1 ? rooms.slice(1) : rooms;
+  const exit = others.reduce((best, r) => (walk(r) > walk(best) ? r : best), others[0]!);
+  const side = others.filter((r) => r !== exit);
+  const treasure = side.length > 0 ? rng.pick(side) : null;
+  const fill = side.length > 0 ? side : others;
+
   const used = new Set<string>([`${start.x},${start.y}`]);
   const free = (from: Room[]): Pos => {
     for (let i = 0; i < 50; i++) {
@@ -161,12 +195,24 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
     }
     return roomTile(rng.pick(from), rng);
   };
-  const others = rooms.length > 1 ? rooms.slice(1) : rooms;
   const f = baseFloor(index, tiles, start, carry, plan);
-  f.stairs = free([rooms[rooms.length - 1]!]);
-  if (plan.payphone) f.payphone = free(others);
-  for (let i = 0; i < plan.enemies; i++) makeEnemy(f, rng.pick(plan.pool), free(others));
+  f.stairs = free([exit]);
+  if (plan.payphone) f.payphone = free(fill);
+  for (let i = 0; i < plan.enemies; i++) makeEnemy(f, rng.pick(plan.pool), free(i < DUNGEON.exitGuards ? [exit] : fill));
   for (let i = 0; i < DUNGEON.spiritPickupsPerFloor; i++) f.pickups.push({ ...free(rooms), value: DUNGEON.spiritPickupValue });
+  if (treasure) for (let i = 0; i < DUNGEON.treasurePickups; i++) f.pickups.push({ ...free([treasure]), value: DUNGEON.treasureValue });
+  return f;
+}
+
+// A bounty's last floor: one big room, the pack waits in the top half and comes at once.
+function arenaFloor(index: number, plan: Extract<FloorPlan, { kind: 'arena' }>, rng: SeededRNG, carry: FloorCarry): Floor {
+  const { cols, rows, arenaRoom } = DUNGEON;
+  const tiles: Tile[] = new Array(cols * rows).fill('wall');
+  const room = { x: Math.floor((cols - arenaRoom.w) / 2), y: Math.floor((rows - arenaRoom.h) / 2), w: arenaRoom.w, h: arenaRoom.h };
+  carveRoom(tiles, room);
+  const f = baseFloor(index, tiles, centre(room.x + Math.floor(room.w / 2), room.y + room.h - 2), carry, plan);
+  const top = { ...room, h: Math.floor(room.h / 2) };
+  for (let i = 0; i < plan.enemies; i++) makeEnemy(f, rng.pick(plan.pool), roomTile(top, rng)).state = 'chase';
   return f;
 }
 
@@ -185,7 +231,8 @@ function bossFloor(index: number, plan: Extract<FloorPlan, { kind: 'boss' }>, ca
 }
 
 export function generateFloor(index: number, plan: FloorPlan, rng: SeededRNG, carry: FloorCarry): Floor {
-  const f = plan.kind === 'boss' ? bossFloor(index, plan, carry) : normalFloor(index, plan, rng, carry);
+  const f =
+    plan.kind === 'boss' ? bossFloor(index, plan, carry) : plan.kind === 'arena' ? arenaFloor(index, plan, rng, carry) : normalFloor(index, plan, rng, carry);
   runCardHooks(f, 'onRoomEnter', {});
   return f;
 }

@@ -70,12 +70,12 @@ src/
  ├── types/       # Shared interfaces, ID union types (ids.ts), event map (events.ts)
  ├── i18n/        # ko.ts (source of keys), en.ts, t() helper
  ├── data/        # Static typed tables: protagonist, weapons, cards, ghosts, dungeon, contracts,
- │                #   penalties, feel (night presentation), hubLook (day presentation), sfx, input, save, sprites (sprite anim tables), lobby (hub layout + feature registry); later recruit, economy, shop
+ │                #   penalties, feel (night presentation), hubLook (day presentation), sfx, input, save, sprites (sprite anim tables), lobby (hub layout + feature registry), office (rent, board, contamination numbers), nodes (operations map), requests (general-contract story frames); later recruit, shop
  ├── registry/    # Behaviour by ID: cardEffects.ts (upgrade-card hooks); later companion skills
  ├── store/       # GameStore (single source of truth) + actions
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
  │                #   rift/ (one floor: map gen, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement), hub/ (walking, who is in reach, what is unlocked),
- │                #   later: recruit/, economy/, dispatch/, rental/, shop/
+ │                #   office/ (day loop, rent and debt, contract board, node contamination, offer → floor plans); later: recruit/, dispatch/, rental/, shop/
  ├── scenes/      # Phaser, one folder per screen: rift/ (night: scene, view = draw order, HUD; draw/ = one file per drawn thing, the art swap points), hub/ (day: walkable office interior), shared/ (Overlay panels, vfx, sfx, crisp text; draw/ = sprite kit shared by every scene)
  └── ui/          # React: FeatureHost (mounts the open panel), features/<featureId>/ (one folder per hub panel)
 tests/            # Vitest specs mirroring src/systems and src/store
@@ -83,7 +83,7 @@ maps/             # Tiled source maps (.tmx/.json) and tilesets
 assets/           # source/ = raw generated or commissioned art (never deleted), sprites/ = cleaned game sprites (see assets/README.md)
 tools/            # Outside the game build: spritekit/ (clean AI pixel sheets), artlab/ (pixel-art lab)
 docs/design/      # Game design in 5 groups: 1-foundation, 2-night, 3-growth, 4-day, 5-business (README.md = module map; each group has its own README)
-docs/reference/   # Reference-game teardowns (Pokémon Mystery Dungeon, Girls' Frontline)
+docs/reference/   # Reference-game teardowns (Pokémon Mystery Dungeon, Girls' Frontline, top-down action, dispatch games)
 GUIDE.md          # Plain-Korean map for the human owner — keep in sync with this tree
 ```
 

@@ -1,28 +1,32 @@
 import { CARD_OFFER_COUNT, CARDS } from '../../data/cards.data';
-import { CONTRACTS } from '../../data/contracts.data';
+import type { FloorPlan } from '../../data/contracts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
-import type { CardId, ContractId, WeaponId } from '../../types/ids';
+import type { CardId, WeaponId } from '../../types/ids';
 import { generateFloor, type Floor } from '../rift';
 import { computeExorcistStats } from './stats';
 
 export type RunOutcome = 'success' | 'extracted' | 'died';
 
 export interface RunResult {
-  contractId: ContractId;
+  offerId: number; // the contract-board offer this night was for
   outcome: RunOutcome;
   loot: number;
   fee: number;
 }
 
 export interface RunSetup {
-  contractId: ContractId;
+  offerId: number;
+  floors: readonly FloorPlan[]; // from the office module's offerFloors()
+  fee: number;
   level: number;
   weapon: WeaponId;
 }
 
 // One night: a contract's floors played in order.
 export interface RunState {
-  contractId: ContractId;
+  offerId: number;
+  floors: readonly FloorPlan[];
+  fee: number;
   level: number;
   weapon: WeaponId;
   floorIndex: number;
@@ -44,11 +48,11 @@ export function startRun(setup: RunSetup): RunState {
 }
 
 export function totalFloors(run: RunState): number {
-  return CONTRACTS[run.contractId].floors.length;
+  return run.floors.length;
 }
 
 export function enterFloor(run: RunState, rng: SeededRNG): Floor {
-  const plan = CONTRACTS[run.contractId].floors[run.floorIndex];
+  const plan = run.floors[run.floorIndex];
   if (!plan) throw new Error(`No floor ${run.floorIndex}`);
   return generateFloor(run.floorIndex, plan, rng, {
     hp: run.hp,
@@ -97,9 +101,9 @@ export function pickCard(run: RunState, id: CardId): void {
 export function runResult(run: RunState): RunResult {
   if (!run.outcome) throw new Error('Run has not ended');
   return {
-    contractId: run.contractId,
+    offerId: run.offerId,
     outcome: run.outcome,
     loot: run.loot,
-    fee: run.outcome === 'success' ? CONTRACTS[run.contractId].fee : 0,
+    fee: run.outcome === 'success' ? run.fee : 0,
   };
 }

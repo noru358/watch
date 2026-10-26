@@ -1,5 +1,5 @@
 // Public API of the rift module (one floor of a night run, real-time on a tile grid).
-export { stepFloor, answerPayphone, giveUp } from './step';
+export { stepFloor, answerPayphone, giveUp, strongLeft, stairsOpen } from './step';
 export { counterable } from './player';
 export { generateFloor, makeEnemy, type FloorCarry } from './mapgen';
 export { isFloor, inTelegraph, dist } from './physics';

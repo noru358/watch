@@ -2,7 +2,10 @@
 // a step to MIGRATIONS plus a test. Only long-lived office state is saved; a night in
 // progress is not (quitting mid-night = the night never happened).
 
-export const SAVE_VERSION = 1;
+import { startingContamination, type ContractOffer, type Contamination } from '../systems/office';
+import type { ContractId, NodeId } from '../types/ids';
+
+export const SAVE_VERSION = 2;
 
 export interface SaveData {
   schemaVersion: typeof SAVE_VERSION;
@@ -11,6 +14,14 @@ export interface SaveData {
   solved: number;
   seedBase: number;
   runCounter: number;
+  // v2: day loop, contract board, operations map
+  day: number;
+  debt: number;
+  contamination: Contamination;
+  known: NodeId[];
+  board: ContractOffer[];
+  nextOfferId: number;
+  storyDone: ContractId[];
 }
 
 // The part of localStorage we use; tests pass a Map-backed fake.
@@ -21,8 +32,21 @@ export interface SaveStorage {
 
 type Raw = Record<string, unknown>;
 
-// MIGRATIONS[n] turns a version-n save into version n+1. Empty while we are on v1.
-const MIGRATIONS: Record<number, (old: Raw) => Raw> = {};
+// MIGRATIONS[n] turns a version-n save into version n+1.
+const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
+  // v1 → v2: the office gets a calendar and a board. A finished story contract is remembered from
+  // the solved count (the only story contract then was lights_out). The board is refilled on load.
+  1: (old) => ({
+    ...old,
+    day: 1,
+    debt: 0,
+    contamination: null, // null = starting contamination (filled by the store)
+    known: [],
+    board: [],
+    nextOfferId: 1,
+    storyDone: isNum(old.solved) && old.solved > 0 ? ['lights_out'] : [],
+  }),
+};
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 
@@ -39,9 +63,25 @@ export function migrate(raw: unknown): SaveData | null {
     data = { ...step(data), schemaVersion: v + 1 };
     v += 1;
   }
-  const { money, trauma, solved, seedBase, runCounter } = data;
-  if (![money, trauma, solved, seedBase, runCounter].every(isNum)) return null;
-  return { schemaVersion: SAVE_VERSION, money, trauma, solved, seedBase, runCounter } as SaveData;
+  const { money, trauma, solved, seedBase, runCounter, day, debt, contamination, known, board, nextOfferId, storyDone } = data;
+  if (![money, trauma, solved, seedBase, runCounter, day, debt, nextOfferId].every(isNum)) return null;
+  if (!Array.isArray(known) || !Array.isArray(board) || !Array.isArray(storyDone)) return null;
+  if (contamination !== null && (typeof contamination !== 'object' || Array.isArray(contamination))) return null;
+  return {
+    schemaVersion: SAVE_VERSION,
+    money,
+    trauma,
+    solved,
+    seedBase,
+    runCounter,
+    day,
+    debt,
+    contamination: contamination ?? startingContamination(),
+    known,
+    board,
+    nextOfferId,
+    storyDone,
+  } as SaveData;
 }
 
 export class SaveManager {

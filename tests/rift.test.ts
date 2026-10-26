@@ -43,7 +43,7 @@ describe('floor generation', () => {
   });
 
   it('the boss floor is one room with the boss and no stairs', () => {
-    const f = generateFloor(3, { kind: 'boss', boss: 'gumiho', swarm: null }, new SeededRNG(1), carry());
+    const f = generateFloor(3, { kind: 'boss', boss: 'gumiho', swarm: null, theme: 'lot' }, new SeededRNG(1), carry());
     expect(f.stairs).toBeNull();
     expect(f.enemies.map((e) => e.kind)).toEqual(['gumiho']);
   });
@@ -279,7 +279,7 @@ describe('floor exits and cards', () => {
 describe('boss', () => {
   function bossFloor() {
     const rng = new SeededRNG(4);
-    const f = generateFloor(3, { kind: 'boss', boss: 'gumiho', swarm: null }, rng, carry());
+    const f = generateFloor(3, { kind: 'boss', boss: 'gumiho', swarm: null, theme: 'lot' }, rng, carry());
     return { f, rng, boss: f.enemies[0]! };
   }
 

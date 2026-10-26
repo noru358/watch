@@ -14,7 +14,8 @@ describe('SaveManager', () => {
     const a = new GameStore({ money: 120, solved: 2, seedBase: 9, runCounter: 3 });
     saves.save(a.toSave());
     const loaded = saves.load();
-    expect(loaded).toEqual({ schemaVersion: SAVE_VERSION, money: 120, trauma: 0, solved: 2, seedBase: 9, runCounter: 3 });
+    expect(loaded).toEqual(a.toSave());
+    expect(loaded?.schemaVersion).toBe(SAVE_VERSION);
     const b = new GameStore(loaded ?? {});
     expect(b.takeRunSeed()).toBe(a.takeRunSeed());
   });

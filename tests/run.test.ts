@@ -7,8 +7,9 @@ import { RUN_PENALTIES } from '../src/data/penalties.data';
 import { WEAPONS } from '../src/data/weapons.data';
 import { cardPool, computeExorcistStats, enterFloor, leaveFloor, offerCards, pickCard, runResult, settleRun, startRun } from '../src/systems/run';
 import { GameStore } from '../src/store/gameStore';
+import { storySetup } from './helpers';
 
-const setup = { contractId: 'lights_out', level: 1, weapon: 'newspaper_sword' } as const;
+const setup = storySetup;
 
 describe('computeExorcistStats', () => {
   it('derives stats from level, cards and weapon', () => {
@@ -69,19 +70,21 @@ describe('run flow', () => {
 describe('settlement', () => {
   it('success pays fee + loot, death keeps part of loot and adds trauma', () => {
     const fee = CONTRACTS.lights_out.fee;
-    expect(settleRun({ contractId: 'lights_out', outcome: 'success', loot: 50, fee }, 0).moneyDelta).toBe(50 + fee);
-    const died = settleRun({ contractId: 'lights_out', outcome: 'died', loot: 50, fee: 0 }, 100);
+    expect(settleRun({ offerId: 0, outcome: 'success', loot: 50, fee }, 0).moneyDelta).toBe(50 + fee);
+    const died = settleRun({ offerId: 0, outcome: 'died', loot: 50, fee: 0 }, 100);
     expect(died.lootKept).toBe(Math.floor(50 * RUN_PENALTIES.deathLootKeepRatio));
     expect(died.traumaDelta).toBe(RUN_PENALTIES.deathTrauma);
-    expect(settleRun({ contractId: 'lights_out', outcome: 'extracted', loot: 50, fee: 0 }, 0).moneyDelta).toBe(50);
+    expect(settleRun({ offerId: 0, outcome: 'extracted', loot: 50, fee: 0 }, 0).moneyDelta).toBe(50);
   });
 
   it('store applies results and notifies subscribers', () => {
     const store = new GameStore();
     let calls = 0;
     store.subscribe(() => calls++);
-    store.applyRunResult({ contractId: 'lights_out', outcome: 'success', loot: 20, fee: 300 });
-    expect(store.getState().money).toBe(320);
+    const story = store.getState().board.find((o) => o.story === 'lights_out')!;
+    store.applyRunResult({ offerId: story.id, outcome: 'success', loot: 20, fee: story.fee });
+    expect(store.getState().money).toBe(20 + CONTRACTS.lights_out.fee);
+    expect(store.getState().day).toBe(2);
     expect(store.getState().solved).toBe(1);
     expect(calls).toBe(1);
     expect(store.takeRunSeed()).not.toBe(store.takeRunSeed());

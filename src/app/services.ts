@@ -19,6 +19,8 @@ export const saves = new SaveManager(browserStorage(), SAVE.key, SAVE.badSuffix)
 const saved = saves.load();
 // No save yet: the wall clock only picks the base seed; gameplay uses SeededRNG from it.
 export const store = new GameStore(saved ?? { seedBase: Date.now() >>> 0 });
+// Dev-only handle for automated play-testing (like window.__rift / __hub); stripped from production builds.
+if (import.meta.env.DEV) (window as unknown as { __store?: unknown }).__store = store;
 // Save whenever office state changes (a night's result, a new run seed).
 let last = JSON.stringify(store.toSave());
 store.subscribe(() => {

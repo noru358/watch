@@ -1,4 +1,5 @@
 import { SeededRNG } from '../src/core/SeededRNG';
+import { CONTRACTS } from '../src/data/contracts.data';
 import { GHOSTS } from '../src/data/ghosts.data';
 import type { CardId, GhostId } from '../src/types/ids';
 import { generateFloor, type Floor } from '../src/systems/rift';
@@ -14,7 +15,7 @@ export function carry(cards: CardId[] = []) {
 
 export function floorWith(seed = 1, cards: CardId[] = []): { f: Floor; rng: SeededRNG } {
   const rng = new SeededRNG(seed);
-  const f = generateFloor(0, { kind: 'normal', enemies: 4, pool: ['cheonyeo', 'dalgyal'], payphone: false, swarm: null }, rng, carry(cards));
+  const f = generateFloor(0, { kind: 'normal', enemies: 4, pool: ['cheonyeo', 'dalgyal'], payphone: false, swarm: null, seal: false, theme: 'basement' }, rng, carry(cards));
   return { f, rng };
 }
 
@@ -33,3 +34,6 @@ export function duel(kind: GhostId = 'cheonyeo', gap = 1.2, cards: CardId[] = []
   f.flowFrom = -1;
   return { f, rng, e, hp: GHOSTS[kind].hp };
 }
+
+// The story contract as a run setup (offer id 0 = not from a board).
+export const storySetup = { offerId: 0, floors: CONTRACTS.lights_out.floors, fee: CONTRACTS.lights_out.fee, level: 1, weapon: 'newspaper_sword' } as const;

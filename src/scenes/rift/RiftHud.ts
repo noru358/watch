@@ -3,7 +3,7 @@ import { EXORCISTS } from '../../data/protagonist.data';
 import { WEAPONS } from '../../data/weapons.data';
 import { PALETTE, SCREEN } from '../../data/feel.data';
 import { t, type TKey } from '../../i18n';
-import { counterable, type Floor } from '../../systems/rift';
+import { counterable, strongLeft, type Floor } from '../../systems/rift';
 import { crisp } from '../shared/text';
 
 const TEXT = { fontFamily: PALETTE.font, fontSize: '15px', color: PALETTE.text };
@@ -64,7 +64,9 @@ export class RiftHud {
       g.fillStyle(PALETTE.hpBarBack).fillRect(780, 13, 160, 8);
       g.fillStyle(f.boss!.phase === 2 ? PALETTE.neonPhase2 : PALETTE.gumihoFire).fillRect(780, 13, (160 * Math.max(0, boss.hp)) / boss.maxHp, 8);
     }
-    this.top.setText(`${floorText}   ${t('rift.loot', { value: f.loot })}${p.bare > 0 ? `   ${t('rift.bare')}` : ''}`);
+    const left = strongLeft(f);
+    const seal = f.arena ? `   ${t('rift.arena', { count: left })}` : f.seal ? `   ${f.sealOpen ? t('rift.sealOpen') : t('rift.sealed', { count: left })}` : '';
+    this.top.setText(`${floorText}   ${t('rift.loot', { value: f.loot })}${seal}${p.bare > 0 ? `   ${t('rift.bare')}` : ''}`);
     this.focusLabel.setColor(p.focus >= f.stats.focusMax ? PALETTE.healText : PALETTE.text);
 
     // Action bar.
