@@ -1,1 +1,1 @@
-export { newHub, spotInReach, stepHub, unlockedSpots, type HubInput, type HubProgress, type HubState } from './hub';
+export { newHub, spotInReach, stepHub, unlockedSpots, propsPresent, type HubInput, type HubProgress, type HubState } from './hub';

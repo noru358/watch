@@ -5,6 +5,8 @@ import { completeAtStairs, objectiveReady, strongLeft, updateObjective } from '.
 import { dist, savePrev, updateFlow } from './physics';
 import { updatePlayer } from './player';
 import { updateSwarm } from './spawner';
+import { runHooks } from './hooks';
+import { updateShots, updateZones } from './skills';
 import type { Floor, RiftInput } from './types';
 
 function updatePickups(f: Floor, dt: number): void {
@@ -17,7 +19,7 @@ function updatePickups(f: Floor, dt: number): void {
       f.events.push({ type: 'pickupCollected', x: k.x, y: k.y, value: k.value });
       continue;
     }
-    if (d <= DUNGEON.pickupMagnet) {
+    if (d <= f.stats.magnet) {
       k.x += ((p.x - k.x) / d) * DUNGEON.pickupSpeed * dt;
       k.y += ((p.y - k.y) / d) * DUNGEON.pickupSpeed * dt;
     }
@@ -51,6 +53,7 @@ function updateExits(f: Floor): void {
   const p = f.player;
   if (f.stairs && stairsOpen(f) && dist(p, f.stairs) <= DUNGEON.touchRange) {
     completeAtStairs(f);
+    runHooks(f, 'onFloorEnd', {});
     f.status = 'stairs';
   }
   if (!f.payphone) return;
@@ -74,6 +77,8 @@ export function stepFloor(f: Floor, input: RiftInput, dt: number, rng: SeededRNG
   updateGoal(f, dt);
   if (f.status !== 'playing') return;
   updateSwarm(f, dt, rng);
+  updateShots(f, dt, rng);
+  updateZones(f, dt, rng);
   updatePickups(f, dt);
   updateExits(f);
 }

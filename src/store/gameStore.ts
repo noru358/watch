@@ -1,6 +1,8 @@
 import { SAVE_VERSION, type SaveData } from '../core/SaveManager';
 import { SeededRNG } from '../core/SeededRNG';
-import type { ContractId, NodeId, Phase, SceneId } from '../types/ids';
+import type { ActiveId, ContractId, FacilityId, NodeId, Phase, SceneId, SkillSlotId, SupplyId, TrainingId } from '../types/ids';
+import type { TrainingLevels } from '../systems/run';
+import * as growth from '../systems/growth';
 import { settleRun, type RunResult, type Settlement } from '../systems/run';
 import {
   advanceDay,
@@ -13,6 +15,7 @@ import {
   type ContractOffer,
   type MorningReport,
   type OfficeState,
+  type WantedTarget,
 } from '../systems/office';
 import type { FloorPlan } from '../data/contracts.data';
 
@@ -38,6 +41,16 @@ export interface GameState {
   nextOfferId: number;
   storyDone: ContractId[];
   seen: SceneId[]; // story scenes already shown
+  // growth (save v4)
+  shards: number; // 심연 파편
+  training: TrainingLevels;
+  trainingBought: number;
+  facilities: Record<FacilityId, number>;
+  supply: SupplyId | null;
+  passives: Partial<Record<SkillSlotId, 'a' | 'b'>>;
+  actives: ActiveId[];
+  active: ActiveId | null;
+  wanted: WantedTarget[]; // named bounties that got away
   // not saved
   activeOfferId: number | null; // chosen on the board, played tonight
   lastRun: LastRun | null;
@@ -51,6 +64,19 @@ export interface NightPlan {
   fee: number;
 }
 
+const growthOf = (s: GameState): growth.GrowthState => ({
+  money: s.money,
+  trauma: s.trauma,
+  shards: s.shards,
+  training: { ...s.training },
+  trainingBought: s.trainingBought,
+  facilities: { ...s.facilities },
+  supply: s.supply,
+  passives: { ...s.passives },
+  actives: [...s.actives],
+  active: s.active,
+});
+
 type Listener = () => void;
 
 const office = (s: GameState): OfficeState => ({
@@ -62,6 +88,8 @@ const office = (s: GameState): OfficeState => ({
   board: s.board.map((o) => ({ ...o, pool: [...o.pool] })),
   nextOfferId: s.nextOfferId,
   storyDone: [...s.storyDone],
+  wanted: s.wanted.map((w) => ({ ...w, name: [...w.name] as [number, number] })),
+  deskLevel: s.facilities.desk,
 });
 
 // Single source of truth shared by React (useSyncExternalStore) and Phaser (Rule 3).
@@ -90,6 +118,15 @@ export class GameStore {
       nextOfferId: 1,
       storyDone: [],
       seen: [],
+      shards: 0,
+      training: {},
+      trainingBought: 0,
+      facilities: { ...growth.NO_FACILITIES },
+      supply: null,
+      passives: {},
+      actives: [],
+      active: null,
+      wanted: [],
       activeOfferId: null,
       lastRun: null,
       lastMorning: null,
@@ -126,6 +163,7 @@ export class GameStore {
   // What goes into the save file (long-lived office state only).
   toSave(): SaveData {
     const { money, trauma, solved, seedBase, runCounter, day, debt, contamination, known, board, nextOfferId, storyDone, seen } = this.state;
+    const s = this.state;
     return {
       schemaVersion: SAVE_VERSION,
       money,
@@ -141,7 +179,79 @@ export class GameStore {
       nextOfferId,
       storyDone: [...storyDone],
       seen: [...seen],
+      shards: s.shards,
+      training: { ...s.training },
+      trainingBought: s.trainingBought,
+      facilities: { ...s.facilities },
+      supply: s.supply,
+      passives: { ...s.passives },
+      actives: [...s.actives],
+      active: s.active,
+      wanted: s.wanted.map((w) => ({ ...w, name: [...w.name] as [number, number] })),
     };
+  }
+
+  // ---- growth (systems/growth does the rules; the store only applies the result) ----
+
+  private grow(fn: (g: growth.GrowthState) => unknown): boolean {
+    const g = growthOf(this.state);
+    const ok = fn(g);
+    if (!ok) return false;
+    this.set({ ...g });
+    return true;
+  }
+
+  train(id: TrainingId): boolean {
+    return this.grow((g) => growth.buyTraining(g, id) > 0);
+  }
+
+  openSkill(slot: SkillSlotId): boolean {
+    return this.grow((g) => growth.openSlot(g, slot));
+  }
+
+  setSkillSide(slot: SkillSlotId, side: 'a' | 'b'): void {
+    this.grow((g) => (growth.setSlotSide(g, slot, side), true));
+  }
+
+  learnActive(id: ActiveId): boolean {
+    return this.grow((g) => growth.learnActive(g, id));
+  }
+
+  equipActive(id: ActiveId): void {
+    this.grow((g) => (growth.equipActive(g, id), true));
+  }
+
+  buildFacility(id: FacilityId): boolean {
+    return this.grow((g) => growth.buildFacility(g, id) > 0);
+  }
+
+  packSupply(id: SupplyId | null): boolean {
+    return this.grow((g) => growth.packSupply(g, id));
+  }
+
+  capitalTherapy(): boolean {
+    return this.grow((g) => growth.capitalTherapy(g));
+  }
+
+  // 휴식하기: no night out; the day passes (rent, the city, deadlines) and trauma comes down.
+  restToday(): void {
+    const o = office(this.state);
+    const morning = advanceDay(o, new SeededRNG(morningSeed(this.state.seedBase, o.day + 1)));
+    this.set({
+      ...o,
+      trauma: Math.max(0, this.state.trauma - growth.restAmount(this.state)),
+      activeOfferId: null,
+      lastRun: null,
+      lastMorning: morning,
+    });
+  }
+
+  // The night starts: tonight's seed and loadout; the packed supply is used up.
+  startNight(): { seed: number; loadout: growth.Loadout } {
+    const loadout = growth.loadoutOf(growthOf(this.state));
+    const seed = this.takeRunSeed();
+    if (this.state.supply) this.set({ supply: null });
+    return { seed, loadout };
   }
 
   // ---- actions ----

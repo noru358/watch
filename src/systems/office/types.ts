@@ -17,6 +17,14 @@ export interface ContractOffer {
 
 export type Contamination = Record<NodeId, number>;
 
+// A named 현상수배 target that got away (failed night or expired offer): it comes back stronger.
+export interface WantedTarget {
+  ghost: GhostId;
+  name: [number, number]; // indices into the name tables (office.data.ts WANTED_NAMES)
+  level: number; // 0 = first posting; +1 every time it gets away (capped)
+  node: NodeId;
+}
+
 // The long-lived office state this module reads and writes (a slice of GameState).
 export interface OfficeState {
   day: number;
@@ -27,6 +35,8 @@ export interface OfficeState {
   board: ContractOffer[];
   nextOfferId: number;
   storyDone: ContractId[];
+  wanted: WantedTarget[];
+  deskLevel: number; // 경리 책상 (facilities.data.ts): more offers, longer deadlines
 }
 
 // What happened overnight, for the bookkeeper's morning line.

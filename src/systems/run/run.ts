@@ -1,9 +1,10 @@
-import { CARD_OFFER_COUNT, CARDS } from '../../data/cards.data';
+import { CARDS } from '../../data/cards.data';
 import type { FloorPlan } from '../../data/contracts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
-import type { CardId, WeaponId } from '../../types/ids';
+import type { ActiveId, CardId, PerkId, WeaponId } from '../../types/ids';
+import { EMPTY_LOADOUT, type Loadout } from '../growth';
 import { generateFloor, type Floor } from '../rift';
-import { computeExorcistStats } from './stats';
+import { computeExorcistStats, type TrainingLevels } from './stats';
 
 // 'failed': the contract's objective was lost (e.g. the missing person) — no fee, loot kept.
 export type RunOutcome = 'success' | 'extracted' | 'died' | 'failed';
@@ -19,8 +20,8 @@ export interface RunSetup {
   offerId: number;
   floors: readonly FloorPlan[]; // from the office module's offerFloors()
   fee: number;
-  level: number;
   weapon: WeaponId;
+  loadout?: Loadout; // from the office (growth module); tests may leave it out
 }
 
 // One night: a contract's floors played in order.
@@ -28,8 +29,12 @@ export interface RunState {
   offerId: number;
   floors: readonly FloorPlan[];
   fee: number;
-  level: number;
   weapon: WeaponId;
+  training: TrainingLevels;
+  perks: PerkId[];
+  active: ActiveId | null;
+  cardOffer: number;
+  used: PerkId[]; // once-a-night perks spent
   floorIndex: number;
   hp: number;
   focus: number;
@@ -39,12 +44,29 @@ export interface RunState {
 }
 
 export function runStats(run: RunState) {
-  return computeExorcistStats('director', run.level, run.cards, run.weapon);
+  return computeExorcistStats('director', run.training, run.cards, run.weapon, run.perks);
 }
 
 export function startRun(setup: RunSetup): RunState {
-  const run: RunState = { ...setup, floorIndex: 0, hp: 0, focus: 0, loot: 0, cards: [], outcome: null };
-  run.hp = runStats(run).maxHp;
+  const l = setup.loadout ?? EMPTY_LOADOUT;
+  const run: RunState = {
+    offerId: setup.offerId,
+    floors: setup.floors,
+    fee: setup.fee,
+    weapon: setup.weapon,
+    training: { ...l.training },
+    perks: [...l.perks],
+    active: l.active,
+    cardOffer: l.cardOffer,
+    used: [],
+    floorIndex: 0,
+    hp: 0,
+    focus: 0,
+    loot: 0,
+    cards: [],
+    outcome: null,
+  };
+  run.hp = Math.max(1, runStats(run).maxHp - l.hpPenalty);
   return run;
 }
 
@@ -62,11 +84,15 @@ export function enterFloor(run: RunState, rng: SeededRNG): Floor {
     weapon: run.weapon,
     stats: runStats(run),
     cards: run.cards,
+    perks: run.perks,
+    used: run.used,
+    active: run.active,
   });
 }
 
 // Banks a finished floor. Returns the outcome if the run ended.
 export function leaveFloor(run: RunState, f: Floor): RunOutcome | null {
+  run.used = [...f.used];
   run.hp = f.player.hp;
   run.focus = f.player.focus;
   run.loot = f.loot;
@@ -106,7 +132,7 @@ export function cardPool(run: RunState): CardId[] {
 }
 
 export function offerCards(run: RunState, rng: SeededRNG): CardId[] {
-  return rng.sample(cardPool(run), CARD_OFFER_COUNT);
+  return rng.sample(cardPool(run), run.cardOffer);
 }
 
 export function pickCard(run: RunState, id: CardId): void {

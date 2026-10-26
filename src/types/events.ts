@@ -21,6 +21,9 @@ export interface GameEventMap {
   survivorFound: { x: number; y: number };
   survivorHurt: { x: number; y: number; amount: number };
   objectiveDone: { x: number; y: number };
+  lastBreath: { x: number; y: number }; // 마지막 숨 kept the director at 1 HP
+  skillUsed: { x: number; y: number; skill: 'talisman' | 'barrier' | 'salt_burst' };
+  shotHit: { x: number; y: number };
   roomCleared: { boss: boolean };
   darkness: { duration: number };
   phaseChanged: { phase: Phase };

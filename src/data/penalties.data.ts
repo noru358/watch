@@ -9,3 +9,16 @@ export const RUN_PENALTIES = {
   deathExpLoss: 0,
   deathWalletLossRatio: 0,
 } as const;
+
+// 트라우마 (docs/rules/growth.md): effects by level, and the ways down.
+export const TRAUMA = {
+  cards: 3, // cards offered after a floor (normally)
+  fewerCardsAt: 2,
+  fewerCards: 2,
+  weakAt: 4,
+  weakHp: 2, // the night starts this much below max HP
+  groundedAt: 6, // no sortie until it drops
+  rest: 2, // 휴식하기 (+ sofa level)
+  capitalCost: 1000, // 자본 치료
+  capitalAmount: 2,
+} as const;

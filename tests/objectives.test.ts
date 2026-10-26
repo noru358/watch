@@ -76,7 +76,7 @@ describe('objectives: goal floor and going home early', () => {
   const floors: FloorPlan[] = [clearPlan, rescuePlan, clearPlan];
 
   it('a finished goal before the last floor offers to end the night with the fee', () => {
-    const run = startRun({ offerId: 1, floors, fee: 200, level: 1, weapon: 'newspaper_sword' });
+    const run = startRun({ offerId: 1, floors, fee: 200, weapon: 'newspaper_sword' });
     run.floorIndex = 1;
     const { f } = rescueFloor();
     f.status = 'stairs';
@@ -87,7 +87,7 @@ describe('objectives: goal floor and going home early', () => {
   });
 
   it('keeping going simply moves to the next floor', () => {
-    const run = startRun({ offerId: 1, floors, fee: 200, level: 1, weapon: 'newspaper_sword' });
+    const run = startRun({ offerId: 1, floors, fee: 200, weapon: 'newspaper_sword' });
     run.floorIndex = 1;
     const { f } = rescueFloor();
     f.status = 'stairs';
@@ -96,7 +96,7 @@ describe('objectives: goal floor and going home early', () => {
   });
 
   it('a lost objective is a failed night: no fee, loot kept, trauma', () => {
-    const run = startRun({ offerId: 1, floors, fee: 200, level: 1, weapon: 'newspaper_sword' });
+    const run = startRun({ offerId: 1, floors, fee: 200, weapon: 'newspaper_sword' });
     const { f } = rescueFloor();
     f.status = 'failed';
     f.loot = 30;

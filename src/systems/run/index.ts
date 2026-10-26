@@ -16,5 +16,5 @@ export {
   type RunOutcome,
   type RunSetup,
 } from './run';
-export { computeExorcistStats } from './stats';
+export { computeExorcistStats, type TrainingLevels } from './stats';
 export { settleRun, type Settlement } from './settle';

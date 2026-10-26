@@ -7,11 +7,17 @@ import type { LobbyFeatureId } from '../types/ids';
 import { LedgerPanel } from './features/ledger/LedgerPanel';
 import { panelCss as css } from './features/panel';
 import { BoardPanel } from './features/board/BoardPanel';
+import { BenchPanel } from './features/bench/BenchPanel';
+import { SofaPanel } from './features/sofa/SofaPanel';
+import { TrainingPanel } from './features/training/TrainingPanel';
 import { DialogueBox } from './DialogueBox';
 
 const PANELS: Record<LobbyFeatureId, ComponentType> = {
   sortie: BoardPanel,
   ledger: LedgerPanel,
+  training: TrainingPanel,
+  sofa: SofaPanel,
+  bench: BenchPanel,
 };
 
 // Day overlay: the story dialogue box, the one open hub panel, or nothing (the hub canvas stays clickable).

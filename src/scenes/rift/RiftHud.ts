@@ -1,6 +1,4 @@
 import Phaser from 'phaser';
-import { EXORCISTS } from '../../data/protagonist.data';
-import { WEAPONS } from '../../data/weapons.data';
 import { PALETTE, SCREEN } from '../../data/feel.data';
 import { t, type TKey } from '../../i18n';
 import { counterable, strongLeft, survivorOf, type Floor } from '../../systems/rift';
@@ -140,8 +138,6 @@ export class RiftHud {
   private renderSlots(f: Floor): void {
     const g = this.g;
     const p = f.player;
-    const d = EXORCISTS.director;
-    const w = WEAPONS[f.weapon];
     const cue = counterable(f).length > 0;
     const full = p.focus >= f.stats.focusMax;
     const sizes: Record<SlotId, number> = { attack: SLOT, dash: SLOT, draw: DRAW_SLOT, ally: SLOT };
@@ -171,7 +167,7 @@ export class RiftHud {
       if (id === 'attack') g.lineBetween(cx - 11, cy + 11, cx + 9, cy - 9).lineBetween(cx + 5, cy - 11, cx + 11, cy - 5);
       if (id === 'dash') g.lineBetween(cx - 12, cy, cx + 6, cy).lineBetween(cx, cy - 7, cx + 7, cy).lineBetween(cx, cy + 7, cx + 7, cy).lineBetween(cx + 11, cy - 9, cx + 11, cy + 9);
       if (id === 'draw') g.strokeCircle(cx, cy, 13).lineBetween(cx - 12, cy + 12, cx + 12, cy - 12);
-      const cd = id === 'dash' ? p.dashCd / (d.dashCooldown + d.dashTime) : id === 'draw' ? p.drawCd / w.drawCooldown : 0;
+      const cd = id === 'dash' ? (p.dashCharges > 0 ? 0 : p.dashCd / (f.stats.dashCooldown + f.stats.dashTime)) : id === 'draw' ? p.drawCd / f.stats.drawCooldown : 0;
       if (cd > 0) g.fillStyle(0x000000, 0.6).fillRoundedRect(x, top + s * (1 - Math.min(1, cd)), s, s * Math.min(1, cd), 8);
       x += s + SLOT_GAP;
     }

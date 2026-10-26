@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { HUB, HUB_PROPS, HUB_SPOTS } from '../src/data/lobby.data';
-import { newHub, spotInReach, stepHub, unlockedSpots } from '../src/systems/hub';
+import { newHub, propsPresent, spotInReach, stepHub, unlockedSpots } from '../src/systems/hub';
 
 const walk = (h: ReturnType<typeof newHub>, moveX: number, moveY: number, seconds: number) => {
   for (let i = 0; i < Math.round(seconds / HUB.step); i++) stepHub(h, { moveX, moveY }, HUB.step);
@@ -39,8 +39,15 @@ describe('hub walking', () => {
 
 describe('hub spots', () => {
   it('shows the bookkeeper only after the first solved contract', () => {
-    expect(unlockedSpots({ solved: 0 })).toEqual(['door']);
+    expect(unlockedSpots({ solved: 0 })).toEqual(['door', 'directorDesk', 'sofa']);
     expect(unlockedSpots({ solved: 1 })).toContain('bookkeeper');
+  });
+
+  it('the talisman bench appears (and blocks) only once built', () => {
+    expect(unlockedSpots({ solved: 3 })).not.toContain('bench');
+    expect(unlockedSpots({ solved: 0, facilities: { bench: 1 } })).toContain('bench');
+    expect(propsPresent({ solved: 0 })).not.toContain('bench');
+    expect(propsPresent({ solved: 0, facilities: { bench: 1 } })).toContain('bench');
   });
 
   it('finds the door when standing in front of it, nothing where the director comes in', () => {

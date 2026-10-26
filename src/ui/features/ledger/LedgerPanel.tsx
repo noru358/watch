@@ -4,8 +4,11 @@ import { NODES } from '../../../data/nodes.data';
 import { OFFICE } from '../../../data/office.data';
 import { t } from '../../../i18n';
 import type { MorningReport } from '../../../systems/office';
+import { FACILITIES, FACILITY_IDS } from '../../../data/facilities.data';
+import { facilityPrice } from '../../../systems/growth';
 import { outcomeLabel } from '../lastRun';
 import { panelCss as css } from '../panel';
+import { priceStyle, rowStyle, useNav } from '../useNav';
 
 // What the bookkeeper says this morning (rent, the city, expired offers).
 function morningLines(m: MorningReport | null): string[] {
@@ -31,8 +34,10 @@ export function LedgerPanel() {
         {s.debt > 0 && <div style={{ ...css.row, color: '#ff5d7a' }}><span>{t('ledger.debt')}</span><span>{s.debt}</span></div>}
         <div style={css.row}><span>{t('day.money')}</span><span>{s.money}</span></div>
         <div style={css.row}><span>{t('day.trauma')}</span><span>{s.trauma}</span></div>
+        <div style={css.row}><span>{t('ledger.shards')}</span><span>{s.shards}</span></div>
         <div style={css.row}><span>{t('day.runs')}</span><span>{s.solved}</span></div>
       </div>
+      <Facilities />
       {s.lastRun && (
         <div style={css.box}>
           <div style={{ ...css.row, ...css.dim }}>{t('day.lastResult')}</div>
@@ -40,5 +45,33 @@ export function LedgerPanel() {
         </div>
       )}
     </>
+  );
+}
+
+// 시설 공사: every office facility is ordered here (docs/rules/growth.md).
+function Facilities() {
+  const s = useSyncExternalStore(store.subscribe, store.getState);
+  const build = (i: number) => store.buildFacility(FACILITY_IDS[i]!);
+  const [cursor, setCursor] = useNav(FACILITY_IDS.length, build);
+  return (
+    <div style={css.box}>
+      <div style={{ ...css.row, ...css.dim }}>{t('ledger.facilities')}</div>
+      {FACILITY_IDS.map((id, i) => {
+        const f = FACILITIES[id];
+        const level = s.facilities[id];
+        const price = facilityPrice(s, id);
+        const next = f.levelKeys[level];
+        return (
+          <div key={id} style={rowStyle(i === cursor)} onMouseEnter={() => setCursor(i)} onClick={() => build(i)}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15 }}>{t(f.nameKey)} <span style={{ fontSize: 12, color: '#c9bfe8' }}>{level > 0 ? t('facility.level', { level }) : t('facility.none')}</span></div>
+              <div style={{ fontSize: 12, color: '#c9bfe8' }}>{next ? `→ ${t(next)}` : t('facility.done')}</div>
+            </div>
+            <span style={priceStyle(price !== null && s.money >= price)}>{price === null ? '' : t('facility.build', { cost: price })}</span>
+          </div>
+        );
+      })}
+      <div style={{ ...css.hint, marginTop: 6 }}>{t('list.keys')}</div>
+    </div>
   );
 }

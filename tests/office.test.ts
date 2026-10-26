@@ -10,7 +10,7 @@ import type { NodeId } from '../src/types/ids';
 import { playNight, skilled } from './bots';
 
 function fresh(): OfficeState {
-  const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [] };
+  const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], deskLevel: 0 };
   refillBoard(s, new SeededRNG(5));
   return s;
 }
@@ -210,7 +210,7 @@ describe('office: generated nights are playable', () => {
   it('a reading bot clears most low-risk general contracts and a bounty', () => {
     const s = fresh();
     const offer = { ...general(s, 'alley', 1), floors: 3 };
-    const setup = (o: ContractOffer) => ({ offerId: o.id, floors: offerFloors(o), fee: o.fee, level: 1, weapon: 'newspaper_sword' as const });
+    const setup = (o: ContractOffer) => ({ offerId: o.id, floors: offerFloors(o), fee: o.fee, weapon: 'newspaper_sword' as const });
     const runs = [1, 2, 3, 4].map((seed) => playNight(seed, skilled, setup(offer)));
     expect(runs.filter((r) => r.outcome === 'success').length, JSON.stringify(runs)).toBeGreaterThanOrEqual(3);
     const bounty: ContractOffer = { ...offer, id: 99, kind: 'bounty', target: 'cheonyeo', floors: 2, risk: 1 };

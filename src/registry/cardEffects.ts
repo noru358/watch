@@ -1,24 +1,16 @@
-import type { SeededRNG } from '../core/SeededRNG';
 import type { CardData } from '../data/cards.data';
 import type { CardId } from '../types/ids';
-import type { Enemy, Floor } from '../systems/rift';
+import type { Floor } from '../systems/rift';
+import type { HookArgs, HookName } from './hookPoints';
 
-// Fixed hook points (Rule 2). Adding one is an architecture change.
-export interface CardHookArgs {
-  onRunStart: Record<string, never>;
-  onRoomEnter: Record<string, never>; // a new floor begins
-  onBeforeAttack: { damage: number; kind: 'slash' | 'draw' };
-  onHit: { enemy: Enemy; damage: number; rng: SeededRNG };
-  onTakeDamage: { amount: number };
-  onKill: { enemy: Enemy; rng: SeededRNG };
-  onRunEnd: Record<string, never>;
-}
-export type CardHookName = keyof CardHookArgs;
+// Hook points are shared with perks (hookPoints.ts).
+export type CardHookArgs = HookArgs;
+export type CardHookName = HookName;
 
 type Hook<K extends CardHookName> = (f: Floor, data: CardData, args: CardHookArgs[K]) => void;
 export type CardHooks = { [K in CardHookName]?: Hook<K> };
 
-function heal(f: Floor, amount: number): void {
+export function heal(f: Floor, amount: number): void {
   const p = f.player;
   const healed = Math.min(amount, f.stats.maxHp - p.hp);
   if (healed <= 0) return;

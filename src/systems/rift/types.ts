@@ -1,6 +1,6 @@
 import type { SwarmPlan } from '../../data/contracts.data';
 import type { AttackShape } from '../../data/ghosts.data';
-import type { CardId, EnemyId, FloorTheme, WeaponId } from '../../types/ids';
+import type { ActiveId, CardId, EnemyId, FloorTheme, PerkId, WeaponId } from '../../types/ids';
 import type { GameEvent } from '../../types/events';
 import type { ObjectiveState } from './objectives/types';
 
@@ -26,9 +26,10 @@ export interface RiftInput {
   attack: boolean; // held
   dash: boolean; // pressed this tick
   draw: boolean; // pressed this tick
+  skill: boolean; // pressed this tick (L: the equipped active)
 }
 
-export const NO_INPUT: RiftInput = { moveX: 0, moveY: 0, aim: 0, attack: false, dash: false, draw: false };
+export const NO_INPUT: RiftInput = { moveX: 0, moveY: 0, aim: 0, attack: false, dash: false, draw: false, skill: false };
 
 // A floor marking that strikes when its timer runs out.
 export interface Telegraph {
@@ -61,6 +62,28 @@ export interface Enemy extends Body {
   knockX: number; // knockback velocity, tiles/s
   knockY: number;
   face: number; // -1 left, 1 right (render hint)
+  // Per-enemy multipliers: 1 / 0 for ordinary ghosts; the 현상수배 elite and the chase quarry change them.
+  speedMult: number;
+  damageAdd: number;
+  windupMult: number;
+  role: 'normal' | 'bounty' | 'quarry' | 'lair'; // what the floor's objective cares about
+  asleep: boolean; // lair pack before the director walks in; quarry resting in its nest
+}
+
+// Something on the floor for a while: salt from a dash, a barrier circle.
+export interface Zone extends Pos {
+  kind: 'salt' | 'barrier';
+  r: number;
+  t: number; // seconds left
+}
+
+// A thrown talisman.
+export interface Shot extends Pos {
+  vx: number;
+  vy: number;
+  left: number; // tiles it may still fly
+  damage: number;
+  stun: number;
 }
 
 export interface Player extends Body {
@@ -85,10 +108,15 @@ export interface Player extends Body {
   focus: number; // 진심 게이지
   bare: number; // seconds left with the sword unwrapped
   shield: number; // salt_ward charges
+  dashCharges: number; // dashes ready (refill one per dashCooldown)
   darkness: number; // seconds of reduced vision
+  hurtOnFloor: boolean; // took damage on this floor (숨 고르기)
+  calmT: number; // seconds moving without attacking (질주)
+  dodged: boolean; // the current dash already slipped past a hit (스치기)
 }
 
-// Derived from weapon + cards + level (Rule 7); never saved.
+// Derived from exorcist + training + weapon + cards + passive skills (Rule 7); never saved.
+// Every number the director's feel depends on lives here, so training and skills can change it.
 export interface Stats {
   maxHp: number;
   slash: number;
@@ -99,6 +127,19 @@ export interface Stats {
   bareSlashBonus: number;
   comboEvery: number;
   comboBonus: number;
+  reach: number; // swing radius (tiles)
+  swingTime: number; // seconds between swings
+  finisherRecovery: number; // pause after the combo finisher
+  drawCooldown: number;
+  parryWindow: number;
+  moveSpeed: number; // tiles / s
+  dashSpeed: number; // tiles / s while dashing (dash length = dashSpeed × dashTime)
+  dashTime: number;
+  dashIframes: number;
+  dashCooldown: number;
+  dashCharges: number;
+  hurtIframes: number;
+  magnet: number; // spirit pickup pull radius (tiles)
 }
 
 export interface BossState {
@@ -133,6 +174,13 @@ export interface Floor {
   weapon: WeaponId;
   stats: Stats;
   cards: CardId[];
+  perks: PerkId[]; // passive skills + tonight's supply (registry/perkEffects.ts)
+  used: PerkId[]; // once-a-night perks already spent (carried between floors)
+  active: ActiveId | null; // the skill on L
+  skillCd: number; // seconds until L works again
+  zones: Zone[];
+  shots: Shot[];
+  vision: number | null; // tiles visible on the whole floor (정전); null = normal
   time: number;
   loot: number;
   status: FloorStatus;

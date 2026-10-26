@@ -12,9 +12,9 @@ import { storySetup } from './helpers';
 const setup = storySetup;
 
 describe('computeExorcistStats', () => {
-  it('derives stats from level, cards and weapon', () => {
-    const s = computeExorcistStats('director', 3, ['tough', 'double_newspaper', 'lazy_but_serious'], 'newspaper_sword');
-    expect(s.maxHp).toBe(EXORCISTS.director.maxHp + 2 * EXORCISTS.director.levelHpBonus + CARDS.tough.maxHp);
+  it('derives stats from training, cards and weapon', () => {
+    const s = computeExorcistStats('director', { nerve_hp: 2 }, ['tough', 'double_newspaper', 'lazy_but_serious'], 'newspaper_sword');
+    expect(s.maxHp).toBe(EXORCISTS.director.maxHp + 2 + CARDS.tough.maxHp);
     expect(s.slash).toBe(WEAPONS.newspaper_sword.slash + CARDS.double_newspaper.slash);
     expect(s.focusMax).toBe(WEAPONS.newspaper_sword.focusMax + CARDS.lazy_but_serious.focusMax);
   });

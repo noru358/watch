@@ -7,7 +7,7 @@ import { PALETTE } from '../../data/feel.data';
 import { HUB_LOOK } from '../../data/hubLook.data';
 import { HUB, HUB_SPOTS } from '../../data/lobby.data';
 import { t } from '../../i18n';
-import { newHub, spotInReach, stepHub, unlockedSpots, type HubState } from '../../systems/hub';
+import { newHub, propsPresent, spotInReach, stepHub, unlockedSpots, type HubState } from '../../systems/hub';
 import type { HubSpotId } from '../../types/ids';
 import { T } from '../shared/draw/common';
 import { loadDirectorFrames } from '../shared/draw/directorFrames';
@@ -72,7 +72,8 @@ export class HubScene extends Phaser.Scene {
   }
 
   private progress() {
-    return { solved: store.getState().solved };
+    const s = store.getState();
+    return { solved: s.solved, facilities: s.facilities };
   }
 
   update(_time: number, deltaMs: number): void {
@@ -85,14 +86,14 @@ export class HubScene extends Phaser.Scene {
     };
     this.acc = Math.min(this.acc + dt, HUB.step * 5);
     while (this.acc >= HUB.step) {
-      stepHub(this.hub, move, HUB.step);
+      stepHub(this.hub, move, HUB.step, this.progress());
       this.acc -= HUB.step;
     }
     const near = spotInReach(this.hub, this.progress());
     if (near && input.consume('interact', ctx)) openFeature(HUB_SPOTS[near].feature);
     this.showPrompt(input.context === ctx ? near : null);
     this.updateChatter(dt, input.context === ctx);
-    this.view.render(this.hub, this.acc / HUB.step, this.clock, unlockedSpots(this.progress()));
+    this.view.render(this.hub, this.acc / HUB.step, this.clock, unlockedSpots(this.progress()), propsPresent(this.progress()));
   }
 
   // Mockup B: the bookkeeper now and then says one short line above her desk (only while the office

@@ -3,6 +3,8 @@ import { WEAPONS } from '../../data/weapons.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import { OBJECTIVES } from '../../data/objectives.data';
 import { hitEnemy } from './combat';
+import { runHooks } from './hooks';
+import { useActive } from './skills';
 import { survivorOf } from './objectives';
 import { angleDiff, dist, inTelegraph, moveBody } from './physics';
 import type { Enemy, Floor, RiftInput } from './types';
@@ -21,12 +23,13 @@ function swing(f: Floor, rng: SeededRNG): void {
   for (const e of [...f.enemies]) {
     if (e.hp <= 0) continue;
     const a = Math.atan2(e.y - p.y, e.x - p.x);
-    if (dist(e, p) - e.r > w.reach || angleDiff(a, p.aim) > w.arc / 2) continue;
+    if (dist(e, p) - e.r > s.reach || angleDiff(a, p.aim) > w.arc / 2) continue;
     hitEnemy(f, e, 'slash', damage, heavy, dirOf(a), rng);
     landed = true;
   }
   if (landed) p.focus = Math.min(s.focusMax, p.focus + 1);
-  p.swingT = heavy ? w.finisherRecovery : w.swingTime;
+  runHooks(f, 'onSwing', { heavy, damage, rng });
+  p.swingT = heavy ? s.finisherRecovery : s.swingTime;
   p.comboT = p.swingT + w.comboWindow;
   p.swingFx = 0;
   f.events.push({ type: 'slash', x: p.x, y: p.y });
@@ -37,11 +40,12 @@ function swing(f: Floor, rng: SeededRNG): void {
 export function counterable(f: Floor): Enemy[] {
   const p = f.player;
   const w = WEAPONS[f.weapon];
+  const window = f.stats.parryWindow;
   return f.enemies.filter(
     (e) =>
       e.hp > 0 &&
       dist(e, p) - e.r <= w.drawReach &&
-      e.teles.some((t) => t.parriable && t.t <= w.parryWindow && inTelegraph(t, p, p.r)),
+      e.teles.some((t) => t.parriable && t.t <= window && inTelegraph(t, p, p.r)),
   );
 }
 
@@ -55,7 +59,7 @@ function draw(f: Floor): void {
   const p = f.player;
   const w = WEAPONS[f.weapon];
   const s = f.stats;
-  p.drawCd = w.drawCooldown;
+  p.drawCd = s.drawCooldown;
   p.drawFx = 0;
   p.drawT = w.drawStartup;
   p.drawAim = p.aim;
@@ -70,12 +74,14 @@ function draw(f: Floor): void {
       e.timer = w.drawStun + w.drawStartup;
       p.countered.push(e.id);
     }
-    p.iframes = Math.max(p.iframes, w.parryWindow + w.drawStartup);
+    p.iframes = Math.max(p.iframes, s.parryWindow + w.drawStartup);
+    runHooks(f, 'onCounter', {});
     return;
   }
   if (p.focus >= s.focusMax) {
     p.drawKind = 'strike';
     p.focus = 0;
+    runHooks(f, 'onFocusStrike', {});
     return;
   }
   p.drawKind = 'slash';
@@ -117,12 +123,20 @@ export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: Seeded
   p.swingFx += dt;
   p.comboT = Math.max(0, p.comboT - dt);
   if (p.comboT <= 0) p.combo = 0;
-  p.dashCd = Math.max(0, p.dashCd - dt);
+  const s = f.stats;
+  if (p.dashCharges < s.dashCharges) {
+    p.dashCd -= dt;
+    if (p.dashCd <= 0) {
+      p.dashCharges += 1;
+      p.dashCd = p.dashCharges < s.dashCharges ? s.dashCooldown : 0;
+    }
+  } else p.dashCd = 0;
   p.iframes = Math.max(0, p.iframes - dt);
   p.drawCd = Math.max(0, p.drawCd - dt);
   p.drawFx += dt;
   p.bare = Math.max(0, p.bare - dt);
   p.darkness = Math.max(0, p.darkness - dt);
+  f.skillCd = Math.max(0, f.skillCd - dt);
   p.aim = input.aim;
 
   // 발도 stance: rooted, no other action until the cut lands.
@@ -136,33 +150,40 @@ export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: Seeded
     return;
   }
 
-  if (input.dash && p.dashCd <= 0 && p.dashT <= 0) {
+  if (input.dash && p.dashCharges > 0 && p.dashT <= 0) {
     const len = Math.hypot(input.moveX, input.moveY);
     const dir = len > 0 ? { x: input.moveX / len, y: input.moveY / len } : dirOf(p.aim);
     p.dashX = dir.x;
     p.dashY = dir.y;
-    p.dashT = d.dashTime;
-    p.dashCd = d.dashCooldown + d.dashTime;
-    p.iframes = Math.max(p.iframes, d.dashIframes);
+    p.dashT = s.dashTime;
+    if (p.dashCharges === s.dashCharges) p.dashCd = s.dashCooldown + s.dashTime;
+    p.dashCharges -= 1;
+    p.iframes = Math.max(p.iframes, s.dashIframes);
+    p.dodged = false;
     f.events.push({ type: 'dash', x: p.x, y: p.y });
   }
 
   if (p.dashT > 0) {
     p.dashT -= dt;
-    moveBody(f, p, p.dashX * d.dashSpeed * dt, p.dashY * d.dashSpeed * dt, d.cornerNudge);
+    moveBody(f, p, p.dashX * s.dashSpeed * dt, p.dashY * s.dashSpeed * dt, d.cornerNudge);
     p.moving = true;
+    runHooks(f, 'onDashTick', {});
+    if (p.dashT <= 0) runHooks(f, 'onDashEnd', { rng });
   } else {
     const len = Math.hypot(input.moveX, input.moveY);
     p.moving = len > 0;
+    const move = { mult: 1, moving: p.moving, attacking: input.attack || input.draw, dt };
+    runHooks(f, 'onMove', move);
     if (len > 0) {
       const slowed = p.swingFx < d.swingSlowTime;
       const carrying = survivorOf(f)?.state === 'following';
-      const speed = d.moveSpeed * (slowed ? d.swingMoveMult : 1) * (carrying ? OBJECTIVES.rescue.carryMoveMult : 1);
+      const speed = s.moveSpeed * move.mult * (slowed ? d.swingMoveMult : 1) * (carrying ? OBJECTIVES.rescue.carryMoveMult : 1);
       moveBody(f, p, (input.moveX / len) * speed * dt, (input.moveY / len) * speed * dt, d.cornerNudge);
     }
   }
 
   if (p.dashT > 0) return;
+  if (input.skill) useActive(f, rng);
   if (input.draw && p.drawCd <= 0) draw(f);
   else if (input.attack && p.swingT <= 0) swing(f, rng);
 }

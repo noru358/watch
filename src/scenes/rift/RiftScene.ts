@@ -77,10 +77,12 @@ export class RiftScene extends Phaser.Scene {
     this.mode = 'play';
     this.acc = 0;
     this.freezeLeft = 0;
-    this.rng = new SeededRNG(store.takeRunSeed());
+    // Tonight's seed and what the office sends along (training, skills, supply, trauma).
+    const night = store.startNight();
+    this.rng = new SeededRNG(night.seed);
     // The offer chosen on the contract board (the board always has one selected before 출동).
     const plan = store.nightPlan() ?? store.firstPlan();
-    this.run = startRun({ ...plan, level: 1, weapon: 'newspaper_sword' });
+    this.run = startRun({ ...plan, weapon: 'newspaper_sword', loadout: night.loadout });
 
     // Two cameras: the zoomed world camera follows the director; the UI camera stays 1:1.
     this.worldLayer = this.add.layer();
@@ -169,6 +171,7 @@ export class RiftScene extends Phaser.Scene {
       attack: input.isDown('attack', ctx),
       dash: input.consume('dash', ctx),
       draw: input.consume('draw', ctx),
+      skill: input.consume('skill', ctx),
     };
   }
 

@@ -10,13 +10,49 @@ export type WeaponCardId = 'double_newspaper' | 'blue_lightning' | 'lazy_but_ser
 export type CardId = BaseCardId | WeaponCardId; // 강화 카드 (per-run upgrade)
 export type CardSource = 'base' | WeaponId;
 export type ContractId = 'lights_out'; // hand-written story contracts
-export type ContractKind = 'story' | 'general' | 'bounty'; // 의뢰판 종류 (docs/design/4-day/contracts-map-ops.md)
+export type ContractKind = 'story' | 'general' | 'bounty'; // TEMP until the contract rework
 export type NodeId = 'alley' | 'printshop' | 'arcade' | 'station' | 'motel' | 'rooftop'; // 을지로 작전 지도 노드
-export type RequestId = 'flicker' | 'footsteps' | 'cold_spot' | 'crying' | 'last_train' | 'faceless' | 'smoke' | 'missing'; // 일반 의뢰 사연 틀
-export type ObjectiveKind = 'clear' | 'rescue'; // what opens a floor's stairs (docs/design/2-night/objectives.md)
+// 일반 의뢰 사연 틀 (each belongs to one objective, src/data/requests.data.ts)
+export type RequestId =
+  | 'flicker' | 'smoke' | 'karaoke'
+  | 'crying' | 'missing'
+  | 'faceless' | 'poster'
+  | 'footsteps' | 'snatcher'
+  | 'cold_spot' | 'shrine'
+  | 'last_train' | 'taxi';
+// What opens a floor's stairs (docs/design/2-night/objectives.md). A general contract has exactly one
+// main objective (not 'clear' on its goal floor unless it is a 섬멸 contract); other floors are 'clear'.
+export type ObjectiveKind = 'clear' | 'rescue' | 'bounty' | 'chase' | 'ward' | 'firsttrain';
+export type ModifierId = 'blackout' | 'lair' | 'surge'; // 현장 변형 (src/data/modifiers.data.ts)
 export type FloorTheme = 'basement' | 'alley' | 'arcade' | 'rooftop' | 'lot';
 export type SceneId = 'intro' | 'bookkeeper' | 'lights_out_done'; // story scenes in the dialogue box
 export type Phase = 'title' | 'day' | 'night';
-export type LobbyFeatureId = 'sortie' | 'ledger'; // hub panels (src/ui/features/<id>/)
-export type HubSpotId = 'door' | 'bookkeeper'; // things in the hub you can walk up to and use
-export type HubPropId = 'bookkeeperDesk' | 'directorDesk' | 'sofa' | 'cabinet' | 'plant' | 'water'; // office furniture (solid)
+export type LobbyFeatureId = 'sortie' | 'ledger' | 'training' | 'sofa' | 'bench'; // hub panels (src/ui/features/<id>/)
+export type HubSpotId = 'door' | 'bookkeeper' | 'directorDesk' | 'sofa' | 'bench'; // things in the hub you can walk up to and use
+export type HubPropId = 'bookkeeperDesk' | 'directorDesk' | 'sofa' | 'cabinet' | 'plant' | 'water' | 'bench'; // office furniture (solid)
+
+// Growth (docs/design/3-growth/progression.md, numbers in docs/rules/growth.md)
+export type TrainingGroup = 'power' | 'hands' | 'feet' | 'nerve' | 'focus' | 'knack';
+export type TrainingId =
+  | 'power_slash' | 'power_draw' | 'power_reach'
+  | 'hands_swing' | 'hands_drawcd' | 'hands_finisher'
+  | 'feet_move' | 'feet_dashcd' | 'feet_dashlen'
+  | 'nerve_hp' | 'nerve_parry' | 'nerve_iframes'
+  | 'focus_gauge' | 'focus_bare'
+  | 'knack_magnet';
+export type FacilityId = 'desk' | 'bench' | 'sofa';
+export type SupplyId = 'salt_pack' | 'bacchus' | 'map_copy'; // 보급품 (one per night, from the 부적 작업대)
+export type SkillBranch = 'blade' | 'step' | 'eye';
+export type SkillSlotId = `${SkillBranch}${1 | 2 | 3}`; // 기술 칸: branch × tier, each with an A and a B side
+export type PassiveId =
+  | 'dash_cut' | 'finisher_wave'
+  | 'counter_focus' | 'draw_stun'
+  | 'strike_refund' | 'bare_extend'
+  | 'salt_trail' | 'counter_dash'
+  | 'double_dash' | 'shadow_step'
+  | 'dodge_focus' | 'sprint'
+  | 'ghost_eye' | 'spirit_eye'
+  | 'steady_breath' | 'grudge_eater'
+  | 'last_breath' | 'greed';
+export type ActiveId = 'talisman' | 'barrier' | 'salt_burst'; // 액티브 기술 (L key)
+export type PerkId = PassiveId | SupplyId; // what a night carries besides cards (registry/perkEffects.ts)

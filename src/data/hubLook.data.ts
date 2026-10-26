@@ -24,6 +24,7 @@ export const HUB_LOOK = {
   paper: 0xf4f0e0,
   monitor: 0x2a3a4a,
   monitorGlow: 0x7ad8c8,
+  talismanInk: 0xc0392b, // 부적 작업대 ink
   sofa: 0x7a3a34, // worn leather
   sofaHi: 0x92483f,
   cabinet: 0x8a8e98,

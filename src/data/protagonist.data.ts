@@ -3,7 +3,6 @@ import type { ExorcistId } from '../types/ids';
 // Distances are in TILES, times in SECONDS.
 export interface ExorcistBaseData {
   maxHp: number;
-  levelHpBonus: number; // max HP per level above 1
   radius: number;
   moveSpeed: number; // tiles per second
   swingMoveMult: number; // move speed multiplier at the start of a swing or while recovering
@@ -20,7 +19,6 @@ export interface ExorcistBaseData {
 export const EXORCISTS: Record<ExorcistId, ExorcistBaseData> = {
   director: {
     maxHp: 12,
-    levelHpBonus: 1,
     radius: 0.32,
     moveSpeed: 5,
     swingMoveMult: 0.7,

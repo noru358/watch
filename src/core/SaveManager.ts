@@ -2,10 +2,11 @@
 // a step to MIGRATIONS plus a test. Only long-lived office state is saved; a night in
 // progress is not (quitting mid-night = the night never happened).
 
-import { startingContamination, type ContractOffer, type Contamination } from '../systems/office';
-import type { ContractId, NodeId, SceneId } from '../types/ids';
+import { startingContamination, type ContractOffer, type Contamination, type WantedTarget } from '../systems/office';
+import type { ActiveId, ContractId, FacilityId, NodeId, SceneId, SkillSlotId, SupplyId } from '../types/ids';
+import type { TrainingLevels } from '../systems/run';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export interface SaveData {
   schemaVersion: typeof SAVE_VERSION;
@@ -24,6 +25,16 @@ export interface SaveData {
   storyDone: ContractId[];
   // v3: story scenes already shown (dialogue box)
   seen: SceneId[];
+  // v4: growth (training, skills, facilities, supply, 심연 파편) and named bounties that got away
+  shards: number;
+  training: TrainingLevels;
+  trainingBought: number;
+  facilities: Record<FacilityId, number>;
+  supply: SupplyId | null;
+  passives: Partial<Record<SkillSlotId, 'a' | 'b'>>;
+  actives: ActiveId[];
+  active: ActiveId | null;
+  wanted: WantedTarget[];
 }
 
 // The part of localStorage we use; tests pass a Map-backed fake.
@@ -50,9 +61,25 @@ const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
   }),
   // v2 → v3: story scenes. Anyone who has already played a night has seen the opening.
   2: (old) => ({ ...old, seen: isNum(old.runCounter) && old.runCounter > 0 ? ['intro'] : [] }),
+  // v3 → v4: nothing grown yet. Contract offers changed shape (main/general + objectives), so the
+  // board is cleared and refilled on load for the same day.
+  3: (old) => ({
+    ...old,
+    board: [],
+    shards: 0,
+    training: {},
+    trainingBought: 0,
+    facilities: { desk: 0, bench: 0, sofa: 0 },
+    supply: null,
+    passives: {},
+    actives: [],
+    active: null,
+    wanted: [],
+  }),
 };
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+const isObj = (v: unknown): v is object => typeof v === 'object' && v !== null && !Array.isArray(v);
 
 // Brings any older save up to the current version. Returns null for anything unreadable
 // or from a newer game version (never guess at those).
@@ -68,8 +95,10 @@ export function migrate(raw: unknown): SaveData | null {
     v += 1;
   }
   const { money, trauma, solved, seedBase, runCounter, day, debt, contamination, known, board, nextOfferId, storyDone, seen } = data;
-  if (![money, trauma, solved, seedBase, runCounter, day, debt, nextOfferId].every(isNum)) return null;
+  const { shards, training, trainingBought, facilities, supply, passives, actives, active, wanted } = data;
+  if (![money, trauma, solved, seedBase, runCounter, day, debt, nextOfferId, shards, trainingBought].every(isNum)) return null;
   if (!Array.isArray(known) || !Array.isArray(board) || !Array.isArray(storyDone) || !Array.isArray(seen)) return null;
+  if (!Array.isArray(actives) || !Array.isArray(wanted) || !isObj(training) || !isObj(facilities) || !isObj(passives)) return null;
   if (contamination !== null && (typeof contamination !== 'object' || Array.isArray(contamination))) return null;
   return {
     schemaVersion: SAVE_VERSION,
@@ -86,6 +115,15 @@ export function migrate(raw: unknown): SaveData | null {
     nextOfferId,
     storyDone,
     seen,
+    shards,
+    training,
+    trainingBought,
+    facilities: { desk: 0, bench: 0, sofa: 0, ...(facilities as object) },
+    supply: supply ?? null,
+    passives,
+    actives,
+    active: active ?? null,
+    wanted,
   } as SaveData;
 }
 

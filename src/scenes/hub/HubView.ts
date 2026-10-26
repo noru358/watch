@@ -73,10 +73,10 @@ export class HubView {
     g.fillRect(x0 - 2, top, 2, hh).fillRect(x0 + ww, top, 2, hh).fillRect(x0 + ww / 2 - 1, top, 2, hh);
   }
 
-  render(h: HubState, alpha: number, clock: number, unlocked: readonly HubSpotId[]): void {
+  render(h: HubState, alpha: number, clock: number, unlocked: readonly HubSpotId[], props: readonly HubPropId[]): void {
     const g = this.g;
     g.clear();
-    const draws: { y: number; fn: () => void }[] = (Object.keys(HUB_PROPS) as HubPropId[]).map((id) => ({
+    const draws: { y: number; fn: () => void }[] = props.map((id) => ({
       y: HUB_PROPS[id].y + HUB_PROPS[id].h,
       fn: () => PROP_DRAW[id](g, px(HUB_PROPS[id])),
     }));
@@ -151,5 +151,12 @@ const PROP_DRAW: Record<HubPropId, (g: G, r: Px) => void> = {
   water: (g, r) => {
     g.fillStyle(L.waterJug).fillRect(r.x + 5, r.y - 26, r.w - 10, 12);
     g.fillStyle(L.water).fillRect(r.x + 2, r.y - 14, r.w - 4, r.h + 12);
+  },
+  // 부적 작업대: a low table with yellow talisman paper and a red ink dish (shapes until art).
+  bench: (g, r) => {
+    g.fillStyle(L.desk).fillRect(r.x, r.y - 4, r.w, r.h + 2);
+    g.fillStyle(L.deskTop).fillRect(r.x, r.y - 6, r.w, 4);
+    g.fillStyle(L.poster).fillRect(r.x + 5, r.y - 10, 8, 11).fillRect(r.x + 15, r.y - 9, 8, 10);
+    g.fillStyle(L.talismanInk).fillRect(r.x + 7, r.y - 7, 4, 1).fillRect(r.x + 17, r.y - 6, 4, 1).fillCircle(r.x + r.w - 7, r.y - 7, 3);
   },
 };

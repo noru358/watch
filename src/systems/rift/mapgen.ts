@@ -3,8 +3,8 @@ import { DUNGEON } from '../../data/dungeon.data';
 import { EXORCISTS } from '../../data/protagonist.data';
 import type { FloorPlan } from '../../data/contracts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
-import type { CardId, EnemyId, WeaponId } from '../../types/ids';
-import { runCardHooks } from './hooks';
+import type { ActiveId, CardId, EnemyId, PerkId, WeaponId } from '../../types/ids';
+import { runHooks } from './hooks';
 import { setupObjective } from './objectives';
 import { assignRoles, bigRoom, centre, randomRooms, roomTile, type Room } from './layout';
 import { isFloor } from './physics';
@@ -19,6 +19,9 @@ export interface FloorCarry {
   weapon: WeaponId;
   stats: Stats;
   cards: CardId[];
+  perks: PerkId[];
+  used: PerkId[];
+  active: ActiveId | null;
 }
 
 export function makeEnemy(f: Floor, kind: EnemyId, at: Pos): Enemy {
@@ -42,6 +45,11 @@ export function makeEnemy(f: Floor, kind: EnemyId, at: Pos): Enemy {
     knockX: 0,
     knockY: 0,
     face: 1,
+    speedMult: 1,
+    damageAdd: 0,
+    windupMult: 1,
+    role: 'normal',
+    asleep: false,
   };
   f.enemies.push(e);
   return e;
@@ -87,7 +95,11 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
       focus: carry.focus,
       bare: 0,
       shield: 0,
+      dashCharges: carry.stats.dashCharges,
       darkness: 0,
+      hurtOnFloor: false,
+      calmT: 0,
+      dodged: false,
     },
     enemies: [],
     pickups: [],
@@ -97,6 +109,13 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
     weapon: carry.weapon,
     stats: carry.stats,
     cards: [...carry.cards],
+    perks: [...carry.perks],
+    used: [...carry.used],
+    active: carry.active,
+    skillCd: 0,
+    zones: [],
+    shots: [],
+    vision: null,
     time: 0,
     loot: carry.loot,
     status: 'playing',
@@ -160,6 +179,6 @@ function bossFloor(index: number, plan: Extract<FloorPlan, { kind: 'boss' }>, ca
 export function generateFloor(index: number, plan: FloorPlan, rng: SeededRNG, carry: FloorCarry): Floor {
   const f =
     plan.kind === 'boss' ? bossFloor(index, plan, carry) : plan.kind === 'arena' ? arenaFloor(index, plan, rng, carry) : normalFloor(index, plan, rng, carry);
-  runCardHooks(f, 'onRoomEnter', {});
+  runHooks(f, 'onRoomEnter', {});
   return f;
 }
