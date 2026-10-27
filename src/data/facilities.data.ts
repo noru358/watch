@@ -10,12 +10,13 @@ export interface FacilityData {
   nameKey: TKey;
   costs: readonly number[];
   levelKeys: readonly TKey[]; // one line per level: what that level adds
+  ranks: readonly number[]; // 평판 rank each level needs (same order as costs)
 }
 
 export const FACILITIES: Record<FacilityId, FacilityData> = {
-  desk: { nameKey: 'facility.desk', costs: [600, 1200, 2000], levelKeys: ['facility.desk.1', 'facility.desk.2', 'facility.desk.3'] },
-  bench: { nameKey: 'facility.bench', costs: [500, 1000, 1800], levelKeys: ['facility.bench.1', 'facility.bench.2', 'facility.bench.3'] },
-  sofa: { nameKey: 'facility.sofa', costs: [800, 1500], levelKeys: ['facility.sofa.1', 'facility.sofa.2'] },
+  desk: { nameKey: 'facility.desk', costs: [600, 1200, 2000], ranks: [0, 1, 2], levelKeys: ['facility.desk.1', 'facility.desk.2', 'facility.desk.3'] },
+  bench: { nameKey: 'facility.bench', costs: [500, 1000, 1800], ranks: [0, 1, 2], levelKeys: ['facility.bench.1', 'facility.bench.2', 'facility.bench.3'] },
+  sofa: { nameKey: 'facility.sofa', costs: [800, 1500], ranks: [0, 1], levelKeys: ['facility.sofa.1', 'facility.sofa.2'] },
 };
 
 export const FACILITY_IDS: readonly FacilityId[] = ['desk', 'bench', 'sofa'];

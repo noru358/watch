@@ -26,6 +26,10 @@ export const OFFICE = {
   // 의뢰판 난이도 1..5 (docs/rules/office.md): strong ghosts the player must get through up to the
   // goal floor + the objective's and modifiers' points (+ bossWeight for a boss), against these steps.
   difficulty: { steps: [20, 30, 42, 55], bossWeight: 20, bountyPerLevel: 4 },
+  // 합동 출동 (docs/rules/office.md): same-district general offers taken in one night. The night is as
+  // long as the longest; objectives on the same floor push the later one down, at most `extraFloors`
+  // past that length. Not with main story or 추격 (it uses every floor).
+  joint: { max: 3, extraFloors: 1 },
   // Named 현상수배 targets: "<pre> <suf>" from these i18n tables (wanted.pre.N / wanted.suf.N).
   wantedNames: { pre: 6, suf: 6 },
 } as const;

@@ -53,6 +53,8 @@ export interface OfficeState {
   wanted: WantedTarget[];
   chapters: Partial<Record<ChapterId, ChapterState>>; // 메인 스토리 장 (chapters.ts)
   deskLevel: number; // 경리 책상 (facilities.data.ts): more offers, longer deadlines
+  reputation: number; // 평판 points (reputation module)
+  rankReached: number;
 }
 
 // What happened overnight, for the bookkeeper's morning line.
@@ -64,10 +66,13 @@ export interface MorningReport {
   expired: number;
   worsened: NodeId[]; // nodes whose contamination rose
   newOffers: number;
+  rankUp: number | null; // the rank reached last night (a text comes in the morning)
 }
 
 export interface NightResolution {
-  completed: number[]; // offer ids finished tonight (a bundle can finish several)
+  completed: number[]; // offer ids finished tonight (합동 출동 can finish several)
   fee: number; // all of their fees together (0 unless success)
   clue: { chapter: ChapterId; have: number; need: number } | null; // 메인 스토리 단서 gained tonight
+  reputation: number; // 평판 gained (or lost) tonight
+  rankUp: number | null;
 }

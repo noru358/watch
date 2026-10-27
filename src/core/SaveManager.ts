@@ -5,8 +5,9 @@
 import { startingContamination, type ChapterState, type ContractOffer, type Contamination, type WantedTarget } from '../systems/office';
 import type { ActiveId, ChapterId, ContractId, FacilityId, NodeId, SceneId, SkillSlotId, SupplyId } from '../types/ids';
 import type { TrainingLevels } from '../systems/run';
+import { rankFor } from '../systems/reputation';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 export interface SaveData {
   schemaVersion: typeof SAVE_VERSION;
@@ -37,6 +38,9 @@ export interface SaveData {
   wanted: WantedTarget[];
   // v5: main-story chapters (clues, done days)
   chapters: Partial<Record<ChapterId, ChapterState>>;
+  // v6: 평판 (points and the highest rank reached)
+  reputation: number;
+  rankReached: number;
 }
 
 // The part of localStorage we use; tests pass a Map-backed fake.
@@ -83,7 +87,13 @@ const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
     ...old,
     chapters: { ch1: { started: 1, clues: 0, done: Array.isArray(old.storyDone) && old.storyDone.includes('lights_out') ? (isNum(old.day) ? old.day : 1) : null } },
   }),
+  // v5 → v6: 평판 from the jobs already solved (20 each), so an older office keeps what it reached.
+  5: (old) => {
+    const reputation = (isNum(old.solved) ? old.solved : 0) * MIGRATE_REP_PER_SOLVED;
+    return { ...old, reputation, rankReached: rankFor(reputation) };
+  },
 };
+const MIGRATE_REP_PER_SOLVED = 20;
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const isObj = (v: unknown): v is object => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -102,8 +112,8 @@ export function migrate(raw: unknown): SaveData | null {
     v += 1;
   }
   const { money, trauma, solved, seedBase, runCounter, day, debt, contamination, known, board, nextOfferId, storyDone, seen } = data;
-  const { shards, training, trainingBought, facilities, supply, passives, actives, active, wanted, chapters } = data;
-  if (![money, trauma, solved, seedBase, runCounter, day, debt, nextOfferId, shards, trainingBought].every(isNum)) return null;
+  const { shards, training, trainingBought, facilities, supply, passives, actives, active, wanted, chapters, reputation, rankReached } = data;
+  if (![money, trauma, solved, seedBase, runCounter, day, debt, nextOfferId, shards, trainingBought, reputation, rankReached].every(isNum)) return null;
   if (!Array.isArray(known) || !Array.isArray(board) || !Array.isArray(storyDone) || !Array.isArray(seen)) return null;
   if (!Array.isArray(actives) || !Array.isArray(wanted) || !isObj(training) || !isObj(facilities) || !isObj(passives) || !isObj(chapters)) return null;
   if (contamination !== null && (typeof contamination !== 'object' || Array.isArray(contamination))) return null;
@@ -132,6 +142,8 @@ export function migrate(raw: unknown): SaveData | null {
     active: active ?? null,
     wanted,
     chapters,
+    reputation,
+    rankReached,
   } as SaveData;
 }
 

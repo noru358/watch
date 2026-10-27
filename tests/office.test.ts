@@ -7,12 +7,12 @@ import { GENERAL_OBJECTIVES } from '../src/data/objectives.data';
 import { NODES } from '../src/data/nodes.data';
 import { OFFICE } from '../src/data/office.data';
 import { GameStore } from '../src/store/gameStore';
-import { advanceDay, bundleWith, offerDifficulty, offerFee, offerFloors, offerGoal, refillBoard, resolveNight, startingContamination, type ContractOffer, type OfficeState } from '../src/systems/office';
+import { advanceDay, canJoin, offerDifficulty, offerFee, offerFloors, offerGoal, refillBoard, resolveNight, startingContamination, type ContractOffer, type OfficeState } from '../src/systems/office';
 import type { NodeId, ObjectiveKind } from '../src/types/ids';
 import { playNight, skilled } from './bots';
 
 function fresh(): OfficeState {
-  const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0 };
+  const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 0, rankReached: 0 };
   refillBoard(s, new SeededRNG(5));
   return s;
 }
@@ -47,11 +47,11 @@ describe('office: contract board', () => {
     }
   });
 
-  it('over many mornings every objective and every modifier shows up', () => {
+  it('over many mornings every objective and every modifier shows up (top 평판 rank)', () => {
     const seen = new Set<string>();
     const mods = new Set<string>();
     for (let seed = 1; seed < 120; seed++) {
-      const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0 };
+      const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 1200, rankReached: 4 };
       refillBoard(s, new SeededRNG(seed));
       for (const o of s.board) {
         if (o.objective) seen.add(o.objective);
@@ -63,7 +63,7 @@ describe('office: contract board', () => {
   });
 
   it('the 경리 책상 adds an offer and a day to deadlines', () => {
-    const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 3 };
+    const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 3, reputation: 0, rankReached: 0 };
     refillBoard(s, new SeededRNG(5));
     expect(s.board.filter((o) => o.kind === 'general')).toHaveLength(OFFICE.boardSize + 1);
     for (const o of s.board.filter((x) => x.kind === 'general')) expect(o.deadline! - s.day).toBeGreaterThanOrEqual(OFFICE.deadline.min + 1);
@@ -73,7 +73,7 @@ describe('office: contract board', () => {
     expect(fresh().board).toEqual(fresh().board);
   });
 
-  it('success finishes the offer, bundles general offers on the same node, and calms the node', () => {
+  it('success finishes only the offers whose objective was done (no free bundling), and calms the node', () => {
     const s = fresh();
     s.board = [];
     s.contamination.motel = 4;
@@ -81,11 +81,10 @@ describe('office: contract board', () => {
     const b = general(s, 'motel');
     const c = general(s, 'station');
     s.board.push(a, b, c);
-    expect(bundleWith(s.board, a).map((o) => o.id)).toEqual([a.id, b.id]);
     const night = resolveNight(s, a.id, true);
-    expect(night.completed).toEqual([a.id, b.id]);
-    expect(night.fee).toBe(a.fee + b.fee);
-    expect(s.board.map((o) => o.id)).toEqual([c.id]);
+    expect(night.completed).toEqual([a.id]);
+    expect(night.fee).toBe(a.fee);
+    expect(s.board.map((o) => o.id)).toEqual([b.id, c.id]);
     expect(s.contamination.motel).toBe(4 - GENERAL_OBJECTIVES.clear.cleanse);
     expect(s.known).toContain('motel');
   });
@@ -99,15 +98,14 @@ describe('office: contract board', () => {
     expect(s.known).toContain(o.node);
   });
 
-  it('named targets are never bundled, and get stronger (and pricier) when they get away', () => {
+  it('named targets get stronger (and pricier) when they get away', () => {
     const s = fresh();
     s.board = [];
     const b = named(general(s, 'motel', 2), 'bounty');
     b.fee = offerFee(b);
     const c = general(s, 'motel');
     s.board.push(b, c);
-    expect(bundleWith(s.board, b)).toHaveLength(1);
-    expect(bundleWith(s.board, c)).toHaveLength(1);
+    expect(canJoin([b, c])).toBe(true);
     const fee = b.fee;
     resolveNight(s, b.id, false);
     expect(b.target!.level).toBe(1);
@@ -233,7 +231,7 @@ describe('office: store and save', () => {
     const offer = store.getState().board.find((o) => o.kind === 'general')!;
     store.selectOffer(offer.id);
     expect(store.nightPlan()?.offerId).toBe(offer.id);
-    store.applyRunResult({ offerId: offer.id, outcome: 'success', loot: 10, fee: offer.fee, shards: 0 });
+    store.applyRunResult({ offerId: offer.id, outcome: 'success', loot: 10, fee: offer.fee, shards: 0, offers: [offer.id], completed: [offer.id], reached: [offer.id] });
     const st = store.getState();
     expect(st.day).toBe(2);
     expect(st.lastMorning?.day).toBe(2);

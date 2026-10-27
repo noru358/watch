@@ -19,13 +19,14 @@ interface Props {
   selected: ContractOffer | null;
   onPick: (node: NodeId) => void;
   clue?: { nodes: readonly NodeId[]; have: number; need: number } | null; // 메인 스토리 단서를 모으는 동네
+  rank?: number; // 평판 rank: districts above it are locked
 }
 
 // Can this district get worse tomorrow because a neighbour spreads? (office.data.ts contamination)
 export const atRisk = (c: Contamination, id: NodeId) =>
   c[id] < OFFICE.contamination.max && NODES[id].links.some((n) => c[n] >= OFFICE.contamination.spreadAt);
 
-export function OpsMap({ contamination, board, selected, onPick, clue }: Props) {
+export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0 }: Props) {
   const links = NODE_IDS.flatMap((a) => NODES[a].links.filter((b) => a < b).map((b) => [a, b] as const));
   const y = (id: NodeId) => NODES[id].y * 0.6 + 3;
   return (
@@ -42,7 +43,8 @@ export function OpsMap({ contamination, board, selected, onPick, clue }: Props) 
           const isSel = selected?.node === id;
           const r = 2.6 + c * 0.55;
           const cy = y(id);
-          const risk = atRisk(contamination, id);
+          const locked = n.rank > rank;
+          const risk = !locked && atRisk(contamination, id);
           return (
             <g key={id} onClick={() => live && onPick(id)} style={{ cursor: live ? 'pointer' : 'default' }} opacity={live ? 1 : 0.32}>
               {live && <circle cx={n.x} cy={cy} r={r + 3.2} fill={L.heat[c] ?? L.heat[L.heat.length - 1]} opacity={0.14} />}
@@ -50,6 +52,7 @@ export function OpsMap({ contamination, board, selected, onPick, clue }: Props) 
               {isSel && <circle cx={n.x} cy={cy} r={r + 1.8} fill="none" stroke={L.accent} strokeWidth={0.9} />}
               <text x={n.x} y={cy + r + 3.6} textAnchor="middle" fontSize={2.7} fill={isSel ? L.ink : live ? L.dim : L.off} fontWeight={isSel || live ? 700 : 400}>{t(n.nameKey)}</text>
               {risk && <text x={n.x} y={cy + r + 6.6} textAnchor="middle" fontSize={2.1} fill={L.spread}>{t('board.atRisk')}</text>}
+              {locked && <text x={n.x} y={cy + r + 6.6} textAnchor="middle" fontSize={2.1} fill={L.dim}>{t('board.locked', { rank: n.rank })}</text>}
               {clue?.nodes.includes(id) && (
                 <text x={n.x} y={cy + r + (risk ? 9.4 : 6.6)} textAnchor="middle" fontSize={2.1} fill={L.accent}>{t('board.clues', { have: clue.have, need: clue.need })}</text>
               )}

@@ -26,6 +26,7 @@ export function startChapters(s: OfficeState): ChapterId[] {
     const ch = CHAPTERS[id];
     const prev = ch.after ? s.chapters[ch.after] : null;
     if (ch.after && (prev?.done ?? null) === null) continue;
+    if (s.rankReached < ch.rank) continue;
     const since = prev?.done ?? 1;
     const due = s.day >= since + ch.startAfterDays;
     const hot = ch.startHeat > 0 && ch.clueNodes.some((n) => s.contamination[n] >= ch.startHeat);

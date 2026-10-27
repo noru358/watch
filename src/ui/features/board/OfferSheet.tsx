@@ -1,3 +1,4 @@
+import type { JoinState } from './BoardPanel';
 import { NODES } from '../../../data/nodes.data';
 import { t, type TKey } from '../../../i18n';
 import { offerDifficulty, offerGoal, type ContractOffer, type GoalKind } from '../../../systems/office';
@@ -64,13 +65,14 @@ const clamp2 = { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'v
 // the named target (if any), then three rows of cells — objective · difficulty, length · fee
 // (+ shards, + what gets finished together), modifiers · ghosts. The district counter ("1 / 2")
 // says how many offers this district has (W / S).
-export function OfferSheet({ offer, day, known, index, count, bundle }: {
+export function OfferSheet({ offer, day, known, index, count, join, onJoin }: {
   offer: ContractOffer;
   day: number;
   known: boolean;
   index: number;
   count: number;
-  bundle: { count: number; fee: number } | null;
+  join: JoinState;
+  onJoin: () => void;
 }) {
   const goal = offerGoal(offer);
   const difficulty = offerDifficulty(offer);
@@ -137,7 +139,12 @@ export function OfferSheet({ offer, day, known, index, count, bundle }: {
             <span style={small}>{t('board.reward')}</span>
             <span style={{ fontFamily: 'monospace', fontSize: 24, fontWeight: 700, lineHeight: 1 }}>₩ {offer.fee}</span>
             {offer.shards > 0 && <span style={{ fontSize: 12, color: L.shardInk, fontWeight: 700 }}>+ {t('board.shards', { shards: offer.shards })}</span>}
-            {bundle && <span style={{ fontSize: 11, color: L.bundleInk, fontWeight: 700 }}>{t('board.bundle', { count: bundle.count, fee: bundle.fee })}</span>}
+            {join && (
+              <span onClick={join === 'in' || join === 'can' ? onJoin : undefined}
+                style={{ fontSize: 11, fontWeight: 700, cursor: join === 'in' || join === 'can' ? 'pointer' : 'default', color: join === 'in' ? L.bundleInk : join === 'can' ? L.paperInk : L.paperDim }}>
+                {t(join === 'in' ? 'board.joined' : join === 'can' ? 'board.joinHint' : join === 'full' ? 'board.joinFull' : 'board.joinSolo')}
+              </span>
+            )}
           </div>
           <div style={{ ...cell, justifyContent: 'flex-start' }}>
             <span style={small}>{t('board.mods')}</span>

@@ -3,11 +3,12 @@ import { SeededRNG } from '../core/SeededRNG';
 import type { ActiveId, ChapterId, ContractId, FacilityId, NodeId, Phase, SceneId, SkillSlotId, SupplyId, TrainingId } from '../types/ids';
 import type { TrainingLevels } from '../systems/run';
 import * as growth from '../systems/growth';
-import { settleRun, type RunResult, type Settlement } from '../systems/run';
+import { settleRun, type RunGoal, type RunResult, type Settlement } from '../systems/run';
 import {
   advanceDay,
   morningSeed,
-  offerFloors,
+  canJoin,
+  planNight,
   refillBoard,
   resolveNight,
   startingContamination,
@@ -24,7 +25,7 @@ import type { FloorPlan } from '../data/contracts.data';
 export interface LastRun {
   result: RunResult;
   settlement: Settlement;
-  bundled: number; // offers finished together (1 = just the one taken)
+  completed: number; // offers finished tonight (합동 출동 can finish several)
   clue?: NightResolution['clue']; // 메인 스토리 단서 gained that night
 }
 
@@ -55,8 +56,11 @@ export interface GameState {
   active: ActiveId | null;
   wanted: WantedTarget[]; // named bounties that got away
   chapters: Partial<Record<ChapterId, ChapterState>>; // 메인 스토리 장 (save v5)
+  reputation: number; // 평판 (save v6)
+  rankReached: number;
   // not saved
   activeOfferId: number | null; // chosen on the board, played tonight
+  joined: number[]; // 합동 출동: offers put in tonight's set on the board (empty = just the chosen one)
   lastRun: LastRun | null;
   lastMorning: MorningReport | null;
 }
@@ -66,7 +70,14 @@ export interface NightPlan {
   offerId: number;
   floors: readonly FloorPlan[];
   fee: number;
+  goals: readonly RunGoal[];
 }
+
+const planOf = (offers: readonly ContractOffer[]): NightPlan => {
+  const p = planNight(offers);
+  const lead = offers.length === 1 ? offers[0]! : offers.find((o) => o.id === p.goals[0]!.offerId)!;
+  return { offerId: lead.id, floors: p.floors, fee: p.goals.reduce((sum, g) => sum + g.fee, 0), goals: p.goals };
+};
 
 const growthOf = (s: GameState): growth.GrowthState => ({
   money: s.money,
@@ -79,6 +90,7 @@ const growthOf = (s: GameState): growth.GrowthState => ({
   passives: { ...s.passives },
   actives: [...s.actives],
   active: s.active,
+  rank: s.rankReached,
 });
 
 type Listener = () => void;
@@ -95,6 +107,8 @@ const office = (s: GameState): OfficeState => ({
   wanted: s.wanted.map((w) => ({ ...w, name: [...w.name] as [number, number] })),
   chapters: { ...s.chapters },
   deskLevel: s.facilities.desk,
+  reputation: s.reputation,
+  rankReached: s.rankReached,
 });
 
 // Single source of truth shared by React (useSyncExternalStore) and Phaser (Rule 3).
@@ -133,7 +147,10 @@ export class GameStore {
       active: null,
       wanted: [],
       chapters: {},
+      reputation: 0,
+      rankReached: 0,
       activeOfferId: null,
+      joined: [],
       lastRun: null,
       lastMorning: null,
       ...initial,
@@ -195,6 +212,8 @@ export class GameStore {
       active: s.active,
       wanted: s.wanted.map((w) => ({ ...w, name: [...w.name] as [number, number] })),
       chapters: { ...s.chapters },
+      reputation: s.reputation,
+      rankReached: s.rankReached,
     };
   }
 
@@ -281,20 +300,42 @@ export class GameStore {
 
   selectOffer(id: number | null): void {
     if (id !== null && !this.state.board.some((o) => o.id === id)) return;
-    this.set({ activeOfferId: id });
+    const node = this.state.board.find((o) => o.id === id)?.node;
+    // Tonight's set lives in one district: choosing elsewhere clears it.
+    const joined = this.state.joined.filter((j) => this.state.board.find((o) => o.id === j)?.node === node);
+    this.set({ activeOfferId: id, joined });
   }
 
-  // The chosen offer as a night plan (null if nothing valid is chosen).
+  // 합동 출동: put the chosen offer into tonight's set, or take it out. False if it cannot join.
+  toggleJoin(): boolean {
+    const id = this.state.activeOfferId;
+    if (id === null) return false;
+    if (this.state.joined.includes(id)) {
+      this.set({ joined: this.state.joined.filter((j) => j !== id) });
+      return true;
+    }
+    const next = [...this.state.joined, id];
+    if (!canJoin(next.map((j) => this.state.board.find((o) => o.id === j)!))) return false;
+    this.set({ joined: next });
+    return true;
+  }
+
+  // The offers tonight is for: the set if one was made, else the chosen offer.
+  tonightOffers(): ContractOffer[] {
+    const ids = this.state.joined.length > 0 ? this.state.joined : this.state.activeOfferId !== null ? [this.state.activeOfferId] : [];
+    return ids.map((id) => this.state.board.find((o) => o.id === id)).filter((o): o is ContractOffer => !!o);
+  }
+
+  // Tonight as a night plan (null if nothing valid is chosen).
   nightPlan(): NightPlan | null {
-    const offer = this.state.board.find((o) => o.id === this.state.activeOfferId);
-    if (!offer) return null;
-    return { offerId: offer.id, floors: offerFloors(offer), fee: offer.fee };
+    const offers = this.tonightOffers();
+    if (offers.length === 0) return null;
+    return planOf(offers);
   }
 
   // Fallback when nothing is chosen (e.g. dev reload straight into the night): the first offer.
   firstPlan(): NightPlan {
-    const offer = this.state.board[0]!;
-    return { offerId: offer.id, floors: offerFloors(offer), fee: offer.fee };
+    return planOf([this.state.board[0]!]);
   }
 
   // Seed for the next night; advances the counter so every run differs.
@@ -305,9 +346,9 @@ export class GameStore {
   }
 
   // Night over: settle the contract (and its bundle), pay out, then it is the next morning.
-  applyRunResult(result: RunResult): Settlement & { clue: NightResolution['clue'] } {
+  applyRunResult(result: RunResult): Settlement & { clue: NightResolution['clue']; completed: number; reputation: number } {
     const o = office(this.state);
-    const night = resolveNight(o, result.offerId, result.outcome === 'success');
+    const night = resolveNight(o, { offers: result.offers, completed: result.completed, reached: result.reached, outcome: result.outcome });
     const settlement = settleRun({ ...result, fee: night.fee }, this.state.money);
     o.money = this.state.money + settlement.moneyDelta;
     const morning = advanceDay(o, new SeededRNG(morningSeed(this.state.seedBase, o.day + 1)));
@@ -315,11 +356,12 @@ export class GameStore {
       ...o,
       trauma: this.state.trauma + settlement.traumaDelta,
       shards: this.state.shards + settlement.shards,
-      solved: this.state.solved + (result.outcome === 'success' ? 1 : 0),
+      solved: this.state.solved + night.completed.length,
       activeOfferId: null,
-      lastRun: { result, settlement, bundled: Math.max(1, night.completed.length), clue: night.clue },
-      lastMorning: morning,
+      joined: [],
+      lastRun: { result, settlement, completed: night.completed.length, clue: night.clue },
+      lastMorning: { ...morning, rankUp: night.rankUp },
     });
-    return { ...settlement, clue: night.clue };
+    return { ...settlement, clue: night.clue, completed: night.completed.length, reputation: night.reputation };
   }
 }

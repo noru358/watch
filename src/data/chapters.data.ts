@@ -16,6 +16,7 @@ export interface ChapterData {
   after: ChapterId | null;
   startAfterDays: number;
   startHeat: number;
+  rank: number; // 평판 rank the office needs before it starts (0 for now: pacing kept as is, user 2026-10-27)
   clues: number;
   clueNodes: readonly NodeId[];
   scenes: { start: SceneId | null; ready: SceneId | null; done: SceneId | null };
@@ -23,9 +24,9 @@ export interface ChapterData {
 
 export const CHAPTERS: Record<ChapterId, ChapterData> = {
   // 1장 불 꺼지는 동네: the opening, posted from day 1 with no clues needed.
-  ch1: { nameKey: 'chapter.ch1', contract: 'lights_out', after: null, startAfterDays: 0, startHeat: 0, clues: 0, clueNodes: ['alley'], scenes: { start: null, ready: null, done: 'lights_out_done' } },
+  ch1: { nameKey: 'chapter.ch1', contract: 'lights_out', after: null, startAfterDays: 0, startHeat: 0, rank: 0, clues: 0, clueNodes: ['alley'], scenes: { start: null, ready: null, done: 'lights_out_done' } },
   // 2장 막차가 끊기지 않는 역.
-  ch2: { nameKey: 'chapter.ch2', contract: 'last_line', after: 'ch1', startAfterDays: 4, startHeat: 4, clues: 3, clueNodes: ['station', 'arcade'], scenes: { start: 'ch2_start', ready: 'ch2_ready', done: 'ch2_done' } },
+  ch2: { nameKey: 'chapter.ch2', contract: 'last_line', after: 'ch1', startAfterDays: 4, startHeat: 4, rank: 0, clues: 3, clueNodes: ['station', 'arcade'], scenes: { start: 'ch2_start', ready: 'ch2_ready', done: 'ch2_done' } },
 };
 
 export const CHAPTER_IDS = Object.keys(CHAPTERS) as ChapterId[];

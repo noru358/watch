@@ -9,7 +9,7 @@ import { CONTRACTS } from '../../data/contracts.data';
 import type { GameEvent } from '../../types/events';
 import type { CardId } from '../../types/ids';
 import { answerPayphone, giveUp, stepFloor, type Floor, type RiftInput } from '../../systems/rift';
-import { enterFloor, finishAtGoal, goalReached, leaveFloor, offerCards, pickCard, runResult, startRun, totalFloors, type RunOutcome, type RunState } from '../../systems/run';
+import { enterFloor, feeSoFar, finishAtGoal, goalReached, goalsLeft, leaveFloor, offerCards, pickCard, runResult, startRun, totalFloors, type RunOutcome, type RunState } from '../../systems/run';
 import { settings, volumePercent } from '../../app/settings';
 import { Overlay } from '../shared/Overlay';
 import { RiftHud } from './RiftHud';
@@ -66,7 +66,7 @@ export class RiftScene extends Phaser.Scene {
   private aim = -Math.PI / 2;
   private mouseMoves = -1;
   private mouseIdle = 99;
-  private targetName: string | null = null; // 현상수배 / 추격 target on tonight's offer
+  private targetNames = new Map<number, string | null>(); // offer id → its 현상수배 / 추격 target (or main story) name
 
   constructor() {
     super('rift');
@@ -86,9 +86,12 @@ export class RiftScene extends Phaser.Scene {
     // The offer chosen on the contract board (the board always has one selected before 출동).
     const plan = store.nightPlan() ?? store.firstPlan();
     this.run = startRun({ ...plan, weapon: 'newspaper_sword', loadout: night.loadout });
-    const offer = store.getState().board.find((o) => o.id === plan.offerId);
-    const story = offer?.kind === 'main' && offer.story ? CONTRACTS[offer.story].targetNameKey : undefined;
-    this.targetName = story ? t(story) : targetName(offer?.target ?? null);
+    this.targetNames.clear();
+    for (const g of plan.goals) {
+      const offer = store.getState().board.find((o) => o.id === g.offerId);
+      const story = offer?.kind === 'main' && offer.story ? CONTRACTS[offer.story].targetNameKey : undefined;
+      this.targetNames.set(g.offerId, story ? t(story) : targetName(offer?.target ?? null));
+    }
 
     // Two cameras: the zoomed world camera follows the director; the UI camera stays 1:1.
     this.worldLayer = this.add.layer();
@@ -201,8 +204,7 @@ export class RiftScene extends Phaser.Scene {
     else this.simulate(dt);
     this.followCamera(dt);
     this.view.render(this.floor, this.acc / FEEL.fixedStep, dt);
-    const goal = this.run.floors.findIndex((p) => p.kind === 'normal' && p.goal);
-    this.hud.render(this.floor, { floor: this.floor.index + 1, total: totalFloors(this.run), goalFloor: goal >= 0 ? goal + 1 : null, targetName: this.targetName }, dt);
+    this.hud.render(this.floor, { floor: this.floor.index + 1, total: totalFloors(this.run), goalFloors: this.goalFloors(), targetName: this.floorTarget() }, dt);
   }
 
   private simulate(dt: number): void {
@@ -259,13 +261,29 @@ export class RiftScene extends Phaser.Scene {
       this.mode = 'goal';
       this.selected = 0;
       input.push('modal');
+      // 합동 출동: what home pays now, and where the next objective is.
+      const here = goalsLeft(this.run).filter((g) => g.floor === this.run.floorIndex);
+      const after = goalsLeft(this.run).filter((g) => !here.includes(g));
+      const fee = feeSoFar(this.run) + here.reduce((sum, g) => sum + g.fee, 0);
+      const next = after.filter((g) => g.floor >= 0).sort((a, b) => a.floor - b.floor)[0];
       this.overlay.showCards(t('rift.goalTitle'), [
-        { name: t('rift.goalHome'), desc: t('rift.goalHomeDesc') },
-        { name: t('rift.goalStay'), desc: t('rift.goalStayDesc') },
+        { name: t('rift.goalHome'), desc: after.length > 0 ? t('rift.goalHomeJoint', { fee, left: after.length }) : t('rift.goalHomeDesc') },
+        { name: t('rift.goalStay'), desc: next ? t('rift.goalStayNext', { floor: next.floor + 1 }) : t('rift.goalStayDesc') },
       ]);
       return;
     }
     this.nextFloor(leaveFloor(this.run, f));
+  }
+
+  // 1-based floors where an objective still waits (the HUD marks them).
+  private goalFloors(): number[] {
+    return goalsLeft(this.run).filter((g) => g.floor >= 0 && g.floor < totalFloors(this.run) - 1).map((g) => g.floor + 1);
+  }
+
+  // The named target of this floor's objective (추격: wherever it runs).
+  private floorTarget(): string | null {
+    const g = this.run.goals.find((x) => x.floor === this.run.floorIndex || x.floor === -1);
+    return g ? (this.targetNames.get(g.offerId) ?? null) : null;
   }
 
   // After a floor: the night ends (outcome) or the next floor follows a card pick.

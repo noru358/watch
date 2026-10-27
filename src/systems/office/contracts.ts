@@ -101,10 +101,74 @@ export function offerFee(offer: ContractOffer): number {
   return Math.round(raw / 10) * 10;
 }
 
-// Offers finished together with `offer` on a success: everything general on the same node.
-// Main story contracts and named targets are only finished by taking them.
-export function bundleWith(board: readonly ContractOffer[], offer: ContractOffer): ContractOffer[] {
-  // Named targets (현상수배, 추격) are only finished by catching them.
-  if (offer.kind !== 'general' || offer.target) return [offer];
-  return [offer, ...board.filter((o) => o.id !== offer.id && o.node === offer.node && o.kind === 'general' && !o.target)];
+// ---- 합동 출동 (docs/rules/office.md) ----
+
+// One objective of the night: which offer, on which floor (-1 = any floor, 추격), what it pays.
+export interface NightGoal {
+  offerId: number;
+  floor: number;
+  fee: number;
+}
+export interface NightPlanned {
+  floors: readonly FloorPlan[];
+  goals: readonly NightGoal[];
+}
+
+const soloOnly = (o: ContractOffer) => o.kind !== 'general' || o.objective === 'chase';
+
+// The offer whose length (and modifiers) the whole night takes: the longest, then the oldest.
+export function jointLead(offers: readonly ContractOffer[]): ContractOffer {
+  return [...offers].sort((a, b) => b.floors - a.floors || a.id - b.id)[0]!;
+}
+
+// Goal floor of every offer in a joint night: the lead keeps its own, the rest in goal order,
+// each pushed one floor down while its floor is taken. null if it does not fit.
+function assignGoals(offers: readonly ContractOffer[]): { offer: ContractOffer; floor: number }[] | null {
+  const lead = jointLead(offers);
+  const rest = offers.filter((o) => o !== lead).sort((a, b) => a.goalFloor - b.goalFloor || a.id - b.id);
+  const taken = new Set<number>();
+  const out: { offer: ContractOffer; floor: number }[] = [];
+  for (const o of [lead, ...rest]) {
+    let f = o.goalFloor;
+    while (taken.has(f)) f++;
+    if (f >= lead.floors + OFFICE.joint.extraFloors) return null;
+    taken.add(f);
+    out.push({ offer: o, floor: f });
+  }
+  return out;
+}
+
+// Can these offers go out together? Same district, general, none of them 추격, within the limits.
+export function canJoin(offers: readonly ContractOffer[]): boolean {
+  if (offers.length <= 1) return true;
+  if (offers.length > OFFICE.joint.max) return false;
+  if (offers.some(soloOnly) || new Set(offers.map((o) => o.node)).size > 1) return false;
+  return assignGoals(offers) !== null;
+}
+
+// The floors and goals of a night on one or more offers.
+// One offer: exactly offerFloors. Several: the lead's night stretched to fit, each offer's objective
+// floor taken from its own plan (its modifiers on that floor only, the lead's everywhere).
+export function planNight(offers: readonly ContractOffer[]): NightPlanned {
+  if (offers.length === 1) {
+    const o = offers[0]!;
+    return { floors: offerFloors(o), goals: [{ offerId: o.id, floor: o.objective === 'chase' ? -1 : offerGoal(o).floor, fee: o.fee }] };
+  }
+  const goals = assignGoals(offers);
+  if (!goals || !canJoin(offers)) throw new Error('These offers cannot go out together');
+  const lead = jointLead(offers);
+  const length = Math.max(lead.floors, ...goals.map((g) => g.floor + 1));
+  const lastGoal = Math.max(...goals.map((g) => g.floor));
+  const floors = [...offerFloors({ ...lead, floors: length, goalFloor: lastGoal, objective: 'clear', target: null })];
+  for (const { offer, floor } of goals) {
+    const mods = [...new Set([...lead.mods, ...offer.mods])];
+    floors[floor] = offerFloors({ ...offer, mods, floors: length, goalFloor: floor })[floor]!;
+  }
+  return { floors, goals: goals.map(({ offer, floor }) => ({ offerId: offer.id, floor, fee: offer.fee })) };
+}
+
+// Other offers that could join `offer` tonight (same district, and the set still fits).
+export function joinCandidates(board: readonly ContractOffer[], offer: ContractOffer): ContractOffer[] {
+  if (soloOnly(offer)) return [];
+  return board.filter((o) => o.id !== offer.id && canJoin([offer, o]));
 }

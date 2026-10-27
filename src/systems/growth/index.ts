@@ -6,9 +6,9 @@ import { activePassives } from './skills';
 import { traumaEffects } from './trauma';
 import type { GrowthState } from './types';
 
-export { trainingPrice, trainingRank, buyTraining } from './training';
+export { trainingPrice, trainingRank, buyTraining, trainingCapped } from './training';
 export { slotOpenable, openSlot, setSlotSide, activePassives, learnActive, equipActive } from './skills';
-export { facilityPrice, buildFacility, suppliesOffered, packSupply, deskEffects } from './facilities';
+export { facilityPrice, facilityRankNeeded, buildFacility, suppliesOffered, packSupply, deskEffects } from './facilities';
 export { traumaEffects, restAmount, capitalTherapy, type TraumaEffects } from './trauma';
 export { NO_FACILITIES, type GrowthState } from './types';
 

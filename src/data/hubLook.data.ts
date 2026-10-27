@@ -45,4 +45,5 @@ export const HUB_LOOK = {
   hintSize: 18,
   calendar: { x: 12.95, y: 15 }, // wall calendar (tiles x, px y): days to rent
   rentTextDelay: 900, // ms after coming home before the landlady's text
+  phoneTextGap: 6800, // ms between two phone texts on the same morning (each shows 6 s)
 } as const;

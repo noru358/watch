@@ -30,7 +30,7 @@ import { DT, duel } from './helpers';
 import type { SeededRNG } from '../src/core/SeededRNG';
 
 const g0 = (patch: Partial<GrowthState> = {}): GrowthState => ({
-  money: 0, trauma: 0, shards: 0, training: {}, trainingBought: 0, facilities: { ...NO_FACILITIES }, supply: null, passives: {}, actives: [], active: null, ...patch,
+  money: 0, trauma: 0, shards: 0, training: {}, trainingBought: 0, facilities: { ...NO_FACILITIES }, supply: null, passives: {}, actives: [], active: null, rank: 4, ...patch,
 });
 const ALL = Object.keys(TRAINING) as TrainingId[];
 const maxed = Object.fromEntries(ALL.map((id) => [id, TRAINING[id].max]));

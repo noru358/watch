@@ -6,9 +6,14 @@ export function facilityPrice(g: Pick<GrowthState, 'facilities'>, id: FacilityId
   return FACILITIES[id].costs[g.facilities[id]] ?? null;
 }
 
+// 평판 rank the next level needs (null when there is no next level).
+export function facilityRankNeeded(g: Pick<GrowthState, 'facilities'>, id: FacilityId): number | null {
+  return FACILITIES[id].ranks[g.facilities[id]] ?? null;
+}
+
 export function buildFacility(g: GrowthState, id: FacilityId): number {
   const price = facilityPrice(g, id);
-  if (price === null || g.money < price) return 0;
+  if (price === null || g.money < price || (facilityRankNeeded(g, id) ?? 0) > g.rank) return 0;
   g.money -= price;
   g.facilities = { ...g.facilities, [id]: g.facilities[id] + 1 };
   return price;

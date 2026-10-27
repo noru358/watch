@@ -19,7 +19,7 @@ const CRY_SHOW = 1.6; // seconds the cry arrow stays after a cry
 export interface HudInfo {
   floor: number; // 1-based
   total: number;
-  goalFloor: number | null; // 1-based floor where the contract ends early, if any
+  goalFloors: readonly number[]; // 1-based floors where an objective ends before the last floor
   targetName: string | null; // 현상수배 / 추격: the named ghost
 }
 
@@ -174,7 +174,7 @@ export class RiftHud {
       const x = x0 + (i - 1) * (seg + gap);
       const color = i === info.floor ? PALETTE.accent : i < info.floor ? PALETTE.textDimHex : PALETTE.hudLine;
       g.fillStyle(color, 1).fillRect(x, 42, seg, 5);
-      if (info.goalFloor === i) g.lineStyle(1, PALETTE.fear, 1).strokeRect(x - 1, 41, seg + 2, 7);
+      if (info.goalFloors.includes(i)) g.lineStyle(1, PALETTE.fear, 1).strokeRect(x - 1, 41, seg + 2, 7);
     }
     this.lootText.setText(t('rift.loot', { value: f.loot }));
   }

@@ -18,8 +18,10 @@ import { HubView } from './HubView';
 import { CHATTER, RENT_TALK } from '../../data/story.data';
 import { OFFICE } from '../../data/office.data';
 import { showPhoneText } from '../../app/toast';
+import { RANKS } from '../../data/reputation.data';
 
 let rentTextDay = -1; // the landlady texts once per rent morning
+let rankTextDay = -1; // someone texts the morning after a new 평판 rank
 
 // Day: inside the office, walked around souls-style. E on someone opens their panel;
 // the front door opens tonight's contract. Panels are React; while one is open the input
@@ -81,6 +83,12 @@ export class HubScene extends Phaser.Scene {
       rentTextDay = s.day;
       const key = m.debtAdded > 0 ? RENT_TALK.short[s.day % RENT_TALK.short.length]! : m.rentPaid > OFFICE.rent ? RENT_TALK.cleared : RENT_TALK.paid[s.day % RENT_TALK.paid.length]!;
       this.time.delayedCall(HUB_LOOK.rentTextDelay, () => showPhoneText(t(RENT_TALK.from), t(key, { paid: m.rentPaid, debt: store.getState().debt })));
+    }
+    if (m?.rankUp && rankTextDay !== s.day) {
+      rankTextDay = s.day;
+      const r = RANKS[m.rankUp]!;
+      const after = HUB_LOOK.rentTextDelay + (m.rentDue ? HUB_LOOK.phoneTextGap : 0);
+      this.time.delayedCall(after, () => showPhoneText(t(r.from), t(r.textKey)));
     }
     const chapters = Object.fromEntries(CHAPTER_IDS.map((id) => [id, chapterStatus(s, id)]));
     const scene = nextScene({ seen: s.seen, solved: s.solved, chapters });

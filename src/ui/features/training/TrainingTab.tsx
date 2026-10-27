@@ -2,7 +2,8 @@ import { useSyncExternalStore } from 'react';
 import { store } from '../../../app/services';
 import { TRAINING, TRAINING_GROUPS, type TrainingLine } from '../../../data/training.data';
 import { t } from '../../../i18n';
-import { trainingPrice, trainingRank, type GrowthState } from '../../../systems/growth';
+import { trainingCapped, trainingPrice, trainingRank, type GrowthState } from '../../../systems/growth';
+import { trainingCap, trainingCapRaisedAt } from '../../../systems/reputation';
 import type { TrainingId } from '../../../types/ids';
 import { panelCss as css } from '../panel';
 import { priceStyle, rowStyle, useNav } from '../useNav';
@@ -22,7 +23,7 @@ export function effectText(line: TrainingLine, rank: number): string {
 
 export function TrainingTab() {
   const s = useSyncExternalStore(store.subscribe, store.getState);
-  const g = s as unknown as GrowthState;
+  const g = { ...s, rank: s.rankReached } as unknown as GrowthState;
   const buy = (i: number) => store.train(ORDER[i]!);
   const [cursor, setCursor] = useNav(ORDER.length, buy);
   return (
@@ -41,11 +42,15 @@ export function TrainingTab() {
                   <span style={{ flex: 1, fontSize: 15 }}>{t(line.nameKey)}</span>
                   <span style={{ display: 'flex', gap: 3 }} aria-label={t('training.rank', { rank, max: line.max })}>
                     {Array.from({ length: line.max }, (_, k) => (
-                      <span key={k} style={{ width: 8, height: 12, borderRadius: 2, background: k < rank ? '#41e0c8' : 'rgba(157,143,196,0.25)' }} />
+                      <span key={k} style={{ width: 8, height: 12, borderRadius: 2, boxSizing: 'border-box', background: k < rank ? '#41e0c8' : k < trainingCap(g.rank, id) ? 'rgba(157,143,196,0.25)' : 'transparent', border: k >= trainingCap(g.rank, id) && k >= rank ? '1px dashed rgba(157,143,196,0.45)' : 'none' }} />
                     ))}
                   </span>
                   <span style={{ minWidth: 64, textAlign: 'right', fontSize: 13, color: '#c9bfe8' }}>{rank > 0 ? effectText(line, rank) : ''}</span>
-                  <span style={priceStyle(price !== null && s.money >= price)}>{price === null ? t('training.max') : t('training.buy', { cost: price })}</span>
+                  {trainingCapped(g, id) ? (
+                    <span style={{ ...priceStyle(false), fontFamily: 'inherit', fontSize: 12 }}>{t('training.capped', { rank: trainingCapRaisedAt(g.rank, id) ?? 0 })}</span>
+                  ) : (
+                    <span style={priceStyle(price !== null && s.money >= price)}>{price === null ? t('training.max') : t('training.buy', { cost: price })}</span>
+                  )}
                 </div>
               );
             })}

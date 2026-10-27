@@ -3,8 +3,8 @@ import { migrate, SAVE_VERSION } from '../src/core/SaveManager';
 import { SeededRNG } from '../src/core/SeededRNG';
 import { CHAPTERS } from '../src/data/chapters.data';
 import { NODES } from '../src/data/nodes.data';
-import { chapterStatus, refillBoard, resolveNight, startingContamination, type ContractOffer, type OfficeState } from '../src/systems/office';
-import { offerFloors } from '../src/systems/office/contracts';
+import { chapterStatus, offerFloors, refillBoard, resolveNight, startingContamination, type ContractOffer, type OfficeState } from '../src/systems/office';
+
 import type { NodeId } from '../src/types/ids';
 
 // 메인 스토리 장 (docs/rules/story.md): ch1 opens at once; the next opens N days after the last one
@@ -12,7 +12,7 @@ import type { NodeId } from '../src/types/ids';
 // districts, then posts its main contract.
 
 function fresh(day = 1): OfficeState {
-  const s: OfficeState = { day, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0 };
+  const s: OfficeState = { day, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 0, rankReached: 0 };
   refillBoard(s, new SeededRNG(5));
   return s;
 }

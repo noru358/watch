@@ -3,7 +3,7 @@ import { input, requestPhase, store } from '../../../app/services';
 import { NODES } from '../../../data/nodes.data';
 import { OFFICE } from '../../../data/office.data';
 import { t } from '../../../i18n';
-import { activeChapter, bundleWith, chapterStatus, type ContractOffer, type OfficeState } from '../../../systems/office';
+import { activeChapter, canJoin, chapterStatus, joinCandidates, planNight, type ContractOffer, type OfficeState } from '../../../systems/office';
 import { deskEffects, traumaEffects } from '../../../systems/growth';
 import { SUPPLIES } from '../../../data/facilities.data';
 import type { NodeId } from '../../../types/ids';
@@ -55,6 +55,18 @@ function stepOffer(by: number): void {
   store.selectOffer(here[(i + by + here.length) % here.length]!.id);
 }
 
+// The 합동 출동 line on the sheet: in the set, can be added, cannot (full), goes alone, or nothing
+// to join here.
+export type JoinState = 'in' | 'can' | 'full' | 'solo' | null;
+function joinState(board: readonly ContractOffer[], joined: readonly number[], sel: ContractOffer): JoinState {
+  if (joined.includes(sel.id)) return 'in';
+  const solo = sel.kind !== 'general' || sel.objective === 'chase';
+  if (solo) return board.some((o) => o.node === sel.node && o.id !== sel.id) ? 'solo' : null;
+  if (joinCandidates(board, sel).length === 0) return null;
+  const set = [...joined, sel.id].map((id) => board.find((o) => o.id === id)!);
+  return canJoin(set) ? 'can' : 'full';
+}
+
 const arrow = {
   flex: '0 0 52px', height: 52, boxSizing: 'border-box' as const, borderRadius: 6, border: `1px solid ${L.line}`, background: L.mapBg, color: L.ink,
   display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 1, cursor: 'pointer', padding: 0, fontFamily: 'inherit',
@@ -84,6 +96,7 @@ export function BoardPanel() {
       if (action === 'right') stepDistrict(1);
       if (action === 'up') stepOffer(-1);
       if (action === 'down') stepOffer(1);
+      if (action === 'mark') store.toggleJoin();
     });
   }, []);
 
@@ -94,7 +107,9 @@ export function BoardPanel() {
     if (first) store.selectOffer(first.id);
   };
   const rentIn = OFFICE.rentEvery - (s.day % OFFICE.rentEvery);
-  const bundle = sel ? bundleWith(s.board, sel).slice(1) : [];
+  const tonight = store.tonightOffers();
+  const joint = tonight.length > 1 ? { count: tonight.length, floors: planNight(tonight).floors.length, fee: tonight.reduce((sum, o) => sum + o.fee, 0) } : null;
+  const join = sel ? joinState(s.board, s.joined, sel) : null;
   const grounded = traumaEffects(s.trauma).grounded;
   const canGo = !!sel && !grounded;
 
@@ -112,12 +127,12 @@ export function BoardPanel() {
             <span style={{ fontFamily: 'monospace', fontSize: 16, color: L.ink }}>₩ {s.money}</span>
           </span>
         </div>
-        <OpsMap contamination={s.contamination} board={s.board} selected={sel} onPick={pickNode} clue={clueOf(s)} />
+        <OpsMap contamination={s.contamination} board={s.board} selected={sel} onPick={pickNode} clue={clueOf(s)} rank={s.rankReached} />
       </section>
       <section aria-label={t('board.pick')} style={{ flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {sel ? (
           <OfferSheet offer={sel} day={s.day} known={s.known.includes(sel.node) || deskEffects(s).reveal} index={here.indexOf(sel)} count={here.length}
-            bundle={bundle.length > 0 ? { count: bundle.length, fee: bundle.reduce((sum, o) => sum + o.fee, 0) } : null} />
+            join={join} onJoin={() => store.toggleJoin()} />
         ) : (
           <div style={{ color: L.dim, padding: 20 }}>{t('board.pick')}</div>
         )}
@@ -127,7 +142,7 @@ export function BoardPanel() {
           </button>
           <button onClick={sortie} disabled={!canGo}
             style={{ flex: 1, height: 52, boxSizing: 'border-box', borderRadius: 6, border: 'none', background: L.accent, color: '#14101f', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: canGo ? 'pointer' : 'default', opacity: canGo ? 1 : 0.5, fontFamily: 'inherit' }}>
-            <span style={{ fontSize: grounded ? 14 : 19, fontWeight: 700 }}>{grounded ? t('board.grounded') : t('day.sortie')}</span>
+            <span style={{ fontSize: grounded || joint ? 14 : 19, fontWeight: 700 }}>{grounded ? t('board.grounded') : joint ? t('board.sortieJoint', joint) : t('day.sortie')}</span>
             {!grounded && <span style={{ fontSize: 11, padding: '2px 6px', border: '1px solid rgba(20,16,31,0.45)', borderRadius: 3 }}>Enter</span>}
           </button>
           <button style={arrow} onClick={() => stepDistrict(1)} aria-label={t('board.next')}>

@@ -59,6 +59,7 @@ export const OBJECTIVES = {
 // it is caught). feeMult: on top of the fee formula. shards: 심연 파편 for finishing it.
 // cleanse: node contamination removed on success. difficulty: extra points for the 난이도 score.
 export interface ObjectiveRule {
+  rank: number; // 평판 rank before the board posts it (reputation.data.ts)
   weight: number;
   floors: readonly [number, number];
   goal: 'last' | 'random' | 'any' | number;
@@ -69,12 +70,12 @@ export interface ObjectiveRule {
 }
 
 export const GENERAL_OBJECTIVES: Record<'clear' | 'rescue' | 'bounty' | 'chase' | 'ward' | 'firsttrain', ObjectiveRule> = {
-  clear: { weight: 3, floors: [2, 4], goal: 'last', feeMult: 1, shards: 0, cleanse: 2, difficulty: 0 },
-  rescue: { weight: 2, floors: [2, 4], goal: 1, feeMult: 1.1, shards: 0, cleanse: 2, difficulty: 2 },
-  bounty: { weight: 2, floors: [2, 4], goal: 'random', feeMult: 1.5, shards: 1, cleanse: 3, difficulty: 8 },
-  chase: { weight: 1.5, floors: [3, 4], goal: 'any', feeMult: 1.4, shards: 1, cleanse: 2, difficulty: 8 },
-  ward: { weight: 1.5, floors: [2, 3], goal: 'random', feeMult: 0.8, shards: 0, cleanse: 4, difficulty: 4 },
-  firsttrain: { weight: 1.5, floors: [1, 2], goal: 'last', feeMult: 1.2, shards: 0, cleanse: 2, difficulty: 6 },
+  clear: { rank: 0, weight: 3, floors: [2, 4], goal: 'last', feeMult: 1, shards: 0, cleanse: 2, difficulty: 0 },
+  rescue: { rank: 0, weight: 2, floors: [2, 4], goal: 1, feeMult: 1.1, shards: 0, cleanse: 2, difficulty: 2 },
+  bounty: { rank: 1, weight: 2, floors: [2, 4], goal: 'random', feeMult: 1.5, shards: 1, cleanse: 3, difficulty: 8 },
+  chase: { rank: 2, weight: 1.5, floors: [3, 4], goal: 'any', feeMult: 1.4, shards: 1, cleanse: 2, difficulty: 8 },
+  ward: { rank: 0, weight: 1.5, floors: [2, 3], goal: 'random', feeMult: 0.8, shards: 0, cleanse: 4, difficulty: 4 },
+  firsttrain: { rank: 1, weight: 1.5, floors: [1, 2], goal: 'last', feeMult: 1.2, shards: 0, cleanse: 2, difficulty: 6 },
 };
 
 // "계속" after the goal: floors past the goal floor are richer and harder; the last one hides a shard.
