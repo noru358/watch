@@ -75,13 +75,15 @@ const newTarget = (pool: readonly GhostId[], rng: SeededRNG): OfferTarget => ({
 // One 일반 의뢰 (docs/rules/office.md "의뢰 한 장 만드는 법"): roll the objective, then one of its story
 // frames, the node (contaminated ones post more), length, goal floor, modifiers; the fee comes last.
 // A 현상수배 target that got away before comes back first (`wanted`).
-function generalOffer(s: OfficeState, rng: SeededRNG, wanted: WantedTarget | null): ContractOffer {
+function generalOffer(s: OfficeState, rng: SeededRNG, wanted: WantedTarget | null, at: NodeId | null = null): ContractOffer {
   const objective = wanted ? 'bounty' : weighted(OBJECTIVE_IDS.filter((id) => GENERAL_OBJECTIVES[id].rank <= s.rankReached), (id) => GENERAL_OBJECTIVES[id].weight, rng);
-  const request = rng.pick((Object.keys(REQUESTS) as RequestId[]).filter((id) => REQUESTS[id].objective === objective));
+  const frames = (Object.keys(REQUESTS) as RequestId[]).filter((id) => REQUESTS[id].objective === objective);
+  const fitting = at ? frames.filter((id) => !REQUESTS[id].nodes || REQUESTS[id].nodes!.includes(at)) : frames;
+  const request = rng.pick(fitting.length > 0 ? fitting : frames);
   const frame = REQUESTS[request];
   const open = openNodes(s);
   const framed = (frame.nodes ?? NODE_IDS).filter((id) => open.includes(id));
-  const node = wanted?.node ?? weightedNode(framed.length > 0 ? framed : open, s.contamination, rng);
+  const node = at ?? wanted?.node ?? weightedNode(framed.length > 0 ? framed : open, s.contamination, rng);
   const rule = GENERAL_OBJECTIVES[objective];
   const floors = rng.int(rule.floors[0], rule.floors[1]);
   const pool = wanted ? [wanted.ghost] : [...(frame.pool ?? NODES[node].pool)];
@@ -143,8 +145,18 @@ export function refillBoard(s: OfficeState, rng: SeededRNG): number {
     if (s.storyDone.includes(id) || s.board.some((o) => o.story === id)) continue;
     s.board.push(mainOffer(s, id));
   }
+  // 넘침: one 긴급 의뢰 per overflowing district, on top of the board size.
+  const o = OFFICE.contamination.overflow;
+  for (const id of openNodes(s)) {
+    if (s.contamination[id] < o.at || s.board.some((x) => x.urgent && x.node === id)) continue;
+    const urgent = generalOffer(s, rng, null, id);
+    urgent.urgent = true;
+    urgent.deadline = s.day + o.days - 1;
+    urgent.fee = Math.round((urgent.fee * o.feeMult) / 10) * 10;
+    s.board.push(urgent);
+  }
   const size = OFFICE.boardSize + deskBonus(s).board;
-  while (s.board.filter((o) => o.kind === 'general').length < size) s.board.push(generalOffer(s, rng, s.wanted.shift() ?? null));
+  while (s.board.filter((x) => x.kind === 'general' && !x.urgent).length < size) s.board.push(generalOffer(s, rng, s.wanted.shift() ?? null));
   return s.board.length - before;
 }
 
@@ -162,7 +174,8 @@ export interface NightOutcome {
 function reputationFor(s: OfficeState, offer: ContractOffer): number {
   if (offer.kind === 'main') return REPUTATION.main;
   const hot = s.contamination[offer.node] >= REPUTATION.hotAt ? REPUTATION.hotBonus : 0;
-  return offerDifficulty(offer) * REPUTATION.perDifficulty + hot;
+  const base = offerDifficulty(offer) * REPUTATION.perDifficulty + hot;
+  return offer.urgent ? Math.round(base * OFFICE.contamination.overflow.repMult) : base;
 }
 
 // The night is settled before the morning: every finished offer is done, paid and calms its node;
@@ -178,6 +191,8 @@ export function resolveNight(s: OfficeState, night: NightOutcome | number, succe
   for (const offer of offers) {
     if (!s.known.includes(offer.node)) s.known.push(offer.node);
     if (!n.completed.includes(offer.id)) {
+      // Reached and not done: the district gets worse (nothing happens to offers never reached).
+      if (n.reached.includes(offer.id) && openNodes(s).includes(offer.node)) s.contamination[offer.node] = clamp(s.contamination[offer.node] + OFFICE.contamination.failRise);
       // The named ghost got away tonight: it is stronger next time (and pays more).
       if (offer.target && n.reached.includes(offer.id)) {
         offer.target = { ...offer.target, level: Math.min(OBJECTIVES.bounty.maxLevel, offer.target.level + 1) };
@@ -204,7 +219,7 @@ export function resolveNight(s: OfficeState, night: NightOutcome | number, succe
 export function advanceDay(s: OfficeState, rng: SeededRNG): MorningReport {
   const c = OFFICE.contamination;
   s.day += 1;
-  const report: MorningReport = { day: s.day, rentDue: false, rentPaid: 0, debtAdded: 0, expired: 0, worsened: [], newOffers: 0, rankUp: null };
+  const report: MorningReport = { day: s.day, rentDue: false, rentPaid: 0, debtAdded: 0, expired: 0, worsened: [], overflowed: [], newOffers: 0, rankUp: null };
 
   if (s.day % OFFICE.rentEvery === 0) {
     const due = OFFICE.rent + s.debt;
@@ -224,15 +239,15 @@ export function advanceDay(s: OfficeState, rng: SeededRNG): MorningReport {
     if (next > s.contamination[id]) worse.add(id);
     s.contamination[id] = next;
   };
-  for (const id of NODE_IDS) if (rng.chance(c.riseChance)) bump(id, 1);
-  for (const id of NODE_IDS) {
-    if (s.contamination[id] < c.spreadAt || !rng.chance(c.spreadChance)) continue;
-    bump(rng.pick(NODES[id].links), 1);
-  }
-
   const expired = s.board.filter((o) => o.deadline !== null && o.deadline < s.day);
   for (const o of expired) {
     bump(o.node, c.expireRise);
+    // A missed 긴급 의뢰: the district spills into every open neighbour.
+    if (o.urgent) {
+      for (const n of overflowTargets(s, o.node)) bump(n, c.overflow.rise);
+      addReputation(s, -c.overflow.rep);
+      report.overflowed.push(o.node);
+    }
     // A 현상수배 left too long comes back one level stronger.
     if (o.objective === 'bounty' && o.target) s.wanted.push({ ...o.target, level: Math.min(OBJECTIVES.bounty.maxLevel, o.target.level + 1), node: o.node });
   }
@@ -242,6 +257,12 @@ export function advanceDay(s: OfficeState, rng: SeededRNG): MorningReport {
   report.worsened = NODE_IDS.filter((id) => worse.has(id));
   report.newOffers = refillBoard(s, rng);
   return report;
+}
+
+// Where a district spills if its 긴급 의뢰 is missed: its open neighbours not already at the top.
+export function overflowTargets(s: Pick<OfficeState, 'contamination' | 'rankReached'>, id: NodeId): NodeId[] {
+  const open = openNodes(s);
+  return NODES[id].links.filter((n) => open.includes(n) && s.contamination[n] < OFFICE.contamination.max);
 }
 
 // The RNG for a given morning: fixed by the save's base seed and the day, so a reload replays it.

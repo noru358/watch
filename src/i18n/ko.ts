@@ -176,8 +176,6 @@ export const ko = {
   'board.goal.clear': '섬멸',
   'board.goal.rescue': '구조',
   'board.goal.boss': '원인 괴이',
-  'board.legendCalm': '고요',
-  'board.legendHot': '들끓음',
   'board.prev': '이전 동네 (A)',
   'board.next': '다음 동네 (D)',
   'training.power_slash': '베기 피해',
@@ -370,8 +368,6 @@ export const ko = {
   'wanted.suf.3': '맨발',
   'wanted.suf.4': '눈',
   'wanted.suf.5': '혀',
-  'board.atRisk': '▲ 내일 번져 올 수 있음',
-  'board.legendRisk': '오염이 심한 이웃 동네에서 옮겨 와 더 나빠질 수 있다',
   'board.districtCount': '{index}/{count} (W·S)',
   'mod.regen.name': '사무치는 원한',
   'mod.regen.desc': '3초 동안 안 맞은 괴이는 초당 체력 5%씩 회복한다.',
@@ -460,6 +456,14 @@ export const ko = {
   'training.capped': '평판 {rank}등급에 더',
   'facility.needRank': '평판 {rank}등급 필요',
   'morning.rankUp': '평판이 올랐어요, 이제 "{name}"이래요.',
+  'board.legendGhosts': '층마다 괴이',
+  'board.legendOverflow': '넘침',
+  'board.legendFee': '보수도 그만큼 오름',
+  'board.urgentToday': '긴급 · 오늘 밤까지',
+  'board.urgentLeft': '긴급 · 마감 D-{days}',
+  'board.urgentHint': '놓치면 화살표대로 번진다',
+  'board.urgentStamp': '긴급',
+  'morning.overflow': '{nodes} 긴급 의뢰를 놓쳐서 이웃 동네까지 번졌어요.',
 } as const;
 
 export type TKey = keyof typeof ko;

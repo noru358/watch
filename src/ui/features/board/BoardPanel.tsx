@@ -127,7 +127,7 @@ export function BoardPanel() {
             <span style={{ fontFamily: 'monospace', fontSize: 16, color: L.ink }}>₩ {s.money}</span>
           </span>
         </div>
-        <OpsMap contamination={s.contamination} board={s.board} selected={sel} onPick={pickNode} clue={clueOf(s)} rank={s.rankReached} />
+        <OpsMap contamination={s.contamination} board={s.board} selected={sel} onPick={pickNode} clue={clueOf(s)} rank={s.rankReached} day={s.day} />
       </section>
       <section aria-label={t('board.pick')} style={{ flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {sel ? (

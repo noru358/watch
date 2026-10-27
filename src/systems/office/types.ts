@@ -24,6 +24,7 @@ export interface ContractOffer {
   fee: number;
   shards: number; // 심연 파편 for finishing the objective
   deadline: number | null; // last day it can be taken; null = stays until done
+  urgent?: boolean; // 긴급 의뢰 from an overflowing district (office.data.ts contamination.overflow)
 }
 
 export type Contamination = Record<NodeId, number>;
@@ -65,6 +66,7 @@ export interface MorningReport {
   debtAdded: number;
   expired: number;
   worsened: NodeId[]; // nodes whose contamination rose
+  overflowed: NodeId[]; // districts whose 긴급 의뢰 was missed: they spilled into their neighbours
   newOffers: number;
   rankUp: number | null; // the rank reached last night (a text comes in the morning)
 }

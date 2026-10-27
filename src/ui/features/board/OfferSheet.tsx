@@ -98,7 +98,7 @@ export function OfferSheet({ offer, day, known, index, count, join, onJoin }: {
           </div>
           {offer.deadline !== null ? (
             <span style={{ border: `2px solid ${L.stamp}`, color: L.stamp, fontSize: 15, fontWeight: 700, padding: '2px 8px', transform: 'rotate(-8deg)', whiteSpace: 'nowrap' }}>
-              {t('board.stamp', { days: Math.max(0, offer.deadline - day) })}
+              {offer.urgent ? t('board.urgentStamp') + ' ' : ''}{t('board.stamp', { days: Math.max(0, offer.deadline - day) })}
             </span>
           ) : (
             <span style={{ border: `2px solid ${L.accentInk}`, color: L.accentInk, fontSize: 14, fontWeight: 700, padding: '2px 8px', transform: 'rotate(-6deg)', whiteSpace: 'nowrap' }}>

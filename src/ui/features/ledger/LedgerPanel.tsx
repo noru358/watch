@@ -21,6 +21,7 @@ function morningLines(m: MorningReport | null): string[] {
   if (m.rentDue && m.debtAdded > 0) lines.push(t('morning.rentShort', { short: m.debtAdded }));
   else if (m.rentDue) lines.push(t('morning.rentPaid', { paid: m.rentPaid }));
   if (m.worsened.length > 0) lines.push(t('morning.worse', { nodes: m.worsened.map((id) => t(NODES[id].nameKey)).join(', ') }));
+  if (m.overflowed?.length) lines.push(t('morning.overflow', { nodes: m.overflowed.map((id) => t(NODES[id].nameKey)).join(', ') }));
   if (m.expired > 0) lines.push(t('morning.expired', { count: m.expired }));
   if (m.rankUp !== null && m.rankUp !== undefined) lines.push(t('morning.rankUp', { name: t(RANKS[m.rankUp]!.nameKey) }));
   return lines.length > 0 ? lines : [t('morning.quiet')];

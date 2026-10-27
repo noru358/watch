@@ -7,10 +7,14 @@ export const OFFICE = {
   deadline: { min: 3, max: 5 }, // days a general offer stays up
   contamination: {
     max: 5,
-    riseChance: 0.25, // each morning, per node
-    spreadAt: 3, // a node at this level or more may spread to a neighbour
-    spreadChance: 0.4,
+    // No random rise or spread (user 2026-10-27): a district only gets worse because of the office —
+    // an offer left to expire, an objective failed or fallen on there.
     expireRise: 1, // an offer left to expire makes its node worse
+    failRise: 1, // the night ended there without its objective done (fallen, failed, gone home before it)
+    // 넘침 (Pandemic outbreak, shown like Helldivers supply lines): a district at `at` posts one 긴급
+    // 의뢰 (open for `days` nights, fee and 평판 × mult). Let it expire and every open neighbour gets
+    // `rise`, and the office loses `rep` 평판.
+    overflow: { at: 5, days: 2, feeMult: 1.5, repMult: 1.5, rise: 1, rep: 10 },
     cleanse: { main: 3 }, // general contracts: by objective (objectives.data.ts GENERAL_OBJECTIVES.cleanse)
   },
   general: {
