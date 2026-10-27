@@ -23,14 +23,13 @@ interface Props {
 }
 
 // 넘침 (docs/rules/office.md): a district with a 긴급 의뢰 on the board, and where it spills if missed.
-// Drawn like Helldivers supply lines / a Pandemic outbreak: dashed arrows to each neighbour, "+1" on it.
+// Drawn like Helldivers supply lines / a Pandemic outbreak: a dashed arrow to each neighbour (user 2026-10-28: no "+1" chip, the arrow says it).
 function overflows(board: readonly ContractOffer[], contamination: Contamination, rank: number) {
   return board.filter((o) => o.urgent).map((o) => ({ from: o.node, to: overflowTargets({ contamination, rankReached: rank }, o.node), left: o.deadline }));
 }
 
 export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0, day = 0 }: Props) {
   const spill = overflows(board, contamination, rank);
-  const hit = new Set(spill.flatMap((x) => x.to));
   const links = NODE_IDS.flatMap((a) => NODES[a].links.filter((b) => a < b).map((b) => [a, b] as const));
   const y = (id: NodeId) => NODES[id].y * 0.6 + 3;
   return (
@@ -60,12 +59,6 @@ export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0,
               {isSel && <circle cx={n.x} cy={cy} r={r + 1.8} fill="none" stroke={L.accent} strokeWidth={0.9} />}
               <text x={n.x} y={cy + r + 3.6} textAnchor="middle" fontSize={2.7} fill={isSel ? L.ink : live ? L.dim : L.off} fontWeight={isSel || live ? 700 : 400}>{t(n.nameKey)}</text>
               {urgent && <circle cx={n.x} cy={cy} r={r + 1.6} fill="none" stroke={L.spread} strokeWidth={0.5} strokeDasharray="1 0.8" />}
-              {hit.has(id) && (
-                <g aria-hidden="true">
-                  <rect x={n.x + r - 0.5} y={cy - r - 4.6} width={6} height={3.4} rx={1.7} fill={L.spread} />
-                  <text x={n.x + r + 2.5} y={cy - r - 2.2} textAnchor="middle" fontSize={2.3} fontWeight={700} fill={L.paperInk}>+1</text>
-                </g>
-              )}
               {locked && <text x={n.x} y={cy + r + 6.6} textAnchor="middle" fontSize={2.1} fill={L.dim}>{t('board.locked', { rank: n.rank })}</text>}
               {clue?.nodes.includes(id) && (
                 <text x={n.x} y={cy + r + 6.6} textAnchor="middle" fontSize={2.1} fill={L.accent}>{t('board.clues', { have: clue.have, need: clue.need })}</text>
