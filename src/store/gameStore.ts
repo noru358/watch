@@ -274,6 +274,7 @@ export class GameStore {
       ...o,
       trauma: Math.max(0, this.state.trauma - growth.restAmount(this.state)),
       activeOfferId: null,
+      joined: [],
       lastRun: null,
       lastMorning: morning,
     });
@@ -320,9 +321,11 @@ export class GameStore {
     return true;
   }
 
-  // The offers tonight is for: the set if one was made, else the chosen offer.
+  // The offers tonight is for: what the board shows goes out. The set, when the sheet on top is
+  // one of its offers; otherwise just that sheet (a main story or 추격 sheet never takes the set).
   tonightOffers(): ContractOffer[] {
-    const ids = this.state.joined.length > 0 ? this.state.joined : this.state.activeOfferId !== null ? [this.state.activeOfferId] : [];
+    const sel = this.state.activeOfferId;
+    const ids = sel !== null && this.state.joined.includes(sel) ? this.state.joined : sel !== null ? [sel] : [];
     return ids.map((id) => this.state.board.find((o) => o.id === id)).filter((o): o is ContractOffer => !!o);
   }
 

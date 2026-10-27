@@ -80,7 +80,7 @@ describe('합동 출동: pay per objective', () => {
     expect(feeSoFar(run)).toBe(a.fee);
     const r = runResult(run);
     expect(r.completed).toEqual([a.id]);
-    expect(r.reached).toEqual([a.id]);
+    expect(r.reached).toEqual([]); // finished, so not "reached and lost"
     const s = office([a, b]);
     const night = resolveNight(s, { offers: r.offers, completed: r.completed, reached: r.reached });
     expect(night.fee).toBe(a.fee);
@@ -117,6 +117,42 @@ describe('합동 출동: pay per objective', () => {
     expect(store.nightPlan()!.goals).toHaveLength(2);
     store.selectOffer(c!.id);
     expect(store.getState().joined).toEqual([]);
+  });
+
+  it('what the board shows goes out: a sheet outside the set (main story, 추격, unmarked) goes alone', () => {
+    const store = new GameStore({ seedBase: 9 });
+    const s = store.getState();
+    s.board.push(offer('alley', 'clear', 3, 1), offer('alley', 'ward', 4, 3));
+    const [a, b] = s.board.slice(-2);
+    store.selectOffer(a!.id);
+    store.toggleJoin();
+    store.selectOffer(b!.id);
+    store.toggleJoin();
+    const main = s.board.find((o) => o.kind === 'main' && o.node === 'alley')!;
+    store.selectOffer(main.id);
+    expect(store.getState().joined).toHaveLength(2);
+    expect(store.tonightOffers().map((o) => o.id)).toEqual([main.id]);
+    store.selectOffer(a!.id);
+    expect(store.tonightOffers()).toHaveLength(2);
+  });
+
+  it('a target caught before the director falls does not come back stronger', () => {
+    const a = offer('motel', 'bounty', 4, 0);
+    const b = offer('motel', 'clear', 4, 3);
+    const p = planNight([a, b]);
+    const run = startRun({ offerId: a.id, floors: p.floors, fee: 0, weapon: 'newspaper_sword', goals: p.goals });
+    const f = enterFloor(run, new SeededRNG(3));
+    f.objective!.done = true;
+    f.status = 'stairs';
+    leaveFloor(run, f);
+    const g = enterFloor(run, new SeededRNG(4));
+    g.status = 'dead';
+    leaveFloor(run, g);
+    const r = runResult(run);
+    const s = office([a, b]);
+    resolveNight(s, { offers: r.offers, completed: r.completed, reached: r.reached, outcome: r.outcome });
+    expect(a.target!.level).toBe(0);
+    expect(s.board).toHaveLength(2);
     expect(OFFICE.joint.max).toBeGreaterThanOrEqual(2);
   });
 });

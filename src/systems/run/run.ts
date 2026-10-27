@@ -209,6 +209,7 @@ export function runResult(run: RunState): RunResult {
     shards: run.shards,
     offers: run.goals.map((g) => g.offerId),
     completed: run.outcome === 'died' ? [] : [...run.completed],
-    reached: run.goals.filter((g) => g.floor === -1 || g.floor <= deepest).map((g) => g.offerId),
+    // A named target already caught does not count as one that got away, even if the night is lost later.
+    reached: run.goals.filter((g) => (g.floor === -1 || g.floor <= deepest) && !run.completed.includes(g.offerId)).map((g) => g.offerId),
   };
 }
