@@ -14,14 +14,19 @@ export function useNav(count: number, onConfirm: (i: number) => void, extra?: (a
         if (ctx !== 'modal') return;
         const r = ref.current;
         if (r.count <= 0) return;
-        if (action === 'up') setCursor((c) => (c + r.count - 1) % r.count);
-        else if (action === 'down') setCursor((c) => (c + 1) % r.count);
+        if (action === 'up') (setCursor((c) => (c + r.count - 1) % r.count), follow());
+        else if (action === 'down') (setCursor((c) => (c + 1) % r.count), follow());
         else if (action === 'confirm') r.onConfirm(Math.min(r.cursor, r.count - 1));
         else r.extra?.(action, Math.min(r.cursor, r.count - 1));
       }),
     [],
   );
   return [Math.min(cursor, Math.max(0, count - 1)), setCursor] as const;
+}
+
+// Keeps the keyboard cursor in view in a scrolling panel: rows mark themselves with data-cursor.
+function follow(): void {
+  requestAnimationFrame(() => document.querySelector('[data-cursor="true"]')?.scrollIntoView({ block: 'nearest' }));
 }
 
 export const rowStyle = (on: boolean): React.CSSProperties => ({

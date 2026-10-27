@@ -46,3 +46,12 @@ export function duel(kind: GhostId = 'cheonyeo', gap = 1.2, cards: CardId[] = []
 
 // The story contract as a run setup (offer id 0 = not from a board).
 export const storySetup = { offerId: 0, floors: CONTRACTS.lights_out.floors, fee: CONTRACTS.lights_out.fee, weapon: 'newspaper_sword' } as const;
+
+// A number from a data row's `with` (the first row that has it): tests read the table, not a copy.
+export function param(rows: readonly { with: unknown }[], key: string): number {
+  for (const r of rows) {
+    const v = (r.with as Record<string, unknown>)[key];
+    if (typeof v === 'number') return v;
+  }
+  throw new Error(`no ${key} in rows`);
+}

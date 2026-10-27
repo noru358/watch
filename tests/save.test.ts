@@ -49,3 +49,19 @@ describe('SaveManager', () => {
     expect(() => saves.save(new GameStore().toSave())).not.toThrow();
   });
 });
+
+describe('save v7 (skills v2, training v2, 장신구)', () => {
+  it('a v6 save keeps its skill sides and turns v1 training into v2 ranks', () => {
+    const now = new GameStore().toSave() as unknown as Record<string, unknown>;
+    const { upgrades: _u, gear: _g, equipped: _e, nextGearId: _n, ...rest } = now;
+    const v6 = { ...rest, schemaVersion: 6, passives: { blade1: 'b', step1: 'a' }, training: { power_slash: 3, nerve_hp: 2, focus_gauge: 1 }, trainingBought: 6 };
+    const v = migrate(v6)!;
+    expect(v.schemaVersion).toBe(SAVE_VERSION);
+    expect(v.passives).toEqual({ blade1: 1, step1: 0 });
+    expect(v.training).toEqual({ slash: 6, hp: 2, gauge: 1 });
+    expect(v.trainingBought).toBe(9);
+    expect(v.gear).toEqual([]);
+    expect(v.equipped).toEqual({});
+    expect(v.nextGearId).toBe(1);
+  });
+});

@@ -231,7 +231,7 @@ describe('office: store and save', () => {
     const offer = store.getState().board.find((o) => o.kind === 'general')!;
     store.selectOffer(offer.id);
     expect(store.nightPlan()?.offerId).toBe(offer.id);
-    store.applyRunResult({ offerId: offer.id, outcome: 'success', loot: 10, fee: offer.fee, shards: 0, offers: [offer.id], completed: [offer.id], reached: [offer.id] });
+    store.applyRunResult({ offerId: offer.id, outcome: 'success', loot: 10, fee: offer.fee, shards: 0, offers: [offer.id], completed: [offer.id], reached: [offer.id], drops: [] });
     const st = store.getState();
     expect(st.day).toBe(2);
     expect(st.lastMorning?.day).toBe(2);

@@ -1,3 +1,4 @@
+import type { EffectRow } from '../registry/effects';
 import type { TKey } from '../i18n';
 import type { FacilityId, SupplyId } from '../types/ids';
 
@@ -33,13 +34,17 @@ export interface SupplyData {
   descKey: TKey;
   cost: number;
   benchLevel: number; // 부적 작업대 level that offers it
-  amount: number;
+  rows: readonly EffectRow[]; // what it does that night (효과 부품, like skills)
+  hud?: 'mapFirst';
 }
 
 export const SUPPLIES: Record<SupplyId, SupplyData> = {
-  salt_pack: { nameKey: 'supply.salt_pack.name', descKey: 'supply.salt_pack.desc', cost: 60, benchLevel: 1, amount: 2 }, // shield charges on the first floor
-  bacchus: { nameKey: 'supply.bacchus.name', descKey: 'supply.bacchus.desc', cost: 100, benchLevel: 2, amount: 6 }, // heal once when HP first drops below half
-  map_copy: { nameKey: 'supply.map_copy.name', descKey: 'supply.map_copy.desc', cost: 120, benchLevel: 3, amount: 0 }, // first floor: arrow to the stairs
+  // two salt charges on the first floor (each blocks one hit — combat.hurtPlayer)
+  salt_pack: { nameKey: 'supply.salt_pack.name', descKey: 'supply.salt_pack.desc', cost: 60, benchLevel: 1, rows: [{ when: 'onRoomEnter', if: [{ firstFloor: true }], do: 'gain', with: { res: 'shield', amount: 2 } }] },
+  // heal 6 once, the first time HP drops below half
+  bacchus: { nameKey: 'supply.bacchus.name', descKey: 'supply.bacchus.desc', cost: 100, benchLevel: 2, rows: [{ when: 'onAfterHurt', if: [{ hpBelow: 0.5 }, { once: 'night' }], do: 'gain', with: { res: 'hp', amount: 6 } }] },
+  // first floor: arrow to the stairs (HUD)
+  map_copy: { nameKey: 'supply.map_copy.name', descKey: 'supply.map_copy.desc', cost: 120, benchLevel: 3, rows: [], hud: 'mapFirst' },
 };
 
 export const SUPPLY_IDS: readonly SupplyId[] = ['salt_pack', 'bacchus', 'map_copy'];

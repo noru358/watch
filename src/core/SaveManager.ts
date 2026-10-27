@@ -3,11 +3,13 @@
 // progress is not (quitting mid-night = the night never happened).
 
 import { startingContamination, type ChapterState, type ContractOffer, type Contamination, type WantedTarget } from '../systems/office';
-import type { ActiveId, ChapterId, ContractId, FacilityId, NodeId, SceneId, SkillSlotId, SupplyId } from '../types/ids';
+import type { ActiveId, ChapterId, ContractId, FacilityId, NodeId, SceneId, SkillSlotId, SupplyId, UpgradeId } from '../types/ids';
+import type { GearItem, GearSlot } from '../systems/gear';
+import { TRAINING, TRAINING_V1_TO_V2 } from '../data/training.data';
 import type { TrainingLevels } from '../systems/run';
 import { rankFor } from '../systems/reputation';
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 export interface SaveData {
   schemaVersion: typeof SAVE_VERSION;
@@ -32,7 +34,7 @@ export interface SaveData {
   trainingBought: number;
   facilities: Record<FacilityId, number>;
   supply: SupplyId | null;
-  passives: Partial<Record<SkillSlotId, 'a' | 'b'>>;
+  passives: Partial<Record<SkillSlotId, number>>;
   actives: ActiveId[];
   active: ActiveId | null;
   wanted: WantedTarget[];
@@ -41,6 +43,11 @@ export interface SaveData {
   // v6: 평판 (points and the highest rank reached)
   reputation: number;
   rankReached: number;
+  // v7: skills as sides by index, 개조, 장신구; training v2 lines
+  upgrades: Partial<Record<ActiveId, UpgradeId>>;
+  gear: GearItem[];
+  equipped: Partial<Record<GearSlot, number>>;
+  nextGearId: number;
 }
 
 // The part of localStorage we use; tests pass a Map-backed fake.
@@ -92,8 +99,23 @@ const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
     const reputation = (isNum(old.solved) ? old.solved : 0) * MIGRATE_REP_PER_SOLVED;
     return { ...old, reputation, rankReached: rankFor(reputation) };
   },
+  6: toV7,
 };
 const MIGRATE_REP_PER_SOLVED = 20;
+
+// v6 → v7: skill sides 'a' / 'b' → 0 / 1; training v1 lines → v2 lines (TRAINING_V1_TO_V2, each v1
+// rank is worth the v2 ranks given there, capped at the v2 maximum); no 개조 or 장신구 yet.
+function toV7(old: Raw): Raw {
+  const passives = Object.fromEntries(Object.entries((old.passives as Record<string, string>) ?? {}).map(([k, v]) => [k, v === 'b' ? 1 : 0]));
+  const training: Record<string, number> = {};
+  for (const [id, r] of Object.entries((old.training as Record<string, number>) ?? {})) {
+    const to = TRAINING_V1_TO_V2[id];
+    if (!to || !isNum(r)) continue;
+    training[to[0]] = Math.min(TRAINING[to[0]].max, (training[to[0]] ?? 0) + r * to[1]);
+  }
+  const bought = Object.values(training).reduce((a, b) => a + b, 0);
+  return { ...old, passives, training, trainingBought: bought, upgrades: {}, gear: [], equipped: {}, nextGearId: 1 };
+}
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const isObj = (v: unknown): v is object => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -112,8 +134,9 @@ export function migrate(raw: unknown): SaveData | null {
     v += 1;
   }
   const { money, trauma, solved, seedBase, runCounter, day, debt, contamination, known, board, nextOfferId, storyDone, seen } = data;
-  const { shards, training, trainingBought, facilities, supply, passives, actives, active, wanted, chapters, reputation, rankReached } = data;
-  if (![money, trauma, solved, seedBase, runCounter, day, debt, nextOfferId, shards, trainingBought, reputation, rankReached].every(isNum)) return null;
+  const { shards, training, trainingBought, facilities, supply, passives, actives, active, wanted, chapters, reputation, rankReached, upgrades, gear, equipped, nextGearId } = data;
+  if (![money, trauma, solved, seedBase, runCounter, day, debt, nextOfferId, shards, trainingBought, reputation, rankReached, nextGearId].every(isNum)) return null;
+  if (!isObj(upgrades) || !Array.isArray(gear) || !isObj(equipped)) return null;
   if (!Array.isArray(known) || !Array.isArray(board) || !Array.isArray(storyDone) || !Array.isArray(seen)) return null;
   if (!Array.isArray(actives) || !Array.isArray(wanted) || !isObj(training) || !isObj(facilities) || !isObj(passives) || !isObj(chapters)) return null;
   if (contamination !== null && (typeof contamination !== 'object' || Array.isArray(contamination))) return null;
@@ -144,6 +167,10 @@ export function migrate(raw: unknown): SaveData | null {
     chapters,
     reputation,
     rankReached,
+    upgrades,
+    gear,
+    equipped,
+    nextGearId,
   } as SaveData;
 }
 

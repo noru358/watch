@@ -1,5 +1,5 @@
 import type { SeededRNG } from '../../core/SeededRNG';
-import { DROPS, GEAR_ECONOMY, GEAR_SLOT_IDS, GEAR_SLOTS, GEAR_SPECIALS, GRADE_IDS, GRADE_WEIGHTS, GRADES, SUB_OPTIONS, type DropSource, type GearSlot, type GearStat, type Grade } from '../../data/draft/gear.data';
+import { DROPS, GEAR_ECONOMY, GEAR_SLOT_IDS, GEAR_SLOTS, GEAR_SPECIALS, GRADE_IDS, GRADE_WEIGHTS, GRADES, SUB_OPTIONS, type DropSource, type GearSlot, type GearStat, type Grade } from '../../data/gear.data';
 import type { EffectRow } from '../../registry/effects';
 
 // 장신구 (DRAFT, not wired): rolling a drop, raising the level with money, rerolling a sub with
@@ -117,3 +117,5 @@ export function fullEnhanceCost(grade: Grade): number {
   for (let l = 0; l < GEAR_ECONOMY.maxLevel; l++) total += round10(GEAR_ECONOMY.enhanceBase * Math.pow(l + 1, GEAR_ECONOMY.enhancePow) * GRADES[grade].costMult);
   return total;
 }
+
+export type { GearSlot, Grade, DropSource } from '../../data/gear.data';

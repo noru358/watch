@@ -74,15 +74,15 @@ describe('평판: what a rank opens on the board', () => {
 });
 
 describe('평판: growth', () => {
-  const g0 = (rank: number): GrowthState => ({ money: 1e6, trauma: 0, shards: 0, training: {}, trainingBought: 0, facilities: { ...NO_FACILITIES }, supply: null, passives: {}, actives: [], active: null, rank });
+  const g0 = (rank: number): GrowthState => ({ money: 1e6, trauma: 0, shards: 0, training: {}, trainingBought: 0, facilities: { ...NO_FACILITIES }, supply: null, passives: {}, actives: [], active: null, upgrades: {}, gear: [], equipped: {}, nextGearId: 1, rank });
   it('training lines stop at the rank cap and open as the rank rises', () => {
     const g = g0(0);
-    for (let i = 0; i < 10; i++) buyTraining(g, 'power_slash');
-    expect(g.training.power_slash).toBe(trainingCap(0, 'power_slash'));
-    expect(trainingCapped(g, 'power_slash')).toBe(true);
+    for (let i = 0; i < 10; i++) buyTraining(g, 'slash');
+    expect(g.training.slash).toBe(trainingCap(0, 'slash'));
+    expect(trainingCapped(g, 'slash')).toBe(true);
     g.rank = 3;
-    for (let i = 0; i < 10; i++) buyTraining(g, 'power_slash');
-    expect(g.training.power_slash).toBe(TRAINING.power_slash.max);
+    for (let i = 0; i < 10; i++) buyTraining(g, 'slash');
+    expect(g.training.slash).toBe(TRAINING.slash.max);
   });
 
   it('facility levels need their rank', () => {
@@ -98,7 +98,7 @@ describe('평판: store and save', () => {
   it('a rank reached at night is in the morning report', () => {
     const store = new GameStore({ seedBase: 2, reputation: RANKS[1]!.at - 1 });
     const o = store.getState().board.find((x) => x.kind === 'general')!;
-    store.applyRunResult({ offerId: o.id, outcome: 'success', loot: 0, fee: o.fee, shards: 0, offers: [o.id], completed: [o.id], reached: [o.id] });
+    store.applyRunResult({ offerId: o.id, outcome: 'success', loot: 0, fee: o.fee, shards: 0, offers: [o.id], completed: [o.id], reached: [o.id], drops: [] });
     expect(store.getState().rankReached).toBe(1);
     expect(store.getState().lastMorning?.rankUp).toBe(1);
   });
@@ -106,7 +106,7 @@ describe('평판: store and save', () => {
   it('a v5 save gets 평판 from the jobs it solved', () => {
     const v5 = {
       schemaVersion: 5, money: 0, trauma: 0, solved: 8, seedBase: 1, runCounter: 1, day: 9, debt: 0, contamination: null, known: [], board: [], nextOfferId: 1, storyDone: [], seen: [],
-      shards: 0, training: {}, trainingBought: 0, facilities: { desk: 0, bench: 0, sofa: 0 }, supply: null, passives: {}, actives: [], active: null, wanted: [], chapters: {},
+      shards: 0, training: {}, trainingBought: 0, facilities: { desk: 0, bench: 0, sofa: 0 }, supply: null, passives: {}, actives: [], active: null, upgrades: {}, gear: [], equipped: {}, nextGearId: 1, wanted: [], chapters: {},
     };
     const v = migrate(v5)!;
     expect(v.schemaVersion).toBe(SAVE_VERSION);

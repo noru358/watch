@@ -15,12 +15,13 @@ import { shot } from './parts/shot';
 import { spend, stack } from './parts/stack';
 import { status } from './parts/status';
 import { zone } from './parts/zone';
+import { collect } from './parts/collect';
 import { effectState } from './state';
 import type { EffectCtx, EffectRow, EffectTrigger, PartFn, PartId } from './types';
 
 // 효과 부품 registry (draft, not wired — see types.ts). One part = one file in parts/; adding a
 // part = its file + one line here + its numbers in types.ts PartParams.
-export const PARTS: { [P in PartId]: PartFn<P> } = { hit, status, shot, zone, gain, buff, scale, cleanse, stack, spend, echo, blink, burst, save };
+export const PARTS: { [P in PartId]: PartFn<P> } = { hit, status, shot, zone, gain, buff, scale, cleanse, stack, spend, echo, blink, burst, save, collect };
 
 export type { EffectRow, Cond, PartId, PartParams, EffectTrigger } from './types';
 export { effectState } from './state';

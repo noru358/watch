@@ -7,6 +7,6 @@ export const shot: PartFn<'shot'> = (ctx, p) => {
   const n = p.count ?? 1;
   for (let i = 0; i < n; i++) {
     const a = pl.aim + (n > 1 ? ((i / (n - 1)) - 0.5) * (p.spread ?? 0.5) : 0);
-    f.shots.push({ x: pl.x, y: pl.y, vx: Math.cos(a) * p.speed, vy: Math.sin(a) * p.speed, left: p.range, damage: f.stats.slash * p.mult, stun: p.stun });
+    f.shots.push({ x: pl.x, y: pl.y - 0.4, vx: Math.cos(a) * p.speed, vy: Math.sin(a) * p.speed, left: p.range, damage: f.stats.slash * p.mult, stun: p.stun, pierce: p.pierce ?? false, hit: [] });
   }
 };

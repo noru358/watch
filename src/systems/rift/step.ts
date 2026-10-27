@@ -7,6 +7,7 @@ import { updatePlayer } from './player';
 import { updateSwarm } from './spawner';
 import { runHooks } from './hooks';
 import { updateShots, updateZones } from './skills';
+import { tickEffects } from '../../registry/effects';
 import { updateLair } from './lair';
 import type { Floor, RiftInput } from './types';
 
@@ -21,7 +22,7 @@ function updatePickups(f: Floor, dt: number): void {
         f.events.push({ type: 'shardCollected', x: k.x, y: k.y });
         continue;
       }
-      f.loot += k.value;
+      f.loot += k.value * (1 + f.stats.spiritGain);
       f.events.push({ type: 'pickupCollected', x: k.x, y: k.y, value: k.value });
       continue;
     }
@@ -77,6 +78,7 @@ export function stepFloor(f: Floor, input: RiftInput, dt: number, rng: SeededRNG
   updateSwarm(f, dt, rng);
   updateShots(f, dt, rng);
   updateZones(f, dt, rng);
+  tickEffects(f, dt, rng);
   updatePickups(f, dt);
   updateExits(f);
 }

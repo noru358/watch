@@ -38,7 +38,7 @@ export function TrainingTab() {
               const rank = trainingRank(g, id);
               const price = trainingPrice(g, id);
               return (
-                <div key={id} style={rowStyle(i === cursor)} onMouseEnter={() => setCursor(i)} onClick={() => buy(i)}>
+                <div key={id} style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseEnter={() => setCursor(i)} onClick={() => buy(i)}>
                   <span style={{ flex: 1, fontSize: 15 }}>{t(line.nameKey)}</span>
                   <span style={{ display: 'flex', gap: 3 }} aria-label={t('training.rank', { rank, max: line.max })}>
                     {Array.from({ length: line.max }, (_, k) => (

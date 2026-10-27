@@ -1,6 +1,8 @@
 import type { SwarmPlan } from '../../data/contracts.data';
 import type { AttackShape } from '../../data/ghosts.data';
-import type { ActiveId, CardId, EnemyId, FloorTheme, PerkId, WeaponId } from '../../types/ids';
+import type { ActiveId, CardId, EnemyId, FloorTheme, PerkId, UpgradeId, WeaponId } from '../../types/ids';
+import type { EffectRow } from '../../registry/effects';
+import type { DropSource } from '../../data/gear.data';
 import type { GameEvent } from '../../types/events';
 import type { ObjectiveState } from './objectives/types';
 import type { LairState } from './lair';
@@ -88,6 +90,8 @@ export interface Shot extends Pos {
   left: number; // tiles it may still fly
   damage: number;
   stun: number;
+  pierce: boolean; // flies on through ghosts (부적: 관통)
+  hit: number[]; // ghosts already hit (a piercing charm hits each once)
 }
 
 export interface Player extends Body {
@@ -116,6 +120,7 @@ export interface Player extends Body {
   darkness: number; // seconds of reduced vision
   hurtOnFloor: boolean; // took damage on this floor (숨 고르기)
   calmT: number; // seconds moving without attacking (질주)
+  hurtCarry: number; // fraction of a point of damage carried over (damageTaken)
   dodged: boolean; // the current dash already slipped past a hit (스치기)
 }
 
@@ -144,6 +149,23 @@ export interface Stats {
   dashCharges: number;
   hurtIframes: number;
   magnet: number; // spirit pickup pull radius (tiles)
+  // Added 2026-10-28 (training v2 / gear). All are fractions, 0 = no change; each is read in one place.
+  strongDamage: number; // combat.hitEnemy: strong ghosts take × (1 + this)
+  fodderDamage: number; // combat.hitEnemy: swarm wisps
+  bossDamage: number; // combat.hitEnemy: the boss and named targets (현상수배 / 추격)
+  critChance: number; // combat.hitEnemy: chance of a critical hit
+  critDamage: number; // combat.hitEnemy: a critical hit does × (1.5 + this)
+  attackMove: number; // player.ts: walking speed while swinging × (1 + this), up to normal speed
+  damageTaken: number; // combat.hurtPlayer: damage × (1 + this) (negative = less), fractions carried over
+  darkResist: number; // combat.hurtPlayer: the darkness after a hit is × (1 - this) as long
+  healMult: number; // cardEffects.heal: healing × (1 + this)
+  focusGain: number; // player.ts: focus per landed swing × (1 + this)
+  spiritGain: number; // step.ts: spirit picked up × (1 + this)
+  shardChance: number; // lair.ts: + this to the nest's shard chance
+  feeBonus: number; // store.applyRunResult: fees × (1 + this)
+  wardSpeed: number; // objectives/ward.ts: circles fill × (1 + this)
+  survivorHp: number; // objectives/index.ts: the rescued person's HP × (1 + this)
+  trainTime: number; // objectives/index.ts: 첫차까지 time × (1 + this) (negative = shorter)
 }
 
 export interface BossState {
@@ -181,6 +203,8 @@ export interface Floor {
   perks: PerkId[]; // passive skills + tonight's supply (registry/perkEffects.ts)
   used: PerkId[]; // once-a-night perks already spent (carried between floors)
   active: ActiveId | null; // the skill on L
+  upgrade: UpgradeId | null; // its 개조
+  gearRows: EffectRow[]; // 장신구 specials
   skillCd: number; // seconds until L works again
   zones: Zone[];
   shots: Shot[];
@@ -189,6 +213,7 @@ export interface Floor {
   time: number;
   loot: number;
   shards: number; // 심연 파편 earned on this floor (banked by the run)
+  drops: DropSource[]; // 장신구 that fell on this floor (rolled at settlement — systems/gear)
   bossShards: number; // paid when this floor's boss is purified
   status: FloorStatus;
   nextId: number;

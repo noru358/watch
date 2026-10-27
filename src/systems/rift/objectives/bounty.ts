@@ -33,6 +33,7 @@ export function updateBounty(f: Floor, o: Bounty): void {
   const e = f.enemies.find((x) => x.id === o.targetId);
   if (e && e.hp > 0) return;
   o.done = true;
+  f.drops.push('bounty'); // the named ghost leaves something behind (장신구, gear.data.ts DROPS)
   f.shards += o.shards;
   const at = e ?? f.player;
   f.events.push({ type: 'objectiveDone', x: at.x, y: at.y });

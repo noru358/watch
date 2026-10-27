@@ -33,7 +33,7 @@ export function setupLair(f: Floor, room: Room, pool: readonly GhostId[], rng: S
   for (let y = room.y; y < room.y + room.h; y++) {
     for (const x of [room.x - 1, room.x + room.w]) if (f.tiles[at(x, y)] === 'floor') doors.push(at(x, y));
   }
-  return { room, doors, locked: false, cleared: false, shard: rng.chance(L.shardChance) };
+  return { room, doors, locked: false, cleared: false, shard: rng.chance(L.shardChance + f.stats.shardChance) };
 }
 
 const inside = (r: Room, x: number, y: number, margin: number) => x >= r.x + margin && x <= r.x + r.w - margin && y >= r.y + margin && y <= r.y + r.h - margin;
@@ -55,6 +55,7 @@ export function updateLair(f: Floor): void {
   }
   if (pack.length > 0) return;
   l.cleared = true;
+  f.drops.push('lair');
   if (l.locked) {
     for (const i of l.doors) f.tiles[i] = 'floor';
     f.flowFrom = -1;

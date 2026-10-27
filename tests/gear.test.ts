@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { SeededRNG } from '../src/core/SeededRNG';
-import { GEAR_ECONOMY, GEAR_SLOTS, GEAR_SPECIALS, GRADES, SUB_OPTIONS } from '../src/data/draft/gear.data';
-import { TRAINING_V2, NEW_STATS } from '../src/data/draft/training.v2.data';
+import { GEAR_ECONOMY, GEAR_SLOTS, GEAR_SPECIALS, GRADES, SUB_OPTIONS } from '../src/data/gear.data';
 import { TRAINING } from '../src/data/training.data';
+import { computeExorcistStats } from '../src/systems/run';
+import { GameStore } from '../src/store/gameStore';
 import { dismantleValue, enhance, enhanceCost, fullEnhanceCost, itemMods, itemRows, mainMod, reroll, rerollCost, rollDrop, rollItem } from '../src/systems/gear';
 import { PARTS } from '../src/registry/effects';
 
-// 장신구 and 트레이닝 v2 (drafts, not wired).
-describe('장신구 draft', () => {
+// 장신구 and 트레이닝 v2 (docs/rules/growth.md).
+describe('장신구', () => {
   it('a piece has its slot’s main option and as many subs as its grade, no stat twice', () => {
     const rng = new SeededRNG(7);
     for (let i = 0; i < 300; i++) {
@@ -62,14 +63,43 @@ describe('장신구 draft', () => {
   });
 });
 
-describe('트레이닝 v2 draft', () => {
-  it('about twice the lines, finer steps; the top stays near today’s', () => {
-    const lines = Object.values(TRAINING_V2);
-    expect(lines.length).toBeGreaterThanOrEqual(Object.keys(TRAINING).length * 2);
-    const total = (stat: string) => lines.filter((l) => l.stat === stat).reduce((s, l) => s + l.per * l.max, 0);
+describe('장신구 in the office', () => {
+  it('wearing a piece changes the stats; one piece per slot; melting pays money', () => {
+    const rng = new SeededRNG(5);
+    const a = rollItem(rng, 'bracelet', 'rare', 1);
+    const b = rollItem(rng, 'bracelet', 'common', 2);
+    const store = new GameStore({ money: 0, gear: [a, b], nextGearId: 3 });
+    const base = computeExorcistStats('director', {}, [], 'newspaper_sword');
+    store.toggleWear(1);
+    expect(store.getState().equipped.bracelet).toBe(1);
+    const worn = store.startNight().loadout;
+    expect(worn.gear.length).toBeGreaterThan(0);
+    store.toggleWear(2);
+    expect(store.getState().equipped.bracelet).toBe(2);
+    const money = store.getState().money;
+    store.meltGear(1);
+    expect(store.getState().gear.map((x) => x.id)).toEqual([2]);
+    expect(store.getState().money).toBe(money + dismantleValue(a));
+    expect(base.slash).toBeGreaterThan(0);
+  });
+});
+
+describe('트레이닝 v2', () => {
+  it('every line changes real stats; the whole tree stays near v1 (damage +20 %, HP +4, move +10 %)', () => {
+    const base = computeExorcistStats('director', {}, [], 'newspaper_sword');
+    const lines = Object.values(TRAINING);
+    for (const l of lines) for (const st of l.stats) expect(base, st).toHaveProperty(st);
+    const total = (stat: string) => lines.filter((l) => l.stats.includes(stat as never)).reduce((n, l) => n + l.per * l.max, 0);
     expect(total('slash')).toBeCloseTo(0.2);
     expect(total('maxHp')).toBe(4);
     expect(total('moveSpeed')).toBeCloseTo(0.1);
-    for (const l of lines) if (!(l.stat in NEW_STATS)) expect(['slash', 'drawSlash', 'reach', 'comboBonus', 'swingTime', 'drawCooldown', 'finisherRecovery', 'moveSpeed', 'dashCooldown', 'dashSpeed', 'dashIframes', 'maxHp', 'parryWindow', 'hurtIframes', 'focusMax', 'bareTime', 'magnet']).toContain(l.stat);
+  });
+});
+
+describe('장신구 names', () => {
+  it('every stat a piece can roll has a name on the panel', async () => {
+    const { ko } = await import('../src/i18n/ko');
+    const stats = new Set([...SUB_OPTIONS.map((o) => o.stat), ...Object.values(GEAR_SLOTS).flatMap((s) => s.mains.map((m) => m.stat))]);
+    for (const st of stats) expect(ko, st).toHaveProperty(`stat.${st}`);
   });
 });

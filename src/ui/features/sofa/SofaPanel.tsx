@@ -38,7 +38,7 @@ export function SofaPanel() {
       </div>
       <div style={css.box}>
         {options.map((o, i) => (
-          <div key={o.key} style={{ ...rowStyle(i === cursor), opacity: o.can ? 1 : 0.5 }} onMouseEnter={() => setCursor(i)} onClick={() => pick(i)}>
+          <div key={o.key} style={{ ...rowStyle(i === cursor), opacity: o.can ? 1 : 0.5 }} data-cursor={i === cursor || undefined} onMouseEnter={() => setCursor(i)} onClick={() => pick(i)}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15 }}>{o.name}</div>
               <div style={{ fontSize: 12, color: '#c9bfe8' }}>{o.desc}</div>

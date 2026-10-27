@@ -1,7 +1,10 @@
 import { CARDS } from '../../data/cards.data';
 import type { FloorPlan } from '../../data/contracts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
-import type { ActiveId, CardId, PerkId, WeaponId } from '../../types/ids';
+import type { ActiveId, CardId, PerkId, UpgradeId, WeaponId } from '../../types/ids';
+import type { EffectRow } from '../../registry/effects';
+import type { GearMod } from '../gear';
+import type { DropSource } from '../../data/gear.data';
 import { EMPTY_LOADOUT, type Loadout } from '../growth';
 import { generateFloor, type Floor, type QuarryCarry } from '../rift';
 import { computeExorcistStats, type TrainingLevels } from './stats';
@@ -15,6 +18,7 @@ export interface RunResult {
   loot: number;
   fee: number;
   shards: number; // 심연 파편 earned tonight (the settlement decides what is kept)
+  drops: DropSource[]; // 장신구 that fell (none if the director fell)
   offers: number[]; // every offer taken tonight
   completed: number[]; // offers whose objective was finished (paid unless the director fell)
   reached: number[]; // offers whose objective floor was entered
@@ -45,6 +49,10 @@ export interface RunState {
   training: TrainingLevels;
   perks: PerkId[];
   active: ActiveId | null;
+  upgrade: UpgradeId | null;
+  gear: GearMod[];
+  gearRows: EffectRow[];
+  drops: DropSource[]; // 장신구 that fell tonight (lost if the director falls)
   cardOffer: number;
   used: PerkId[]; // once-a-night perks spent
   quarry: QuarryCarry | null; // 추격: the quarry between floors
@@ -60,7 +68,7 @@ export interface RunState {
 }
 
 export function runStats(run: RunState) {
-  return computeExorcistStats('director', run.training, run.cards, run.weapon, run.perks);
+  return computeExorcistStats('director', run.training, run.cards, run.weapon, run.perks, run.gear);
 }
 
 // Without planned goals: the first floor marked as a goal, else the last.
@@ -79,6 +87,10 @@ export function startRun(setup: RunSetup): RunState {
     training: { ...l.training },
     perks: [...l.perks],
     active: l.active,
+    upgrade: l.upgrade,
+    gear: [...l.gear],
+    gearRows: [...l.gearRows],
+    drops: [],
     cardOffer: l.cardOffer,
     used: [],
     quarry: null,
@@ -113,6 +125,8 @@ export function enterFloor(run: RunState, rng: SeededRNG): Floor {
     perks: run.perks,
     used: run.used,
     active: run.active,
+    upgrade: run.upgrade,
+    gearRows: run.gearRows,
     quarry: run.quarry,
     last: run.floorIndex === run.floors.length - 1,
   });
@@ -144,6 +158,8 @@ function bank(run: RunState, f: Floor): void {
   run.loot = f.loot;
   run.shards += f.shards;
   f.shards = 0;
+  run.drops.push(...f.drops);
+  f.drops = [];
   if (f.objective?.kind === 'chase') run.quarry = f.objective.quarry;
 }
 
@@ -207,6 +223,7 @@ export function runResult(run: RunState): RunResult {
     loot: run.loot,
     fee: run.outcome === 'died' ? 0 : feeSoFar(run),
     shards: run.shards,
+    drops: run.outcome === 'died' ? [] : [...run.drops],
     offers: run.goals.map((g) => g.offerId),
     completed: run.outcome === 'died' ? [] : [...run.completed],
     // A named target already caught does not count as one that got away, even if the night is lost later.

@@ -5,7 +5,7 @@ import { DEEP } from '../../data/objectives.data';
 import { EXORCISTS } from '../../data/protagonist.data';
 import type { FloorPlan } from '../../data/contracts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
-import type { ActiveId, CardId, PerkId, WeaponId } from '../../types/ids';
+import type { ActiveId, UpgradeId, CardId, PerkId, WeaponId } from '../../types/ids';
 import { runHooks } from './hooks';
 import { makeEnemy } from './enemyFactory';
 import { setupLair } from './lair';
@@ -14,6 +14,7 @@ import { setupObjective, type QuarryCarry } from './objectives';
 import { assignRoles, bigRoom, centre, distances, randomRooms, roomTile, type Room } from './layout';
 import { isFloor } from './physics';
 import type { Floor, Pos, Stats, Tile } from './types';
+import type { EffectRow } from '../../registry/effects';
 
 export { isFloor };
 export { makeEnemy };
@@ -28,6 +29,8 @@ export interface FloorCarry {
   perks: PerkId[];
   used: PerkId[];
   active: ActiveId | null;
+  upgrade?: UpgradeId | null; // the active's chosen 개조
+  gearRows?: readonly EffectRow[]; // 장신구 specials (효과 부품 rows)
   quarry?: QuarryCarry | null; // 추격: the quarry as it left the previous floor
   last?: boolean; // this is the contract's last floor
 }
@@ -82,6 +85,7 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
       darkness: 0,
       hurtOnFloor: false,
       calmT: 0,
+      hurtCarry: 0,
       dodged: false,
     },
     enemies: [],
@@ -95,6 +99,8 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
     perks: [...carry.perks],
     used: [...carry.used],
     active: carry.active,
+    upgrade: carry.upgrade ?? null,
+    gearRows: [...(carry.gearRows ?? [])],
     skillCd: 0,
     zones: [],
     shots: [],
@@ -103,6 +109,7 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
     time: 0,
     loot: carry.loot,
     shards: 0,
+    drops: [],
     bossShards: plan.kind === 'boss' ? (plan.shards ?? 0) : 0,
     status: 'playing',
     nextId: 1,
@@ -173,7 +180,10 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
   const value = (v: number) => Math.round(v * (1 + DEEP.lootPerFloor * deep) * f.mods.pickupMult);
   for (let i = 0; i < DUNGEON.spiritPickupsPerFloor; i++) f.pickups.push({ ...free(rooms), value: value(DUNGEON.spiritPickupValue) });
   if (treasure) for (let i = 0; i < DUNGEON.treasurePickups; i++) f.pickups.push({ ...free([treasure]), value: value(DUNGEON.treasureValue) });
-  if (treasure && deep > 0 && carry.last) for (let i = 0; i < DEEP.shardOnLast; i++) f.pickups.push({ ...free([treasure]), value: 0, shard: true });
+  if (treasure && deep > 0 && carry.last) {
+    for (let i = 0; i < DEEP.shardOnLast; i++) f.pickups.push({ ...free([treasure]), value: 0, shard: true });
+    f.drops.push('deep'); // the deep treasure room (rolled at settlement; may come up empty)
+  }
   if (lairRoom) f.lair = setupLair(f, lairRoom, plan.pool, rng);
   const vision = mods.map((m) => MODIFIERS[m].vision).find((v) => v !== undefined);
   if (vision !== undefined) f.vision = vision;

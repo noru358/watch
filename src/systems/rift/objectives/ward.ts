@@ -19,7 +19,7 @@ export function updateWard(f: Floor, o: Ward, dt: number): void {
     if (s.progress >= 1) continue;
     if (dist(s, f.player) <= W.radius) {
       o.charging = true;
-      s.progress = Math.min(1, s.progress + dt / W.fillTime);
+      s.progress = Math.min(1, s.progress + (dt * (1 + f.stats.wardSpeed)) / W.fillTime);
       if (s.progress >= 1) f.events.push({ type: 'wardSealed', x: s.x, y: s.y });
     } else s.progress = Math.max(0, s.progress - W.drainPerSecond * dt);
   }

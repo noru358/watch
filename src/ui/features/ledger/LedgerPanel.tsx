@@ -89,7 +89,7 @@ function Facilities() {
         const needRank = facilityRankNeeded(s, id);
         const locked = needRank !== null && needRank > s.rankReached;
         return (
-          <div key={id} style={rowStyle(i === cursor)} onMouseEnter={() => setCursor(i)} onClick={() => build(i)}>
+          <div key={id} style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseEnter={() => setCursor(i)} onClick={() => build(i)}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15 }}>{t(f.nameKey)} <span style={{ fontSize: 12, color: '#c9bfe8' }}>{level > 0 ? t('facility.level', { level }) : t('facility.none')}</span></div>
               <div style={{ fontSize: 12, color: '#c9bfe8' }}>{next ? `→ ${t(next)}` : t('facility.done')}</div>

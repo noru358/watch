@@ -9,4 +9,5 @@ export const zone: PartFn<'zone'> = (ctx, p) => {
   if (p.spacing && s.lastZone && Math.hypot(s.lastZone.x - pl.x, s.lastZone.y - pl.y) < p.spacing) return;
   s.lastZone = { x: pl.x, y: pl.y };
   f.zones.push({ kind: p.kind, x: pl.x, y: pl.y, r: p.radius, t: p.sec });
+  if (p.kind === 'barrier') pl.iframes = Math.max(pl.iframes, p.sec); // nothing hurts inside the barrier
 };

@@ -1,4 +1,4 @@
-import type { EnemyId, Phase } from './ids';
+import type { ActiveId, EnemyId, Phase } from './ids';
 
 // Presentation-only events (ARCHITECTURE Rule 3). Removing any listener must
 // never change game state. The rift simulation emits x/y in TILE coordinates;
@@ -27,7 +27,7 @@ export interface GameEventMap {
   lairLocked: { x: number; y: number }; // 괴이 소굴: the doors sealed (the map redraws)
   lairOpened: { x: number; y: number };
   shardCollected: { x: number; y: number };
-  skillUsed: { x: number; y: number; skill: 'talisman' | 'barrier' | 'salt_burst' };
+  skillUsed: { x: number; y: number; skill: ActiveId };
   shotHit: { x: number; y: number };
   roomCleared: { boss: boolean };
   darkness: { duration: number };

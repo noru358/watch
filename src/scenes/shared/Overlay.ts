@@ -3,6 +3,8 @@ import { PALETTE, SCREEN } from '../../data/feel.data';
 import { t } from '../../i18n';
 import { crisp } from './text';
 import type { RunResult, Settlement } from '../../systems/run';
+import type { GearItem } from '../../systems/gear';
+import { GEAR_SLOTS, GRADES } from '../../data/gear.data';
 
 const W = SCREEN.width;
 const H = SCREEN.height;
@@ -68,7 +70,7 @@ export class Overlay {
     this.cards.forEach((c, i) => c.setStrokeStyle(i === index ? 4 : 2, i === index ? PALETTE.panelBorder : PALETTE.wall));
   }
 
-  showEnd(result: RunResult, s: Settlement & { clue?: { have: number; need: number } | null; completed?: number; reputation?: number }): void {
+  showEnd(result: RunResult, s: Settlement & { clue?: { have: number; need: number } | null; completed?: number; reputation?: number; gear?: readonly GearItem[]; gearMelted?: number }): void {
     this.reset();
     const title = t(`end.${result.outcome}`);
     const lines = [
@@ -80,6 +82,8 @@ export class Overlay {
     if (s.traumaDelta > 0) lines.push(`${t('result.trauma')}  +${s.traumaDelta}`);
     if (s.shards > 0) lines.push(t('result.shards', { shards: s.shards }));
     if (s.reputation) lines.push(t('result.reputation', { delta: s.reputation > 0 ? `+${s.reputation}` : `${s.reputation}` }));
+    for (const g of s.gear ?? []) lines.push(t('result.gear', { grade: t(GRADES[g.grade].nameKey), name: t(GEAR_SLOTS[g.slot].nameKey) }));
+    if (s.gearMelted) lines.push(t('result.gearMelted', { value: s.gearMelted }));
     if (s.clue) lines.push(t('result.clue', { have: s.clue.have, need: s.clue.need }));
     this.layer.add(crispText(this.scene, W / 2, 150, title, { ...TEXT, fontSize: '36px' }).setOrigin(0.5));
     this.layer.add(crispText(this.scene, W / 2, 270, lines.join('\n'), { ...TEXT, fontSize: '20px', align: 'center', lineSpacing: 10 }).setOrigin(0.5));

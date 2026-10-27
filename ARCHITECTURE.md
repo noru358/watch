@@ -71,7 +71,7 @@ src/
  ├── i18n/        # ko.ts (source of keys), en.ts, t() helper
  ├── data/        # Static typed tables: protagonist, weapons, cards, ghosts, dungeon, contracts,
  │                #   penalties (+ trauma), feel (night presentation), hubLook (day presentation), titleLook, objectives (per-objective numbers + how each shapes a general contract), modifiers (현장 변형), training, skills, facilities (+ supplies), story (scenes, speakers, chatter), settings (volume steps), sfx, input, save, sprites (sprite anim tables), lobby (hub layout + feature registry), office (rent, board, contamination numbers), nodes (operations map), requests (general-contract story frames); later recruit, shop
- ├── registry/    # Behaviour by ID on fixed hook points (hookPoints.ts): cardEffects.ts (upgrade cards), perkEffects.ts (passive skills, supplies); later companion skills
+ ├── registry/    # Behaviour by ID on fixed hook points (hookPoints.ts): cardEffects.ts (upgrade cards), effects/ (effect parts: skills, gear specials and supplies are data rows of when + if → part + numbers); later companion skills
  ├── store/       # GameStore (single source of truth) + actions
  ├── systems/     # Pure gameplay logic, no Phaser/React — one folder per module:
  │                #   rift/ (one floor: layout = rooms + roles, mapgen = what stands in them, objectives/ = one file per floor objective, lair = 괴이 소굴, skills = actives on L, tile physics, player, enemies, boss, swarm spawner, telegraphs), run/ (a night: floors, cards, stats, settlement), hub/ (walking, who is in reach, what is unlocked), story/ (which scene plays next), growth/ (training, skills, facilities, supplies, trauma; `loadoutOf` = what a night takes from the office),

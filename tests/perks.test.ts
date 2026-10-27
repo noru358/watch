@@ -5,7 +5,7 @@ import { ACTIVES, PASSIVES } from '../src/data/skills.data';
 import { SUPPLIES } from '../src/data/facilities.data';
 import { WEAPONS } from '../src/data/weapons.data';
 import { makeEnemy, NO_INPUT, stepFloor, type Floor, type RiftInput } from '../src/systems/rift';
-import { DT, duel } from './helpers';
+import { DT, duel, param } from './helpers';
 
 // Every passive skill, active skill and supply actually does what its card says (2026-10-27 check).
 const W = WEAPONS.newspaper_sword;
@@ -50,14 +50,14 @@ describe('passives: 검', () => {
       Object.assign(behind, { x: 9, y: 10.5, knockX: 0, knockY: 0 });
       run(f, rng, W.swingTime);
     }
-    expect(behind.hp).toBe(GHOSTS.dalgyal.hp - (W.slash + W.comboBonus) * PASSIVES.finisher_wave.amount);
+    expect(behind.hp).toBe(GHOSTS.dalgyal.hp - (W.slash + W.comboBonus) * param(PASSIVES.finisher_wave.rows, 'mult'));
   });
 
   it('받아친 기세 adds focus on a counter', () => {
     const { f, rng } = duel('dalgyal', 1.2, [], { perks: ['counter_focus'] });
     counterOnce(f, rng);
     expect(f.player.drawKind).toBe('counter');
-    expect(f.player.focus).toBe(PASSIVES.counter_focus.amount);
+    expect(f.player.focus).toBe(param(PASSIVES.counter_focus.rows, 'amount'));
   });
 
   it('칼집 소리: a plain 발도 freezes what it cuts', () => {
@@ -74,7 +74,7 @@ describe('passives: 검', () => {
     f.player.focus = f.stats.focusMax;
     stepFloor(f, { ...NO_INPUT, draw: true }, DT, rng);
     expect(f.player.drawKind).toBe('strike');
-    expect(f.player.focus).toBe(PASSIVES.strike_refund.amount);
+    expect(f.player.focus).toBe(param(PASSIVES.strike_refund.rows, 'amount'));
   });
 
   it('벗겨진 신문 keeps the blade bare longer while it keeps hitting', () => {
@@ -118,7 +118,7 @@ describe('passives: 발', () => {
     for (let i = 0; i < 600 && !e.teles.some((t) => t.t <= 0.05); i++) stepFloor(f, NO_INPUT, DT, rng);
     stepFloor(f, { ...NO_INPUT, dash: true, moveY: 0.01, moveX: 0 }, DT, rng);
     run(f, rng, 0.1);
-    expect(f.player.focus).toBe(PASSIVES.dodge_focus.amount);
+    expect(f.player.focus).toBe(param(PASSIVES.dodge_focus.rows, 'amount'));
   });
 
   it('질주: after a second of running without attacking, the director is faster', () => {
@@ -147,7 +147,7 @@ describe('passives: 눈', () => {
     Object.assign(f.player, { x: f.stairs!.x, y: f.stairs!.y });
     stepFloor(f, NO_INPUT, DT, rng);
     expect(f.status).toBe('stairs');
-    expect(f.player.hp).toBe(5 + PASSIVES.steady_breath.amount);
+    expect(f.player.hp).toBe(5 + param(PASSIVES.steady_breath.rows, 'amount'));
   });
 
   it('원한 먹기 heals on a strong kill (not on wisps)', () => {
@@ -164,7 +164,7 @@ describe('passives: 눈', () => {
     freeze(e);
     e.hp = 1;
     stepFloor(f, { ...NO_INPUT, attack: true, aim: 0 }, DT, rng);
-    expect(f.pickups.map((k) => k.value)).toEqual(expect.arrayContaining([GHOSTS.dalgyal.drop, PASSIVES.greed.amount]));
+    expect(f.pickups.map((k) => k.value)).toEqual(expect.arrayContaining([GHOSTS.dalgyal.drop, param(PASSIVES.greed.rows, 'amount')]));
   });
 });
 
@@ -172,7 +172,7 @@ describe('actives and supplies', () => {
   it('결계 펴기: untouchable for its time and wisps in the circle burn', () => {
     const { f, rng } = duel('dalgyal', 6, [], { active: 'barrier' });
     run(f, rng, DT, { skill: true });
-    expect(f.player.iframes).toBeGreaterThanOrEqual(ACTIVES.barrier.time - DT * 2);
+    expect(f.player.iframes).toBeGreaterThanOrEqual(param(ACTIVES.barrier.rows, 'sec') - DT * 2);
     const wisp = makeEnemy(f, 'dokkaebibul', { x: f.player.x + 1, y: f.player.y });
     stepFloor(f, NO_INPUT, DT, rng);
     expect(wisp.hp).toBeLessThanOrEqual(0);
@@ -180,6 +180,6 @@ describe('actives and supplies', () => {
 
   it('소금 한 봉: two blocked hits on the first floor', () => {
     const { f } = duel('dalgyal', 4, [], { perks: ['salt_pack'] });
-    expect(f.player.shield).toBe(SUPPLIES.salt_pack.amount);
+    expect(f.player.shield).toBe(param(SUPPLIES.salt_pack.rows, 'amount'));
   });
 });

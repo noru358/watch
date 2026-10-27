@@ -1,13 +1,15 @@
 import { SAVE_VERSION, type SaveData } from '../core/SaveManager';
 import { SeededRNG } from '../core/SeededRNG';
-import type { ActiveId, ChapterId, ContractId, FacilityId, NodeId, Phase, SceneId, SkillSlotId, SupplyId, TrainingId } from '../types/ids';
+import type { ActiveId, ChapterId, ContractId, FacilityId, NodeId, Phase, SceneId, SkillSlotId, SupplyId, TrainingId, UpgradeId } from '../types/ids';
+import { rollDrop, type GearItem, type GearSlot } from '../systems/gear';
 import type { TrainingLevels } from '../systems/run';
 import * as growth from '../systems/growth';
-import { settleRun, type RunGoal, type RunResult, type Settlement } from '../systems/run';
+import { computeExorcistStats, settleRun, type RunGoal, type RunResult, type Settlement } from '../systems/run';
 import {
   advanceDay,
   morningSeed,
   canJoin,
+  offerDifficulty,
   planNight,
   refillBoard,
   resolveNight,
@@ -51,9 +53,13 @@ export interface GameState {
   trainingBought: number;
   facilities: Record<FacilityId, number>;
   supply: SupplyId | null;
-  passives: Partial<Record<SkillSlotId, 'a' | 'b'>>;
+  passives: Partial<Record<SkillSlotId, number>>; // side index per opened slot (save v7)
   actives: ActiveId[];
   active: ActiveId | null;
+  upgrades: Partial<Record<ActiveId, UpgradeId>>; // 개조 (save v7)
+  gear: GearItem[]; // 장신구 bag (save v7)
+  equipped: Partial<Record<GearSlot, number>>;
+  nextGearId: number;
   wanted: WantedTarget[]; // named bounties that got away
   chapters: Partial<Record<ChapterId, ChapterState>>; // 메인 스토리 장 (save v5)
   reputation: number; // 평판 (save v6)
@@ -64,6 +70,9 @@ export interface GameState {
   lastRun: LastRun | null;
   lastMorning: MorningReport | null;
 }
+
+// What the end-of-night panel shows.
+export type NightSettlement = Settlement & { clue: NightResolution['clue']; completed: number; reputation: number; gear: GearItem[]; gearMelted: number };
 
 // What a night needs from the chosen offer.
 export interface NightPlan {
@@ -90,6 +99,10 @@ const growthOf = (s: GameState): growth.GrowthState => ({
   passives: { ...s.passives },
   actives: [...s.actives],
   active: s.active,
+  upgrades: { ...s.upgrades },
+  gear: s.gear.map((x) => ({ ...x, subs: x.subs.map((m) => ({ ...m })) })),
+  equipped: { ...s.equipped },
+  nextGearId: s.nextGearId,
   rank: s.rankReached,
 });
 
@@ -145,6 +158,10 @@ export class GameStore {
       passives: {},
       actives: [],
       active: null,
+      upgrades: {},
+      gear: [],
+      equipped: {},
+      nextGearId: 1,
       wanted: [],
       chapters: {},
       reputation: 0,
@@ -210,6 +227,10 @@ export class GameStore {
       passives: { ...s.passives },
       actives: [...s.actives],
       active: s.active,
+      upgrades: { ...s.upgrades },
+      gear: s.gear.map((x) => ({ ...x, subs: x.subs.map((m) => ({ ...m })) })),
+      equipped: { ...s.equipped },
+      nextGearId: s.nextGearId,
       wanted: s.wanted.map((w) => ({ ...w, name: [...w.name] as [number, number] })),
       chapters: { ...s.chapters },
       reputation: s.reputation,
@@ -223,7 +244,8 @@ export class GameStore {
     const g = growthOf(this.state);
     const ok = fn(g);
     if (!ok) return false;
-    this.set({ ...g });
+    const { rank: _rank, ...rest } = g;
+    this.set(rest);
     return true;
   }
 
@@ -235,7 +257,7 @@ export class GameStore {
     return this.grow((g) => growth.openSlot(g, slot));
   }
 
-  setSkillSide(slot: SkillSlotId, side: 'a' | 'b'): void {
+  setSkillSide(slot: SkillSlotId, side: number): void {
     this.grow((g) => (growth.setSlotSide(g, slot, side), true));
   }
 
@@ -245,6 +267,27 @@ export class GameStore {
 
   equipActive(id: ActiveId): void {
     this.grow((g) => (growth.equipActive(g, id), true));
+  }
+
+  chooseUpgrade(id: UpgradeId): boolean {
+    return this.grow((g) => growth.chooseUpgrade(g, id));
+  }
+
+  // ---- 장신구 ----
+  toggleWear(id: number): boolean {
+    return this.grow((g) => growth.toggleWear(g, id));
+  }
+
+  enhanceGear(id: number): boolean {
+    return this.grow((g) => growth.enhanceGear(g, id) > 0);
+  }
+
+  rerollGear(id: number, sub: number): boolean {
+    return this.grow((g) => growth.rerollGear(g, id, sub, this.state.seedBase ^ this.state.runCounter));
+  }
+
+  meltGear(id: number): boolean {
+    return this.grow((g) => growth.meltGear(g, id) > 0);
   }
 
   // A bigger 경리 책상 shows at once: the extra offer is posted now, not next morning.
@@ -349,14 +392,28 @@ export class GameStore {
   }
 
   // Night over: settle the contract (and its bundle), pay out, then it is the next morning.
-  applyRunResult(result: RunResult): Settlement & { clue: NightResolution['clue']; completed: number; reputation: number } {
+  applyRunResult(result: RunResult): NightSettlement {
+    const taken = result.offers.map((id) => this.state.board.find((x) => x.id === id)).filter((x): x is ContractOffer => !!x);
+    const difficulty = Math.max(1, ...taken.map(offerDifficulty));
     const o = office(this.state);
     const night = resolveNight(o, { offers: result.offers, completed: result.completed, reached: result.reached, outcome: result.outcome });
-    const settlement = settleRun({ ...result, fee: night.fee }, this.state.money);
-    o.money = this.state.money + settlement.moneyDelta;
+    // 수임료 (training / gear feeBonus) — the one place it is applied.
+    const loadout = growth.loadoutOf(growthOf(this.state));
+    const feeBonus = computeExorcistStats('director', loadout.training, [], 'newspaper_sword', loadout.perks, loadout.gear).feeBonus;
+    const settlement = settleRun({ ...result, fee: Math.round(night.fee * (1 + feeBonus)) }, this.state.money);
+    // 장신구 that fell tonight are rolled now (seeded by the save and the day: a reload replays it).
+    const g = growthOf(this.state);
+    g.money = this.state.money + settlement.moneyDelta;
+    const rng = new SeededRNG(morningSeed(this.state.seedBase, o.day) ^ 0x6ea4);
+    let nextGearId = this.state.nextGearId;
+    const rolled = result.drops.map((src) => rollDrop(rng, src, difficulty, nextGearId++)).filter((x): x is GearItem => !!x);
+    const stowed = growth.stowDrops(g, rolled);
+    o.money = g.money;
     const morning = advanceDay(o, new SeededRNG(morningSeed(this.state.seedBase, o.day + 1)));
     this.set({
       ...o,
+      gear: g.gear,
+      nextGearId,
       trauma: this.state.trauma + settlement.traumaDelta,
       shards: this.state.shards + settlement.shards,
       solved: this.state.solved + night.completed.length,
@@ -365,6 +422,6 @@ export class GameStore {
       lastRun: { result, settlement, completed: night.completed.length, clue: night.clue },
       lastMorning: { ...morning, rankUp: night.rankUp },
     });
-    return { ...settlement, clue: night.clue, completed: night.completed.length, reputation: night.reputation };
+    return { ...settlement, clue: night.clue, completed: night.completed.length, reputation: night.reputation, gear: stowed.kept, gearMelted: stowed.melted };
   }
 }

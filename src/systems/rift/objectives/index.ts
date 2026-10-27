@@ -37,8 +37,11 @@ export function setupObjective(f: Floor, plan: Extract<FloorPlan, { kind: 'norma
       return null;
     case 'clear':
       return { kind: 'clear', done: false };
-    case 'rescue':
-      return setupRescue(at.quiet());
+    case 'rescue': {
+      const o = setupRescue(at.quiet());
+      o.survivor.maxHp = o.survivor.hp = Math.round(o.survivor.maxHp * (1 + f.stats.survivorHp));
+      return o;
+    }
     case 'bounty':
       return setupBounty(f, brief, at.quiet());
     case 'chase':
@@ -46,7 +49,7 @@ export function setupObjective(f: Floor, plan: Extract<FloorPlan, { kind: 'norma
     case 'ward':
       return setupWard(at.apart(OBJECTIVES.ward.sites, OBJECTIVES.ward.minApart));
     case 'firsttrain':
-      return setupFirstTrain(brief.time, plan.pool);
+      return setupFirstTrain(brief.time * (1 + f.stats.trainTime), plan.pool);
   }
 }
 

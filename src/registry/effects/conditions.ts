@@ -25,6 +25,7 @@ export function holds(c: Cond, ctx: EffectCtx, onceKey: string): boolean {
   if ('unhurt' in c) return !p.hurtOnFloor;
   if ('stacks' in c) return (s.stacks.get(c.stacks.key)?.n ?? 0) >= c.stacks.atLeast;
   if ('marked' in c) return !!enemy && s.marks.get(enemy.id)?.source === ctx.source;
+  if ('firstFloor' in c) return f.index === 0;
   if ('once' in c) {
     if (c.once === 'night') {
       // Night-long "once" uses the floor's carried list (the run banks it between floors).

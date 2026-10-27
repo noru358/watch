@@ -27,7 +27,7 @@ function swing(f: Floor, rng: SeededRNG): void {
     hitEnemy(f, e, 'slash', damage, heavy, dirOf(a), rng);
     landed = true;
   }
-  if (landed) p.focus = Math.min(s.focusMax, p.focus + 1);
+  if (landed) p.focus = Math.min(s.focusMax, p.focus + 1 + s.focusGain);
   runHooks(f, 'onSwing', { heavy, damage, rng });
   p.swingT = heavy ? s.finisherRecovery : s.swingTime;
   p.comboT = p.swingT + w.comboWindow;
@@ -173,11 +173,12 @@ export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: Seeded
     const len = Math.hypot(input.moveX, input.moveY);
     p.moving = len > 0;
     const move = { mult: 1, moving: p.moving, attacking: input.attack || input.draw, dt };
+    p.calmT = p.moving && !move.attacking ? p.calmT + dt : 0; // 질주 (calm condition)
     runHooks(f, 'onMove', move);
     if (len > 0) {
       const slowed = p.swingFx < d.swingSlowTime;
       const carrying = survivorOf(f)?.state === 'following';
-      const speed = s.moveSpeed * move.mult * (slowed ? d.swingMoveMult : 1) * (carrying ? OBJECTIVES.rescue.carryMoveMult : 1);
+      const speed = s.moveSpeed * move.mult * (slowed ? Math.min(1, d.swingMoveMult * (1 + s.attackMove)) : 1) * (carrying ? OBJECTIVES.rescue.carryMoveMult : 1);
       moveBody(f, p, (input.moveX / len) * speed * dt, (input.moveY / len) * speed * dt, d.cornerNudge);
     }
   }

@@ -34,27 +34,29 @@ export type HubSpotId = 'door' | 'bookkeeper' | 'directorDesk' | 'sofa' | 'bench
 export type HubPropId = 'bookkeeperDesk' | 'directorDesk' | 'sofa' | 'cabinet' | 'plant' | 'water' | 'bench'; // office furniture (solid)
 
 // Growth (docs/design/3-growth/progression.md, numbers in docs/rules/growth.md)
-export type TrainingGroup = 'power' | 'hands' | 'feet' | 'nerve' | 'focus' | 'knack';
-export type TrainingId =
-  | 'power_slash' | 'power_draw' | 'power_reach'
-  | 'hands_swing' | 'hands_drawcd' | 'hands_finisher'
-  | 'feet_move' | 'feet_dashcd' | 'feet_dashlen'
-  | 'nerve_hp' | 'nerve_parry' | 'nerve_iframes'
-  | 'focus_gauge' | 'focus_bare'
-  | 'knack_magnet';
+export type TrainingGroup = 'power' | 'hands' | 'feet' | 'nerve' | 'focus' | 'eye' | 'knack' | 'trade';
+export type TrainingId = 'slash' | 'draw' | 'reach' | 'finisher' | 'strong' | 'fodder' | 'boss' | 'swing' | 'drawcd' | 'recover' | 'attackMove' | 'move' | 'dashcd' | 'dashlen' | 'dashguard' | 'hp' | 'parry' | 'iframes' | 'guard' | 'dark' | 'heal' | 'gauge' | 'bare' | 'focusGain' | 'crit' | 'critDmg' | 'magnet' | 'spirit' | 'shard' | 'fee' | 'ward' | 'survivor' | 'train';
 export type FacilityId = 'desk' | 'bench' | 'sofa';
 export type SupplyId = 'salt_pack' | 'bacchus' | 'map_copy'; // 보급품 (one per night, from the 부적 작업대)
-export type SkillBranch = 'blade' | 'step' | 'eye';
-export type SkillSlotId = `${SkillBranch}${1 | 2 | 3}`; // 기술 칸: branch × tier, each with an A and a B side
+export type SkillBranch = 'blade' | 'step' | 'eye' | 'craft';
+// 기술 칸: branch × tier; each slot has 2–4 sides and one is on (skills.data.ts SKILL_SLOTS).
+export type SkillSlotId = `${'blade' | 'step' | 'eye'}${1 | 2 | 3 | 4}` | `craft${1 | 2}`;
 export type PassiveId =
   | 'dash_cut' | 'finisher_wave'
   | 'counter_focus' | 'draw_stun'
   | 'strike_refund' | 'bare_extend'
+  | 'final_blow' | 'momentum' | 'curse_cut'
   | 'salt_trail' | 'counter_dash'
   | 'double_dash' | 'shadow_step'
   | 'dodge_focus' | 'sprint'
+  | 'frost_salt' | 'edge_dash' | 'iron_body'
   | 'ghost_eye' | 'spirit_eye'
   | 'steady_breath' | 'grudge_eater'
-  | 'last_breath' | 'greed';
-export type ActiveId = 'talisman' | 'barrier' | 'salt_burst'; // 액티브 기술 (L key)
-export type PerkId = PassiveId | SupplyId; // what a night carries besides cards (registry/perkEffects.ts)
+  | 'last_breath' | 'greed'
+  | 'cliff_edge' | 'vengeance' | 'grudge_pop' | 'pickpocket'
+  | 'door_magnet' | 'shortcut_nose'
+  | 'ward_hands' | 'escort_care' | 'early_bird';
+export type ActiveId = 'talisman' | 'barrier' | 'salt_burst' | 'shadow_double' | 'spirit_burst' | 'shrink_step' | 'chain_charm' | 'smoke' | 'momentum_release' | 'grudge_chain'; // 액티브 기술 (L key)
+export type UpgradeId = 'talisman_pierce' | 'talisman_triple' | 'talisman_quick' | 'barrier_wide' | 'barrier_heal' | 'barrier_blast' | 'salt_frost' | 'salt_wide' | 'salt_focus'; // 액티브 개조
+export type DuoId = 'duo_salt_frost_trail' | 'duo_momentum_echo' | 'duo_curse_pop'; // on when both of its passives are on
+export type PerkId = PassiveId | DuoId | SupplyId; // what a night carries besides cards: rows of 효과 부품 (registry/effects)

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { migrate, SAVE_VERSION } from '../src/core/SaveManager';
 import { ACTIVES } from '../src/data/skills.data';
-import { TRAINING } from '../src/data/training.data';
+import { TRAINING, TRAINING_PRICE } from '../src/data/training.data';
 import { TRAUMA } from '../src/data/penalties.data';
 import { WEAPONS } from '../src/data/weapons.data';
 import { EXORCISTS } from '../src/data/protagonist.data';
@@ -26,11 +26,11 @@ import { makeEnemy, NO_INPUT, stepFloor, type Floor, type RiftInput } from '../s
 import { computeExorcistStats } from '../src/systems/run';
 import { GameStore } from '../src/store/gameStore';
 import type { TrainingId } from '../src/types/ids';
-import { DT, duel } from './helpers';
+import { DT, duel, param } from './helpers';
 import type { SeededRNG } from '../src/core/SeededRNG';
 
 const g0 = (patch: Partial<GrowthState> = {}): GrowthState => ({
-  money: 0, trauma: 0, shards: 0, training: {}, trainingBought: 0, facilities: { ...NO_FACILITIES }, supply: null, passives: {}, actives: [], active: null, rank: 4, ...patch,
+  money: 0, trauma: 0, shards: 0, training: {}, trainingBought: 0, facilities: { ...NO_FACILITIES }, supply: null, passives: {}, actives: [], active: null, upgrades: {}, gear: [], equipped: {}, nextGearId: 1, rank: 4, ...patch,
 });
 const ALL = Object.keys(TRAINING) as TrainingId[];
 const maxed = Object.fromEntries(ALL.map((id) => [id, TRAINING[id].max]));
@@ -41,21 +41,21 @@ const run = (f: Floor, rng: SeededRNG, seconds: number, input: Partial<RiftInput
 describe('트레이닝', () => {
   it('prices rise with ranks in the line and with everything bought', () => {
     const g = g0({ money: 100000 });
-    const first = trainingPrice(g, 'power_slash')!;
-    expect(first).toBe(TRAINING.power_slash.cost);
-    expect(buyTraining(g, 'power_slash')).toBe(first);
-    expect(trainingPrice(g, 'power_slash')).toBe(Math.round((TRAINING.power_slash.cost * 2 * 1.02) / 10) * 10);
-    expect(trainingPrice(g, 'feet_move')).toBe(Math.round((TRAINING.feet_move.cost * 1.02) / 10) * 10);
+    const first = trainingPrice(g, 'slash')!;
+    expect(first).toBe(TRAINING.slash.cost);
+    expect(buyTraining(g, 'slash')).toBe(first);
+    expect(trainingPrice(g, 'slash')).toBe(Math.round((TRAINING.slash.cost * 2 * (1 + TRAINING_PRICE.inflation)) / 10) * 10);
+    expect(trainingPrice(g, 'move')).toBe(Math.round((TRAINING.move.cost * (1 + TRAINING_PRICE.inflation)) / 10) * 10);
   });
 
   it('stops at the line maximum and needs the money', () => {
     const g = g0({ money: 100000 });
-    for (let i = 0; i < 10; i++) buyTraining(g, 'focus_gauge');
-    expect(g.training.focus_gauge).toBe(1);
-    expect(trainingPrice(g, 'focus_gauge')).toBeNull();
+    for (let i = 0; i < 10; i++) buyTraining(g, 'gauge');
+    expect(g.training.gauge).toBe(1);
+    expect(trainingPrice(g, 'gauge')).toBeNull();
     const poor = g0({ money: 10 });
-    expect(buyTraining(poor, 'power_slash')).toBe(0);
-    expect(poor.training.power_slash ?? 0).toBe(0);
+    expect(buyTraining(poor, 'slash')).toBe(0);
+    expect(poor.training.slash ?? 0).toBe(0);
   });
 
   it('everything maxed stays a modest gain (about +20 % damage, +33 % HP, +10 % speed)', () => {
@@ -78,10 +78,10 @@ describe('트레이닝', () => {
   it('the whole tree costs weeks, not days (total price band)', () => {
     const g = g0({ money: 1e9 });
     let total = 0;
-    for (let round = 0; round < 6; round++) for (const id of ALL) total += buyTraining(g, id);
+    for (let round = 0; round < 10; round++) for (const id of ALL) total += buyTraining(g, id);
     expect(g.trainingBought).toBe(ALL.reduce((n, id) => n + TRAINING[id].max, 0));
-    expect(total).toBeGreaterThan(30000);
-    expect(total).toBeLessThan(70000);
+    expect(total).toBeGreaterThan(70000);
+    expect(total).toBeLessThan(130000);
   });
 });
 
@@ -92,7 +92,7 @@ describe('기술', () => {
     expect(openSlot(g, 'blade1')).toBe(true);
     expect(g.shards).toBe(9);
     expect(activePassives(g)).toEqual(['dash_cut']);
-    setSlotSide(g, 'blade1', 'b');
+    setSlotSide(g, 'blade1', 1);
     expect(activePassives(g)).toEqual(['finisher_wave']);
     expect(g.shards).toBe(9);
     expect(openSlot(g, 'blade2')).toBe(true);
@@ -130,8 +130,8 @@ describe('perks in the night', () => {
     const { f, rng, e } = duel('dalgyal', 1.0, [], { perks: ['last_breath'] });
     f.player.hp = 1;
     e.state = 'chase';
-    for (let i = 0; i < 400 && !f.used.includes('last_breath'); i++) run(f, rng, DT);
-    expect(f.used).toContain('last_breath');
+    for (let i = 0; i < 400 && !f.used.some((u) => u.startsWith('last_breath')); i++) run(f, rng, DT);
+    expect(f.used.some((u) => u.startsWith('last_breath'))).toBe(true);
     expect(f.player.hp).toBe(1);
     expect(f.status).toBe('playing');
     run(f, rng, 6);
@@ -143,7 +143,7 @@ describe('perks in the night', () => {
     const max = f.stats.maxHp;
     f.player.hp = Math.floor(max / 2);
     run(f, rng, 4);
-    expect(f.used).toContain('bacchus');
+    expect(f.used.some((u) => u.startsWith('bacchus'))).toBe(true);
   });
 
   it('부적 던지기 flies along the aim, hits the first ghost and stuns it', () => {
@@ -151,7 +151,7 @@ describe('perks in the night', () => {
     const hp = e.hp;
     run(f, rng, DT, { skill: true, aim: 0 });
     run(f, rng, 0.5, { aim: 0 });
-    expect(e.hp).toBe(hp - ACTIVES.talisman.damage);
+    expect(e.hp).toBe(hp - f.stats.slash * param(ACTIVES.talisman.rows, 'mult'));
     expect(e.state).toBe('stun');
     expect(f.skillCd).toBeGreaterThan(0);
   });

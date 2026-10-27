@@ -24,7 +24,8 @@ export type Cond =
   | { unhurt: true } // not hurt on this floor yet
   | { stacks: { key: string; atLeast: number } }
   | { marked: true } // the enemy carries this source's mark
-  | { once: 'floor' | 'night' };
+  | { once: 'floor' | 'night' }
+  | { firstFloor: true }; // the night's first floor
 
 export type Shape = 'front' | 'around' | 'target' | 'chain';
 
@@ -33,7 +34,7 @@ export type Shape = 'front' | 'around' | 'target' | 'chain';
 export interface PartParams {
   hit: { shape: Shape; range: number; mult: number; of: 'hit' | 'slash' | 'drawSlash'; count?: number; dir?: 'aim' | 'dash'; consumeMark?: boolean };
   status: { kind: 'stun' | 'slow' | 'curse' | 'mark'; sec: number; power?: number; max?: number; radius?: number };
-  shot: { speed: number; range: number; mult: number; stun: number; count?: number; spread?: number };
+  shot: { speed: number; range: number; mult: number; stun: number; count?: number; spread?: number; pierce?: boolean };
   zone: { kind: 'salt' | 'barrier'; radius: number; sec: number; spacing?: number };
   gain: { res: 'focus' | 'hp' | 'spirit' | 'dash' | 'shield' | 'bare'; amount: number; cap?: number };
   buff: { stat: keyof Stats; op: 'add' | 'mult'; value: number; sec: number };
@@ -45,6 +46,7 @@ export interface PartParams {
   blink: { range: number };
   burst: { radius: number; mult: number }; // 영력 터뜨리기: spirit on the floor → damage
   save: { hp: number }; // onLethal: stay at `hp`
+  collect: Record<string, never>; // pick up every spirit orb on the floor
 }
 export type PartId = keyof PartParams;
 

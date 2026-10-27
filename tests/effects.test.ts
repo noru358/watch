@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { SeededRNG } from '../src/core/SeededRNG';
-import { SKILLS_V2 } from '../src/data/draft/skills.v2.data';
+import { ACTIVES, DUOS, PASSIVES, UPGRADES } from '../src/data/skills.data';
+import { GEAR_SPECIALS } from '../src/data/gear.data';
+import { SUPPLIES } from '../src/data/facilities.data';
 import { castActive, effectState, PARTS, runEffects, tickEffects, type EffectRow } from '../src/registry/effects';
 import { makeEnemy } from '../src/systems/rift';
 import { duel } from './helpers';
@@ -111,9 +113,10 @@ describe('효과 부품', () => {
   });
 });
 
-describe('기술 v2 draft', () => {
-  it('every row names a real part, and every skill runs on a floor without breaking', () => {
-    for (const [id, sk] of Object.entries(SKILLS_V2)) {
+describe('기술 · 장신구 · 보급품 rows', () => {
+  const ALL: Record<string, { rows: readonly EffectRow[] }> = { ...PASSIVES, ...DUOS, ...ACTIVES, ...UPGRADES, ...GEAR_SPECIALS, ...SUPPLIES };
+  it('every row names a real part, and every row runs on a floor without breaking', () => {
+    for (const [id, sk] of Object.entries(ALL)) {
       const { f, rng, e } = duel('dalgyal', 1.2);
       e.hp = 1000;
       for (const row of sk.rows) {
@@ -125,12 +128,10 @@ describe('기술 v2 draft', () => {
     }
   });
 
-  it('today’s skills keep their numbers when written as rows', () => {
-    const count = Object.values(SKILLS_V2).filter((s) => s.now).length;
-    expect(count).toBe(21);
+  it('원한 먹기 heals 1 on a strong kill', () => {
     const { f, rng, e } = duel('dalgyal', 1.2);
     f.player.hp = 3;
-    runEffects(f, 'onKill', { enemy: e, rng }, [{ id: 'grudge_eater', rows: SKILLS_V2.grudge_eater!.rows }]);
+    runEffects(f, 'onKill', { enemy: e, rng }, [{ id: 'grudge_eater', rows: PASSIVES.grudge_eater.rows }]);
     expect(f.player.hp).toBe(4);
   });
 });

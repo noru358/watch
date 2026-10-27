@@ -45,6 +45,14 @@ export function hitEnemy(
   if (e.hp <= 0 || e.state === 'warp') return;
   const atk = { damage: base, kind };
   runHooks(f, 'onBeforeAttack', atk);
+  // Training / gear: damage by what is hit, then a critical hit (one place for both — Rule 7 stats).
+  const s = f.stats;
+  const named = e.kind === 'gumiho' || e.role === 'bounty' || e.role === 'quarry';
+  atk.damage *= 1 + (named ? s.bossDamage : e.kind !== 'gumiho' && GHOSTS[e.kind].fodder ? s.fodderDamage : s.strongDamage);
+  if (s.critChance > 0 && rng.chance(s.critChance)) {
+    atk.damage *= 1.5 + s.critDamage;
+    empowered = true;
+  }
   e.asleep = false;
   e.sinceHit = 0;
   e.hp -= atk.damage;
@@ -72,6 +80,7 @@ export function hitEnemy(
     });
     f.shards += f.bossShards;
     f.status = 'bossDefeated';
+    f.drops.push('boss');
     f.events.push({ type: 'roomCleared', boss: true });
   }
 }
@@ -87,9 +96,20 @@ export function hurtPlayer(f: Floor, amount: number, darkness: number): void {
     }
     return;
   }
+  // 소금 (the salt-ward card, the salt pack supply): one charge blocks one hit.
+  if (p.shield > 0 && amount > 0) {
+    p.shield -= 1;
+    p.iframes = f.stats.hurtIframes;
+    f.events.push({ type: 'shieldBlocked', x: p.x, y: p.y });
+    return;
+  }
   const dmg = { amount };
   runHooks(f, 'onTakeDamage', dmg);
   p.iframes = f.stats.hurtIframes;
+  // 받는 피해 (training / gear): fractions carry over, so −10 % is felt every tenth point.
+  const scaled = dmg.amount * (1 + f.stats.damageTaken) + p.hurtCarry;
+  dmg.amount = Math.max(0, Math.floor(scaled + 1e-9));
+  p.hurtCarry = dmg.amount > 0 || amount > 0 ? scaled - dmg.amount : p.hurtCarry;
   if (dmg.amount <= 0) return;
   if (p.hp - dmg.amount <= 0) {
     const lethal = { prevent: false };
@@ -103,9 +123,10 @@ export function hurtPlayer(f: Floor, amount: number, darkness: number): void {
   p.hurtOnFloor = true;
   f.events.push({ type: 'playerHurt', x: p.x, y: p.y, amount: dmg.amount });
   runHooks(f, 'onAfterHurt', {});
-  if (darkness > 0) {
-    p.darkness = Math.max(p.darkness, darkness);
-    f.events.push({ type: 'darkness', duration: darkness });
+  const dark = darkness * (1 - f.stats.darkResist);
+  if (dark > 0) {
+    p.darkness = Math.max(p.darkness, dark);
+    f.events.push({ type: 'darkness', duration: dark });
   }
   if (p.hp <= 0) f.status = 'dead';
 }

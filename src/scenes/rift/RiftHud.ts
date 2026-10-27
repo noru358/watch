@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { perkHud } from '../../systems/rift';
 import { FEEL, PALETTE, SCREEN } from '../../data/feel.data';
 import { ACTIVES } from '../../data/skills.data';
 import { OBJECTIVES } from '../../data/objectives.data';
@@ -101,8 +102,9 @@ export class RiftHud {
       for (const site of o.sites) if (site.progress < 1) this.edgeArrow(f, site, PALETTE.accent, 0.8);
     }
     const open = !o || (o.kind === 'chase' ? o.done || o.fled : o.kind === 'rescue' ? o.survivor.state === 'following' : o.done);
-    if (f.stairs && (open || (f.index === 0 && f.perks.includes('map_copy')))) this.edgeArrow(f, f.stairs, PALETTE.textDimHex, 0.7);
-    if (f.perks.includes('ghost_eye')) for (const e of f.enemies) if (e.hp > 0 && isStrong(e)) this.edgeArrow(f, e, PALETTE.parriable, 0.45);
+    const hud = new Set(f.perks.map(perkHud));
+    if (f.stairs && (open || hud.has('mapAll') || (f.index === 0 && hud.has('mapFirst')))) this.edgeArrow(f, f.stairs, PALETTE.textDimHex, 0.7);
+    if (hud.has('ghostEye')) for (const e of f.enemies) if (e.hp > 0 && isStrong(e)) this.edgeArrow(f, e, PALETTE.parriable, 0.45);
   }
 
   // Top centre: one line saying what opens the way, plus a gauge when the objective has one.
@@ -176,7 +178,7 @@ export class RiftHud {
       g.fillStyle(color, 1).fillRect(x, 42, seg, 5);
       if (info.goalFloors.includes(i)) g.lineStyle(1, PALETTE.fear, 1).strokeRect(x - 1, 41, seg + 2, 7);
     }
-    this.lootText.setText(t('rift.loot', { value: f.loot }));
+    this.lootText.setText(t('rift.loot', { value: Math.floor(f.loot) }));
   }
 
   // Bottom left: health pips and the focus gauge in one panel.
@@ -191,7 +193,7 @@ export class RiftHud {
     const full = p.focus >= f.stats.focusMax;
     for (let i = 0; i < f.stats.focusMax; i++) {
       const x = 66 + i * 26;
-      g.fillStyle(i < p.focus ? PALETTE.focus : PALETTE.hudLine, full ? 0.75 + 0.25 * Math.sin(this.clock * 8) : 1);
+      g.fillStyle(i < Math.floor(p.focus + 1e-9) ? PALETTE.focus : PALETTE.hudLine, full ? 0.75 + 0.25 * Math.sin(this.clock * 8) : 1);
       g.fillPoints([{ x: x + 4, y: H - 40 }, { x: x + 24, y: H - 40 }, { x: x + 20, y: H - 30 }, { x, y: H - 30 }], true);
     }
     this.focusLabel.setColor(full ? PALETTE.healText : PALETTE.textDim);
