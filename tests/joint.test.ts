@@ -167,3 +167,30 @@ describe('합동 출동: a bot can play one', () => {
     expect(runs.filter((r) => r.outcome === 'success').length).toBeGreaterThanOrEqual(2);
   }, 120000);
 });
+
+describe('의뢰판: what contamination adds, the sortie slip', () => {
+  it('the heat part is the same offer at contamination 0 subtracted', async () => {
+    const { offerHeat, offerFee, offerDifficulty } = await import('../src/systems/office');
+    const calm = { ...offer('station', 'clear', 4, 3), risk: 0 };
+    calm.fee = offerFee(calm);
+    expect(offerHeat(calm)).toEqual({ risk: 0, dots: 0, fee: 0, ghosts: 0 });
+    const hot = { ...calm, risk: 4 };
+    hot.fee = offerFee(hot);
+    const h = offerHeat(hot);
+    expect(h.ghosts).toBe(4);
+    expect(h.dots).toBe(offerDifficulty(hot) - offerDifficulty(calm));
+    expect(h.dots).toBeGreaterThan(0);
+    expect(h.fee).toBe(hot.fee - calm.fee);
+  });
+
+  it('the slip lists each objective on its floor with its fee, the rest as walked-through / deep', async () => {
+    const { slipRows } = await import('../src/ui/features/board/SortieSlip');
+    const a = offer('motel', 'rescue', 4, 1);
+    const b = offer('motel', 'ward', 3, 2);
+    const rows = slipRows([a, b]);
+    const paid = rows.filter((r) => r.fee !== null);
+    expect(paid.map((r) => [r.from, r.fee])).toEqual([[1, a.fee], [2, b.fee]]);
+    expect(rows[0]!.from).toBe(0);
+    expect(rows[rows.length - 1]!.to).toBe(planNight([a, b]).floors.length - 1);
+  });
+});

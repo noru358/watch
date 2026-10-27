@@ -9,7 +9,7 @@ import {
   advanceDay,
   morningSeed,
   canJoin,
-  offerDifficulty,
+  nightDifficulty,
   planNight,
   refillBoard,
   resolveNight,
@@ -394,7 +394,7 @@ export class GameStore {
   // Night over: settle the contract (and its bundle), pay out, then it is the next morning.
   applyRunResult(result: RunResult): NightSettlement {
     const taken = result.offers.map((id) => this.state.board.find((x) => x.id === id)).filter((x): x is ContractOffer => !!x);
-    const difficulty = Math.max(1, ...taken.map(offerDifficulty));
+    const difficulty = nightDifficulty(taken);
     const o = office(this.state);
     const night = resolveNight(o, { offers: result.offers, completed: result.completed, reached: result.reached, outcome: result.outcome });
     // 수임료 (training / gear feeBonus) — the one place it is applied.

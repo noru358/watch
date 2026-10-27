@@ -101,6 +101,26 @@ export function offerFee(offer: ContractOffer): number {
   return Math.round(raw / 10) * 10;
 }
 
+// What the district's contamination adds to an offer (the board draws this part in the heat colour):
+// the same offer at contamination 0 vs as posted. Contamination only adds strong ghosts per floor and a
+// thicker wisp swarm; difficulty and fee follow from that (and an urgent offer's ×fee on top).
+export interface OfferHeat {
+  risk: number; // contamination when posted
+  dots: number; // 난이도 dots that come from it
+  fee: number; // money that comes from it
+  ghosts: number; // extra strong ghosts per floor
+}
+export function offerHeat(offer: ContractOffer): OfferHeat {
+  if (offer.kind !== 'general' || offer.risk <= 0) return { risk: offer.risk, dots: 0, fee: 0, ghosts: 0 };
+  const calm = { ...offer, risk: 0 };
+  return { risk: offer.risk, dots: offerDifficulty(offer) - offerDifficulty(calm), fee: Math.max(0, offer.fee - offerFee(calm)), ghosts: offer.risk };
+}
+
+// One night's 난이도 (several offers together): the hardest of them.
+export function nightDifficulty(offers: readonly ContractOffer[]): number {
+  return Math.max(1, ...offers.map(offerDifficulty));
+}
+
 // ---- 합동 출동 (docs/rules/office.md) ----
 
 // One objective of the night: which offer, on which floor (-1 = any floor, 추격), what it pays.

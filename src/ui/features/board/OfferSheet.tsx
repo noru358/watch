@@ -1,12 +1,27 @@
 import type { JoinState } from './BoardPanel';
 import { NODES } from '../../../data/nodes.data';
 import { t, type TKey } from '../../../i18n';
-import { offerDifficulty, offerGoal, type ContractOffer, type GoalKind } from '../../../systems/office';
+import { offerDifficulty, offerGoal, offerHeat, type ContractOffer, type GoalKind } from '../../../systems/office';
 import { MODIFIERS } from '../../../data/modifiers.data';
 import { offerBody, offerTitle, targetName } from './offerText';
 import { BOARD_LOOK as L } from './look';
 
 const MAX_DIFFICULTY = 5;
+export const heatColor = (risk: number) => L.heat[Math.min(risk, L.heat.length - 1)]!;
+
+// 난이도 as dots: the part the district's contamination adds is drawn in its heat colour (last dots).
+export function DifficultyDots({ value, heat = 0, risk = 0, size = 16 }: { value: number; heat?: number; risk?: number; size?: number }) {
+  return (
+    <span style={{ display: 'flex', alignItems: 'center', gap: 3 }} role="img" aria-label={`${t('board.difficulty')} ${value} / ${MAX_DIFFICULTY}`}>
+      {Array.from({ length: MAX_DIFFICULTY }, (_, i) => {
+        const on = i < value;
+        const fromHeat = on && i >= value - heat;
+        return <span key={i} style={{ width: size, height: size, borderRadius: '50% 50% 40% 40%', background: fromHeat ? heatColor(risk) : on ? L.paperInk : L.paperOff, boxShadow: fromHeat ? `0 0 0 1px ${L.paperInk}` : 'none' }} />;
+      })}
+      <span style={{ marginLeft: 6, fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' }}>{t(`board.diffWord.${Math.max(1, Math.min(MAX_DIFFICULTY, value))}` as TKey)}</span>
+    </span>
+  );
+}
 
 // Stroke icons per objective (no emoji, drawn like the mockup).
 function GoalIcon({ kind }: { kind: GoalKind }) {
@@ -55,7 +70,7 @@ function GoalIcon({ kind }: { kind: GoalKind }) {
   );
 }
 
-const cell = { background: L.paperCell, borderRadius: 4, padding: '6px 10px', display: 'flex', flexDirection: 'column' as const, gap: 4, minWidth: 0 };
+const cell = { background: L.paperCell, borderRadius: 4, padding: '6px 10px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', gap: 4, minWidth: 0, minHeight: 0, overflow: 'hidden' };
 const small = { fontSize: 11, color: L.paperDim };
 
 const SHEET_H = 452; // fixed: the board must not change size between offers (user, 2026-10-27)
@@ -65,7 +80,7 @@ const clamp2 = { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'v
 // the named target (if any), then three rows of cells — objective · difficulty, length · fee
 // (+ shards, + what gets finished together), modifiers · ghosts. The district counter ("1 / 2")
 // says how many offers this district has (W / S).
-export function OfferSheet({ offer, day, known, index, count, join, onJoin }: {
+export function OfferSheet({ offer, day, known, index, count, join, onJoin, linked = false }: {
   offer: ContractOffer;
   day: number;
   known: boolean;
@@ -73,9 +88,12 @@ export function OfferSheet({ offer, day, known, index, count, join, onJoin }: {
   count: number;
   join: JoinState;
   onJoin: () => void;
+  linked?: boolean; // in a district the 사건 파일 points at
 }) {
   const goal = offerGoal(offer);
   const difficulty = offerDifficulty(offer);
+  const heat = offerHeat(offer);
+  const stampBox = { height: 30, boxSizing: 'border-box' as const, display: 'flex', alignItems: 'center', padding: '0 9px', fontWeight: 700, whiteSpace: 'nowrap' as const, lineHeight: 1 };
   const early = goal.floor < offer.floors - 1;
   const ghosts = offer.kind === 'main' ? ['—'] : known ? offer.pool.map((g) => t(`enemy.${g}` as TKey)) : [t('board.unknown')];
   const name = targetName(offer.target);
@@ -97,17 +115,17 @@ export function OfferSheet({ offer, day, known, index, count, join, onJoin }: {
             <span style={{ fontSize: 21, fontWeight: 700 }}>{offerTitle(offer)}</span>
           </div>
           {offer.deadline !== null ? (
-            <span style={{ border: `2px solid ${L.stamp}`, color: L.stamp, fontSize: 15, fontWeight: 700, padding: '2px 8px', transform: 'rotate(-8deg)', whiteSpace: 'nowrap' }}>
+            <span style={{ ...stampBox, border: `2px solid ${L.stamp}`, color: L.stamp, fontSize: 15, transform: 'rotate(-7deg)', marginTop: 4 }}>
               {offer.urgent ? t('board.urgentStamp') + ' ' : ''}{t('board.stamp', { days: Math.max(0, offer.deadline - day) })}
             </span>
           ) : (
-            <span style={{ border: `2px solid ${L.accentInk}`, color: L.accentInk, fontSize: 14, fontWeight: 700, padding: '2px 8px', transform: 'rotate(-6deg)', whiteSpace: 'nowrap' }}>
+            <span style={{ ...stampBox, border: `2px solid ${L.accentInk}`, color: L.accentInk, fontSize: 15, transform: 'rotate(-7deg)', marginTop: 4 }}>
               {t('board.main')}
             </span>
           )}
         </div>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: '#3b3140', height: 39, ...clamp2 }}>“{offerBody(offer)}”</p>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 13, height: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 13, height: 20, whiteSpace: 'nowrap' }}>
           {name && (
             <>
               <span style={{ color: L.stamp, fontWeight: 700, fontSize: 16 }}>{t('board.target', { name })}</span>
@@ -115,17 +133,23 @@ export function OfferSheet({ offer, day, known, index, count, join, onJoin }: {
               {offer.target!.level > 0 && <span style={{ ...small, color: L.stamp }}>{t('board.level', { level: offer.target!.level })}</span>}
             </>
           )}
+          {linked && <span style={{ fontSize: 11, fontWeight: 700, color: L.stamp }}>{t('board.caseLinked')}</span>}
+          {join && join !== 'in' && (
+            <span onClick={join === 'can' ? onJoin : undefined}
+              style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, cursor: join === 'can' ? 'pointer' : 'default', color: join === 'can' ? L.bundleInk : L.paperDim }}>
+              {t(join === 'can' ? 'board.joinHint' : join === 'full' ? 'board.joinFull' : 'board.joinSolo')}
+            </span>
+          )}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridTemplateRows: '64px 86px 1fr', gap: 9, flex: 1, minHeight: 0 }}>
+        <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridTemplateRows: 'repeat(3, minmax(0, 1fr))', gap: 8, flex: 1, minHeight: 0 }}>
           <div style={{ ...cell, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <GoalIcon kind={goal.kind} />
             <div style={{ display: 'flex', flexDirection: 'column' }}><span style={small}>{t('board.goal')}</span><span style={{ fontWeight: 700, fontSize: 15 }}>{t(`board.goal.${goal.kind}`)}</span></div>
           </div>
           <div style={cell}>
             <span style={small}>{t('board.difficulty')}</span>
-            <span style={{ display: 'flex', gap: 3 }} role="img" aria-label={`${t('board.difficulty')} ${difficulty} / ${MAX_DIFFICULTY}`}>
-              {Array.from({ length: MAX_DIFFICULTY }, (_, i) => <span key={i} style={{ width: 16, height: 16, borderRadius: '50% 50% 40% 40%', background: i < difficulty ? L.paperInk : L.paperOff }} />)}
-            </span>
+            <DifficultyDots value={difficulty} heat={heat.dots} risk={heat.risk} size={14} />
+            {heat.dots > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: L.paperInk }}><span style={{ display: 'inline-block', width: 8, height: 8, marginRight: 4, background: heatColor(heat.risk), outline: `1px solid ${L.paperInk}` }} />{t('board.heatDots', { dots: heat.dots })}</span>}
           </div>
           <div style={cell}>
             <span style={small}>{lengthLabel}</span>
@@ -138,31 +162,35 @@ export function OfferSheet({ offer, day, known, index, count, join, onJoin }: {
           <div style={cell}>
             <span style={small}>{t('board.reward')}</span>
             <span style={{ fontFamily: 'monospace', fontSize: 24, fontWeight: 700, lineHeight: 1 }}>₩ {offer.fee}</span>
-            {offer.shards > 0 && <span style={{ fontSize: 12, color: L.shardInk, fontWeight: 700 }}>+ {t('board.shards', { shards: offer.shards })}</span>}
-            {join && (
-              <span onClick={join === 'in' || join === 'can' ? onJoin : undefined}
-                style={{ fontSize: 11, fontWeight: 700, cursor: join === 'in' || join === 'can' ? 'pointer' : 'default', color: join === 'in' ? L.bundleInk : join === 'can' ? L.paperInk : L.paperDim }}>
-                {t(join === 'in' ? 'board.joined' : join === 'can' ? 'board.joinHint' : join === 'full' ? 'board.joinFull' : 'board.joinSolo')}
-              </span>
-            )}
+            <span style={{ display: 'flex', gap: 8, fontSize: 12, fontWeight: 700 }}>
+              {offer.shards > 0 && <span style={{ color: L.shardInk }}>+ {t('board.shards', { shards: offer.shards })}</span>}
+              {heat.fee > 0 && <span style={{ color: L.paperInk }}><span style={{ display: 'inline-block', width: 8, height: 8, marginRight: 4, background: heatColor(heat.risk), outline: `1px solid ${L.paperInk}` }} />{t('board.heatFee', { fee: heat.fee })}</span>}
+            </span>
           </div>
-          <div style={{ ...cell, justifyContent: 'flex-start' }}>
+          <div style={cell}>
             <span style={small}>{t('board.mods')}</span>
             {offer.kind === 'main' || offer.mods.length === 0 ? (
               <span style={{ color: L.paperDim, fontSize: 13 }}>{t('board.noMods')}</span>
             ) : (
               offer.mods.map((m) => (
-                <div key={m} style={{ display: 'flex', flexDirection: 'column' }}>
+                <div key={m} title={t(MODIFIERS[m].descKey)} style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontWeight: 700, fontSize: 14, color: MODIFIERS[m].kind === 'boon' ? L.bundleInk : L.paperInk }}>{t(MODIFIERS[m].nameKey)} <span style={{ fontWeight: 400, fontSize: 11, color: L.paperDim }}>{MODIFIERS[m].kind === 'boon' ? t('board.boon') : `+${Math.round(MODIFIERS[m].feeBonus * 100)}%`}</span></span>
-                  <span style={{ fontSize: 11, color: '#4a3f52', lineHeight: 1.35, ...clamp2 }}>{t(MODIFIERS[m].descKey)}</span>
+                  {offer.mods.length === 1 && <span style={{ fontSize: 11, color: '#4a3f52', lineHeight: 1.35, ...clamp2 }}>{t(MODIFIERS[m].descKey)}</span>}
                 </div>
               ))
             )}
           </div>
-          <div style={{ ...cell, justifyContent: 'flex-start' }}>
+          <div style={cell}>
             <span style={small}>{t('board.ghosts')}</span>
-            {ghosts.map((g) => <span key={g} style={{ fontWeight: 700, fontSize: 15 }}>{g}</span>)}
+            <span style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3 }}>{ghosts.join(' · ')}</span>
+            {heat.ghosts > 0 && <span style={{ fontSize: 11, fontWeight: 700 }}><span style={{ display: 'inline-block', width: 8, height: 8, marginRight: 4, background: heatColor(heat.risk), outline: `1px solid ${L.paperInk}` }} />{t('board.heatGhosts', { n: heat.ghosts })}</span>}
           </div>
+          {join === 'in' && (
+            <div aria-label={t('board.joined')} onClick={onJoin}
+              style={{ position: 'absolute', right: -6, top: '50%', marginTop: -46, width: 92, height: 92, boxSizing: 'border-box', border: `4px double ${L.bundleInk}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'rotate(-16deg)', color: L.bundleInk, fontWeight: 900, fontSize: 24, letterSpacing: 3, opacity: 0.8, cursor: 'pointer', mixBlendMode: 'multiply' }}>
+              {t('board.stampJoined')}
+            </div>
+          )}
         </div>
       </article>
     </div>

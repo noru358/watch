@@ -3,13 +3,15 @@ import { input, requestPhase, store } from '../../../app/services';
 import { NODES } from '../../../data/nodes.data';
 import { OFFICE } from '../../../data/office.data';
 import { t } from '../../../i18n';
-import { activeChapter, canJoin, chapterStatus, joinCandidates, planNight, type ContractOffer, type OfficeState } from '../../../systems/office';
+import { activeChapter, canJoin, chapterStatus, joinCandidates, type ContractOffer, type OfficeState } from '../../../systems/office';
 import { deskEffects, traumaEffects } from '../../../systems/growth';
 import { SUPPLIES } from '../../../data/facilities.data';
 import type { NodeId } from '../../../types/ids';
 import { BOARD_LOOK as L } from './look';
 import { OfferSheet } from './OfferSheet';
-import { OpsMap } from './OpsMap';
+import { OpsMap, type CaseFile } from './OpsMap';
+import { SortieSlip } from './SortieSlip';
+import { CONTRACTS } from '../../../data/contracts.data';
 import { CHAPTERS } from '../../../data/chapters.data';
 
 // Navigation is by district (user, 2026-10-27): A / D step through districts that have offers
@@ -67,6 +69,8 @@ function joinState(board: readonly ContractOffer[], joined: readonly number[], s
   return canJoin(set) ? 'can' : 'full';
 }
 
+const keyChip = { fontSize: 11, fontWeight: 400, whiteSpace: 'nowrap', padding: '2px 6px', border: '1px solid rgba(20,16,31,0.45)', borderRadius: 3 } as const;
+
 const arrow = {
   flex: '0 0 52px', height: 52, boxSizing: 'border-box' as const, borderRadius: 6, border: `1px solid ${L.line}`, background: L.mapBg, color: L.ink,
   display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 1, cursor: 'pointer', padding: 0, fontFamily: 'inherit',
@@ -75,11 +79,12 @@ const arrow = {
 // The front door (mockup A, docs/design/1-foundation/ui.md): the Euljiro map on the left, the chosen
 // offer as a sheet on a clipboard on the right, then ‹ 출동 ›.
 // The chapter gathering clues right now, for the map (docs/rules/story.md).
-function clueOf(s: Pick<OfficeState, 'chapters'>) {
+function clueOf(s: Pick<OfficeState, 'chapters'>): CaseFile | null {
   const id = activeChapter(s);
-  if (!id || chapterStatus(s, id) !== 'gathering') return null;
+  if (!id) return null;
   const ch = CHAPTERS[id];
-  return { nodes: ch.clueNodes, have: s.chapters[id]?.clues ?? 0, need: ch.clues };
+  const ready = chapterStatus(s, id) === 'ready';
+  return { nameKey: ch.nameKey, nodes: ready ? [CONTRACTS[ch.contract].node] : ch.clueNodes, have: s.chapters[id]?.clues ?? 0, need: ch.clues, ready };
 }
 
 export function BoardPanel() {
@@ -108,9 +113,10 @@ export function BoardPanel() {
   };
   const rentIn = OFFICE.rentEvery - (s.day % OFFICE.rentEvery);
   const tonight = store.tonightOffers();
-  const joint = tonight.length > 1 ? { count: tonight.length, floors: planNight(tonight).floors.length, fee: tonight.reduce((sum, o) => sum + o.fee, 0) } : null;
+  const joint = tonight.length > 1 ? { count: tonight.length } : null;
   const join = sel ? joinState(s.board, s.joined, sel) : null;
   const grounded = traumaEffects(s.trauma).grounded;
+  const clue = clueOf(s);
   const canGo = !!sel && !grounded;
 
   return (
@@ -127,12 +133,13 @@ export function BoardPanel() {
             <span style={{ fontFamily: 'monospace', fontSize: 16, color: L.ink }}>₩ {s.money}</span>
           </span>
         </div>
-        <OpsMap contamination={s.contamination} board={s.board} selected={sel} onPick={pickNode} clue={clueOf(s)} rank={s.rankReached} day={s.day} />
+        <OpsMap contamination={s.contamination} board={s.board} selected={sel} onPick={pickNode} clue={clue} rank={s.rankReached} day={s.day} />
+        <SortieSlip offers={tonight} />
       </section>
       <section aria-label={t('board.pick')} style={{ flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {sel ? (
           <OfferSheet offer={sel} day={s.day} known={s.known.includes(sel.node) || deskEffects(s).reveal} index={here.indexOf(sel)} count={here.length}
-            join={join} onJoin={() => store.toggleJoin()} />
+            join={join} onJoin={() => store.toggleJoin()} linked={!!clue && !clue.ready && sel.kind === 'general' && clue.nodes.includes(sel.node)} />
         ) : (
           <div style={{ color: L.dim, padding: 20 }}>{t('board.pick')}</div>
         )}
@@ -142,8 +149,9 @@ export function BoardPanel() {
           </button>
           <button onClick={sortie} disabled={!canGo}
             style={{ flex: 1, height: 52, boxSizing: 'border-box', borderRadius: 6, border: 'none', background: L.accent, color: '#14101f', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: canGo ? 'pointer' : 'default', opacity: canGo ? 1 : 0.5, fontFamily: 'inherit' }}>
-            <span style={{ fontSize: grounded || joint ? 14 : 19, fontWeight: 700 }}>{grounded ? t('board.grounded') : joint ? t('board.sortieJoint', joint) : t('day.sortie')}</span>
-            {!grounded && <span style={{ fontSize: 11, padding: '2px 6px', border: '1px solid rgba(20,16,31,0.45)', borderRadius: 3 }}>Enter</span>}
+            <span style={{ fontSize: grounded ? 14 : joint ? 17 : 19, fontWeight: 700 }}>{grounded ? t('board.grounded') : joint ? t('board.sortieJoint', joint) : t('day.sortie')}</span>
+            {!grounded && <span style={keyChip}>Enter</span>}
+            {!grounded && (join === 'in' || join === 'can') && <span style={keyChip}>{t(join === 'in' ? 'board.unmarkKey' : 'board.markKey')}</span>}
           </button>
           <button style={arrow} onClick={() => stepDistrict(1)} aria-label={t('board.next')}>
             <span style={{ fontSize: 20, lineHeight: 1 }}>›</span><span style={{ fontSize: 10, color: L.dim, lineHeight: 1 }}>D</span>

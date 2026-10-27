@@ -1,5 +1,5 @@
 import { NODES } from '../../../data/nodes.data';
-import { t } from '../../../i18n';
+import { t, type TKey } from '../../../i18n';
 import { overflowTargets, type ContractOffer, type Contamination } from '../../../systems/office';
 import type { NodeId } from '../../../types/ids';
 import { BOARD_LOOK as L } from './look';
@@ -12,12 +12,23 @@ import { BOARD_LOOK as L } from './look';
 const NODE_IDS = Object.keys(NODES) as NodeId[];
 const VIEW = { w: 100, h: 66 };
 
+// 사건 파일 (canvas M2, user 2026-10-28): the chapter as a pinned photo card on the map with red string
+// to each district where clues turn up. Ready = all clues found, the main contract is on the board.
+export interface CaseFile {
+  nameKey: TKey;
+  nodes: readonly NodeId[];
+  have: number;
+  need: number;
+  ready: boolean;
+}
+const CASE_AT = { x: 80, y: 44.5, left: '69%', top: '66%' }; // where the card's pin sits (view units / css)
+
 interface Props {
   contamination: Contamination;
   board: readonly ContractOffer[];
   selected: ContractOffer | null;
   onPick: (node: NodeId) => void;
-  clue?: { nodes: readonly NodeId[]; have: number; need: number } | null; // 메인 스토리 단서를 모으는 동네
+  clue?: CaseFile | null; // 메인 스토리 사건 파일: the chapter, its clue districts, clues so far
   rank?: number; // 평판 rank: districts above it are locked
   day?: number;
 }
@@ -34,6 +45,7 @@ export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0,
   const y = (id: NodeId) => NODES[id].y * 0.6 + 3;
   return (
     <div style={{ position: 'relative', background: L.mapBg, border: `1px solid ${L.line}`, borderRadius: 6, overflow: 'hidden' }}>
+      <div style={{ position: 'relative' }}>
       <svg viewBox={`0 0 ${VIEW.w} ${VIEW.h}`} style={{ width: '100%', display: 'block' }} role="img" aria-label={t('board.mapTitle')}>
         {links.map(([a, b]) => (
           <line key={`${a}-${b}`} x1={NODES[a].x} y1={y(a)} x2={NODES[b].x} y2={y(b)} stroke={L.line} strokeWidth={0.6} />
@@ -41,6 +53,11 @@ export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0,
         <defs>
           <marker id="spill-head" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill={L.spread} /></marker>
         </defs>
+        {clue?.nodes.map((id) => {
+          const bx = NODES[id].x;
+          const by = y(id) - 3;
+          return <path key={`str-${id}`} d={`M${CASE_AT.x} ${CASE_AT.y} Q ${(CASE_AT.x + bx) / 2} ${Math.max(CASE_AT.y, by) + 6} ${bx - 1.5} ${by}`} fill="none" stroke={L.stamp} strokeWidth={0.45} />;
+        })}
         {spill.flatMap((x) => x.to.map((to) => <SpillArrow key={`${x.from}-${to}`} from={x.from} to={to} y={y} r={(id) => 2.6 + contamination[id] * 0.55} />))}
         {NODE_IDS.map((id) => {
           const n = NODES[id];
@@ -60,9 +77,7 @@ export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0,
               <text x={n.x} y={cy + r + 3.6} textAnchor="middle" fontSize={2.7} fill={isSel ? L.ink : live ? L.dim : L.off} fontWeight={isSel || live ? 700 : 400}>{t(n.nameKey)}</text>
               {urgent && <circle cx={n.x} cy={cy} r={r + 1.6} fill="none" stroke={L.spread} strokeWidth={0.5} strokeDasharray="1 0.8" />}
               {locked && <text x={n.x} y={cy + r + 6.6} textAnchor="middle" fontSize={2.1} fill={L.dim}>{t('board.locked', { rank: n.rank })}</text>}
-              {clue?.nodes.includes(id) && (
-                <text x={n.x} y={cy + r + 6.6} textAnchor="middle" fontSize={2.1} fill={L.accent}>{t('board.clues', { have: clue.have, need: clue.need })}</text>
-              )}
+              {clue?.nodes.includes(id) && <circle cx={n.x - 1.5} cy={cy - 3} r={1.1} fill={L.stamp} stroke="#7a1f28" strokeWidth={0.3} />}
               {pins.map((o, i) => (
                 <rect key={o.id} x={n.x - (pins.length * 2.6) / 2 + i * 2.6 + 0.3} y={cy - r - 4.2} width={2} height={2.6} rx={0.3}
                   fill={o.kind === 'main' ? L.accent : o.urgent ? L.spread : o.target ? L.bounty : L.general} />
@@ -71,6 +86,15 @@ export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0,
           );
         })}
       </svg>
+      {clue && (
+        <div aria-label={t('board.caseFile')} style={{ position: 'absolute', left: CASE_AT.left, top: CASE_AT.top, width: 118, background: '#f4efe2', color: L.paperInk, borderRadius: 2, padding: '8px 8px 6px', transform: 'rotate(-4deg)', boxShadow: '0 8px 16px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', gap: 3, pointerEvents: 'none' }}>
+          <span aria-hidden="true" style={{ position: 'absolute', left: '50%', top: -6, width: 12, height: 12, marginLeft: -6, borderRadius: '50%', background: L.stamp, boxShadow: '0 2px 0 #7a1f28' }} />
+          <span style={{ fontSize: 10, color: L.paperDim, letterSpacing: 2 }}>{t('board.caseFile')}</span>
+          <span style={{ fontSize: 12, fontWeight: 900, lineHeight: 1.25 }}>{t(clue.nameKey)}</span>
+          <span style={{ fontSize: 11, color: clue.ready ? L.accentInk : L.stamp, fontWeight: 700 }}>{clue.ready ? t('board.caseReady') : t('board.clues', { have: clue.have, need: clue.need })}</span>
+        </div>
+      )}
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: L.dim, flexWrap: 'wrap', padding: '6px 10px 8px', borderTop: `1px solid ${L.line}` }}>
         <span>{t('board.legendGhosts')}</span>
         <span style={{ display: 'flex', gap: 2 }}>

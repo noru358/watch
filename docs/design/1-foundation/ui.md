@@ -14,7 +14,9 @@
 
 **2026-10-27 추가:** 소장 책상(트레이닝·기술 탭), 소파(휴식하기·자본 치료·진정제), 부적 작업대(보급품) 창은 `src/ui/features/training|sofa|bench/`, 목록 키 처리는 `features/useNav.ts`. 경리 장부에 "시설 공사" 칸. 의뢰서에 표적 이름·변형 도장·심연 파편 줄, 메인 스토리 도장. 밤 HUD 목표 패널은 목표 6종 문구·게이지(현상수배·추격 표적 체력, 결계 진행, 첫차 시간)와 가장자리 화살표(표적, 결계 자리, 열린 계단, 귀신 눈, 지도 사본).
 
-**지금 코드:** 의뢰판 `src/ui/features/board/`(`BoardPanel`, 지도 `OpsMap`, 의뢰서 `OfferSheet`, 색 `look.ts`), 장부 `src/ui/features/ledger/`, 밤 HUD `src/scenes/rift/RiftHud.ts`, 일시정지·카드·공중전화·귀환 창 `src/scenes/shared/Overlay.ts`, 대화창 `src/ui/DialogueBox.tsx` + `src/app/dialogue.ts`, 잡담 말풍선 `src/scenes/hub/HubScene.ts`, 타이틀 `src/scenes/title/TitleScene.ts` + `src/data/titleLook.data.ts`, 음량 `src/app/settings.ts`.
+**2026-10-28 의뢰판 3차(사용자: A3 + 출동 전표 + M2 사건 파일):** 의뢰서 칸 6개를 같은 크기 2×3으로, 사연 두 줄 복원, 마감·메인 도장 높이 맞춤, 합동 출동에 담으면 둥근 "담음" 도장(잉크만, 바탕 없음 — 시안에서 '달걀귀신'이 흐려 보인 건 도장의 반투명 바탕이 글자를 덮어서였다). 난이도 점 옆에 말(가벼움 ~ 목숨 걸기), 오염이 보탠 몫은 동네 색(규칙 `docs/rules/office.md`). 지도 아래 출동 전표(`SortieSlip.tsx`). 지금 장은 지도 위 사진 카드(사건 파일)와 단서 동네로 이어진 붉은 실, 단서 동네 의뢰서에 "사건 파일과 연결됨". 출동 버튼에 "F 담기 / F 빼기".
+
+**지금 코드:** 의뢰판 `src/ui/features/board/`(`BoardPanel`, 지도 `OpsMap`(사건 파일 포함), 의뢰서 `OfferSheet`, 출동 전표 `SortieSlip`, 색 `look.ts`), 장부 `src/ui/features/ledger/`, 밤 HUD `src/scenes/rift/RiftHud.ts`, 일시정지·카드·공중전화·귀환 창 `src/scenes/shared/Overlay.ts`, 대화창 `src/ui/DialogueBox.tsx` + `src/app/dialogue.ts`, 잡담 말풍선 `src/scenes/hub/HubScene.ts`, 타이틀 `src/scenes/title/TitleScene.ts` + `src/data/titleLook.data.ts`, 음량 `src/app/settings.ts`.
 
 ## 공통
 색은 게임 팔레트(`src/data/feel.data.ts` `PALETTE`): 바탕 `#14101f`, 글자 크림 `#f6e7c1`, 흐린 글자 `#9d8fc4`, 강조 청록 `#41e0c8`, 네온 분홍 `#ff3cac`, 받아치기 노랑 `#ffd166`. 의뢰서·신문처럼 "종이"인 것만 밝은 종이색 `#efe4c8`. 화면 크기 960×540 기준. 숫자는 픽셀 숫자 글꼴, 한글은 지금 글꼴(Pretendard 계열).
