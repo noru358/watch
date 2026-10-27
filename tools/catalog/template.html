@@ -1,0 +1,487 @@
+<title>나이트워치 총괄 장부</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: the office ledger — dark office wall, paper sheets for each table, tabs like clipboard tags. One dark look by choice (the game's own palette). */
+:root {
+  color-scheme: dark;
+  --wall: #16112a;
+  --panel: #1f1838;
+  --line: #3b2f5c;
+  --ink: #f6e7c1;
+  --dim: #b9aedb;
+  --paper: #efe4c8;
+  --paper-ink: #2a2233;
+  --paper-dim: #5f5368;
+  --paper-cell: rgba(42,34,51,0.06);
+  --accent: #41e0c8;
+  --stamp: #b5222f;
+  --shard: #5b3fc4;
+  --memo: #f2c94c;
+  --display: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+  --body: 'Noto Sans KR', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { background: var(--wall); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.6; margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; display: flex; flex-direction: column; gap: 18px; }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(28px, 4vw, 40px); margin: 0; letter-spacing: 1px; text-wrap: balance; }
+h2 { font-size: 19px; margin: 0; text-wrap: balance; }
+h3 { font-size: 15px; margin: 0; }
+.lede { color: var(--dim); max-width: 70ch; margin: 0; }
+.meta { color: var(--dim); font-size: 13px; font-family: var(--mono); }
+nav { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+nav a { color: var(--dim); text-decoration: none; padding: 8px 13px; border-radius: 6px 6px 0 0; font-weight: 700; font-size: 14px; }
+nav a[aria-current="page"] { background: var(--paper); color: var(--paper-ink); }
+nav a .n { font-family: var(--mono); font-size: 11px; margin-left: 4px; color: var(--memo); }
+a:focus-visible, button:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.view { display: flex; flex-direction: column; gap: 16px; }
+.sheet { background: var(--paper); color: var(--paper-ink); border-radius: 4px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.sheet .dim, .dim { color: var(--paper-dim); }
+.where { font-family: var(--mono); font-size: 12px; color: var(--paper-dim); }
+.where::before { content: "고치는 곳 · "; font-family: var(--body); }
+.head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.tile { border-top: 3px solid var(--paper-ink); padding-top: 6px; }
+.tile b { font-family: var(--mono); font-size: 22px; display: block; font-variant-numeric: tabular-nums; }
+.tile span { font-size: 13px; color: var(--paper-dim); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; color: inherit; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(42,34,51,0.14); vertical-align: top; }
+th { font-size: 12px; color: var(--paper-dim); font-weight: 700; letter-spacing: 1px; white-space: nowrap; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.name { font-weight: 700; white-space: nowrap; }
+td.text { min-width: 220px; }
+td.memo { width: 1%; white-space: nowrap; }
+tr.noted td { background: rgba(242,201,76,0.16); }
+code { font-family: var(--mono); font-size: 12px; background: var(--paper-cell); padding: 1px 4px; border-radius: 3px; }
+.chip { display: inline-block; font-size: 12px; padding: 0 7px; border: 1px solid currentColor; border-radius: 10px; margin: 1px 3px 1px 0; white-space: nowrap; }
+.chip.warn { color: var(--stamp); }
+.chip.boon { color: #1f7a4c; }
+.chip.shard { color: var(--shard); }
+.memo-btn { font: inherit; font-size: 12px; padding: 2px 8px; border: 1px solid rgba(42,34,51,0.35); border-radius: 4px; background: transparent; color: var(--paper-ink); cursor: pointer; min-height: 28px; }
+.memo-btn.has { border-color: #8a6a00; background: var(--memo); }
+.memo-box { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; }
+.memo-box textarea { width: 100%; min-height: 64px; font: inherit; font-size: 14px; padding: 8px; border: 1px solid rgba(42,34,51,0.35); border-radius: 4px; background: #fffaf0; color: var(--paper-ink); resize: vertical; }
+.memo-box .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.memo-box button { font: inherit; font-size: 13px; padding: 4px 12px; border-radius: 4px; border: 1px solid var(--paper-ink); background: var(--paper-ink); color: var(--paper); cursor: pointer; min-height: 32px; }
+.memo-box button.ghost { background: transparent; color: var(--paper-ink); }
+.kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 18px; font-size: 14px; }
+.kv div { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dotted rgba(42,34,51,0.2); padding: 2px 0; }
+.kv b { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; text-align: right; }
+details { border-top: 1px solid rgba(42,34,51,0.14); padding: 6px 0; }
+summary { cursor: pointer; font-weight: 700; }
+.line { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 8px; font-size: 14px; padding: 2px 0; }
+.line span:first-child { color: var(--paper-dim); }
+.status { font-size: 13px; color: var(--dim); }
+.notice { border: 1px dashed var(--memo); color: var(--memo); padding: 6px 12px; font-size: 13px; width: fit-content; max-width: 100%; }
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.flow > div { border: 1px solid rgba(42,34,51,0.2); border-radius: 4px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.flow h3 { font-family: var(--display); font-weight: 400; font-size: 18px; }
+@media (prefers-reduced-motion: no-preference) { .memo-btn { transition: background 0.15s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <h1>나이트워치 총괄 장부</h1>
+      <p class="lede">게임 안의 숫자와 글을 코드에서 그대로 뽑아 한 곳에 모았다. 줄마다 메모를 남기면 다음 작업 때 Claude가 읽고 반영한다.</p>
+    </div>
+    <div class="meta" id="stamp"></div>
+  </header>
+  <nav id="tabs" aria-label="장부 탭"></nav>
+  <p class="notice" id="memo-off" hidden>이 화면에서는 메모 저장이 안 된다 (보기 전용). 메모는 claude.ai에서 열었을 때 남길 수 있다.</p>
+  <main id="view" class="view"></main>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const T = (k) => (k && DATA.t[k]) || k || '';
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const pct = (v) => `${Math.round(v * 1000) / 10}%`;
+const won = (v) => `₩${Number(v).toLocaleString('ko-KR')}`;
+const list = (a) => (a && a.length ? a.join(', ') : '—');
+const ghost = (g) => T(`enemy.${g}`);
+const node = (n) => T(DATA.nodes[n]?.nameKey) || n;
+const objName = (o) => T(`board.goal.${o}`);
+
+// ---- memos (db capability; the page works without it) ----
+let db = null;
+const notes = new Map();
+const noteId = (sec, id) => `${sec}__${id}`.replace(/[^A-Za-z0-9_-]/g, '_');
+const noteLabel = new Map();
+(async () => {
+  try {
+    db = window.claude ? await window.claude.use('db') : null;
+  } catch { db = null; }
+  if (!db) { document.getElementById('memo-off').hidden = false; return; }
+  db.collection('notes').onSnapshot((snap) => {
+    notes.clear();
+    for (const d of snap.docs) notes.set(d.id, d.data());
+    render();
+  }, () => { document.getElementById('memo-off').hidden = false; });
+})();
+
+async function saveNote(id, label, text) {
+  if (!db) return;
+  const ref = db.collection('notes').doc(id);
+  if (text.trim()) await ref.set({ label, text: text.trim(), done: false, at: new Date().toISOString() });
+  else await ref.delete();
+}
+
+// ---- shared pieces ----
+// cols: [{h, f(row) → html, cls}]; rows: [{id, label, ...}]
+function table(sec, cols, rows) {
+  const head = cols.map((c) => `<th scope="col">${esc(c.h)}</th>`).join('') + '<th scope="col">메모</th>';
+  const body = rows.map((r) => {
+    const id = noteId(sec, r.id);
+    noteLabel.set(id, r.label);
+    const n = notes.get(id);
+    const cells = cols.map((c) => `<td class="${c.cls || ''}">${c.f(r)}</td>`).join('');
+    const btn = `<td class="memo"><button type="button" class="memo-btn${n ? ' has' : ''}" data-note="${id}" aria-label="${esc(r.label)} 메모">${n ? '메모 있음' : '메모'}</button></td>`;
+    return `<tr class="${n ? 'noted' : ''}" data-row="${id}">${cells}${btn}</tr>`;
+  }).join('');
+  return `<div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function sheet(title, where, inner, sub = '') {
+  return `<section class="sheet"><div class="head"><h2>${esc(title)}</h2>${where ? `<span class="where">${esc(where)}</span>` : ''}</div>${sub ? `<p class="dim" style="margin:0">${sub}</p>` : ''}${inner}</section>`;
+}
+function kv(obj, label = (k) => k) {
+  return `<div class="kv">${Object.entries(obj).filter(([, v]) => typeof v !== 'object').map(([k, v]) => `<div><span>${esc(label(k))}</span><b>${esc(v)}</b></div>`).join('')}</div>`;
+}
+function rowsOf(obj, label) {
+  return Object.entries(obj).map(([id, v]) => ({ id, label: label(id, v), ...v }));
+}
+
+// ---- views ----
+const VIEWS = {
+  overview: { name: '한눈에', render: overview },
+  contracts: { name: '의뢰', render: contracts },
+  city: { name: '동네 · 괴이', render: city },
+  story: { name: '스토리', render: story },
+  growth: { name: '성장', render: growth },
+  rank: { name: '평판', render: rank },
+  night: { name: '밤 · 카드', render: night },
+  effects: { name: '효과 부품', render: effects },
+  notes: { name: '메모', render: notesView },
+};
+
+function overview() {
+  const d = DATA;
+  const count = (o) => Object.keys(o).length;
+  const scenes = Object.values(d.story.scenes).reduce((n, s) => n + s.length, 0);
+  const tiles = [
+    [count(d.objectives.general), '일반 의뢰 목표'], [count(d.modifiers.rows), '현장 변형'], [count(d.requests), '의뢰 사연'],
+    [count(d.nodes), '동네'], [count(d.ghosts), '괴이'], [count(d.chapters), '메인 스토리 장'], [scenes, '대사 줄'],
+    [`${count(d.training.lines)} / ${d.training.tree.ranks}`, '트레이닝 줄 / 단계'], [count(d.skills.passives), '패시브 기술'],
+    [count(d.skills.actives), '액티브 기술'], [count(d.gear.specials), '장신구 전설 특수'], [count(d.cards.rows), '강화 카드'],
+  ].map(([b, s]) => `<div class="tile"><b>${esc(b)}</b><span>${esc(s)}</span></div>`).join('');
+  const flow = `<div class="flow">
+    <div><h3>돈 ₩</h3><span><b>들어옴</b> 의뢰 보수, 밤에 주운 영력(정산 때 1:1), 장신구 녹이기</span><span><b>나감</b> 월세 ${won(d.office.rent)} / ${d.office.rentEvery}일, 트레이닝(전부 ${won(d.training.tree.total)}), 시설, 보급품, 자본 치료 ${won(d.trauma.capitalCost)}, 장신구 강화</span></div>
+    <div><h3>심연 파편</h3><span><b>들어옴</b> 현상수배·추격·메인 보스·깊은 층 보물·괴이 소굴·파편 확률</span><span><b>나감</b> 기술 칸 열기·액티브 배우기·개조, 장신구 부옵션 다시 굴리기</span></div>
+    <div><h3>평판 (쓰지 않음)</h3><span><b>오름</b> 끝낸 의뢰 난이도 × ${d.reputation.rules.perDifficulty}, 메인 ${d.reputation.rules.main}</span><span><b>내림</b> 쓰러짐 −${d.reputation.rules.died}, 실패 −${d.reputation.rules.failed}, 만료 −${d.reputation.rules.expired} (오른 등급 밑으로는 안 내려감)</span></div>
+    <div><h3>영력 (밤 안에서만)</h3><span>괴이가 떨어뜨리는 구슬. 그날 밤 정산에 돈이 된다. 영력 터뜨리기 액티브는 바닥 영력을 터뜨려 공격으로 쓴다(그만큼 돈을 포기).</span></div>
+  </div>`;
+  const where = [
+    ['의뢰 목표·변형·사연·보수', 'src/data/objectives.data.ts · modifiers.data.ts · requests.data.ts · office.data.ts'],
+    ['동네·괴이', 'src/data/nodes.data.ts · ghosts.data.ts'],
+    ['메인 스토리·대사', 'src/data/chapters.data.ts · contracts.data.ts · story.data.ts, 글은 src/i18n/ko.ts'],
+    ['트레이닝·기술·장신구', 'src/data/training.data.ts · skills.data.ts · gear.data.ts'],
+    ['시설·보급품·트라우마', 'src/data/facilities.data.ts · penalties.data.ts'],
+    ['평판 등급', 'src/data/reputation.data.ts (+ 각 줄의 rank 칸)'],
+    ['강화 카드·무기·주인공', 'src/data/cards.data.ts · weapons.data.ts · protagonist.data.ts'],
+    ['효과 부품', 'src/registry/effects/parts/ (부품 하나 = 파일 하나)'],
+  ].map(([a, b]) => `<div class="line" style="grid-template-columns:minmax(120px,200px) minmax(0,1fr)"><span>${esc(a)}</span><code>${esc(b)}</code></div>`).join('');
+  return sheet('지금 게임에 들어 있는 것', '', `<div class="tiles">${tiles}</div>`) +
+    sheet('화폐 흐름', 'src/store/gameStore.ts applyRunResult', flow) +
+    sheet('어디를 고치면 되나', '', where, '글자(이름·설명·대사)는 전부 src/i18n/ko.ts 한 파일, 영어는 en.ts.');
+}
+
+function contracts() {
+  const d = DATA;
+  const fee = Object.fromEntries(d.objectives.fees.map((f) => [f.objective, f]));
+  const goalText = (g) => (g === 'last' ? '마지막 층' : g === 'random' ? '아무 층' : g === 'any' ? '잡히는 층' : `${g + 1}층`);
+  const obj = table('objective', [
+    { h: '목표', f: (r) => esc(r.label), cls: 'name' },
+    { h: '등급', f: (r) => r.rank, cls: 'num' },
+    { h: '나올 확률(가중치)', f: (r) => r.weight, cls: 'num' },
+    { h: '길이', f: (r) => `${r.floors[0]}~${r.floors[1]}층`, cls: 'num' },
+    { h: '끝나는 층', f: (r) => goalText(r.goal) },
+    { h: '보수 배율', f: (r) => `×${r.feeMult}`, cls: 'num' },
+    { h: '파편', f: (r) => r.shards, cls: 'num' },
+    { h: '오염 감소', f: (r) => `−${r.cleanse}`, cls: 'num' },
+    { h: '난이도 가점', f: (r) => r.difficulty, cls: 'num' },
+    { h: '보수 예 (3층, 오염 0 → 3)', f: (r) => `${won(fee[r.id].calm)} → ${won(fee[r.id].hot)}`, cls: 'num' },
+  ], rowsOf(d.objectives.general, (id) => objName(id)));
+  const rules = Object.entries(d.objectives.rules).map(([id, v]) => `<details><summary>${esc(objName(id))} 세부 숫자</summary>${kv(v)}</details>`).join('');
+  const mods = table('modifier', [
+    { h: '변형', f: (r) => esc(r.label), cls: 'name' },
+    { h: '종류', f: (r) => `<span class="chip ${r.kind === 'boon' ? 'boon' : 'warn'}">${r.kind === 'boon' ? '이로움' : '경고'}</span>` },
+    { h: '등급', f: (r) => r.rank, cls: 'num' },
+    { h: '가중치', f: (r) => r.weight, cls: 'num' },
+    { h: '보수', f: (r) => (r.feeBonus ? `+${pct(r.feeBonus)}` : '—'), cls: 'num' },
+    { h: '난이도', f: (r) => r.difficulty, cls: 'num' },
+    { h: '하는 일', f: (r) => esc(T(r.descKey)), cls: 'text' },
+  ], rowsOf(d.modifiers.rows, (id, v) => T(v.nameKey)));
+  const req = table('request', [
+    { h: '의뢰인', f: (r) => esc(r.label), cls: 'name' },
+    { h: '목표', f: (r) => esc(objName(r.objective)) },
+    { h: '동네', f: (r) => esc(r.nodes ? r.nodes.map(node).join(', ') : '어디든') },
+    { h: '괴이', f: (r) => esc(r.pool ? r.pool.map(ghost).join(', ') : '동네 따라') },
+    { h: '사연', f: (r) => esc(T(r.textKey)), cls: 'text' },
+  ], rowsOf(d.requests, (id, v) => T(v.clientKey)));
+  const names = [];
+  for (let i = 0; i < d.office.wantedNames.pre; i++) for (let j = 0; j < d.office.wantedNames.suf; j++) names.push(`${T(`wanted.pre.${i}`)} ${T(`wanted.suf.${j}`)}`);
+  const g = d.office.general;
+  const formula = `<p style="margin:0">보수 = (${g.feeBase} + 난이도 × ${g.feePerDifficulty} + 층수 × ${g.feePerFloor}) × 목표 배율 × (1 + 변형 보수 합 + 놓친 횟수 × ${g.feePerTargetLevel}), 10원 단위. 난이도 = 목표 층까지 강적 수 + 목표 가점 + 변형 가점이 ${d.office.difficulty.steps.join(' / ')}를 몇 개 넘었나 + 1. 층마다 강적 = ${g.enemiesBase} + 오염 + 층 번호.</p>`;
+  return sheet('목표 (일반 의뢰는 이 중 하나)', 'src/data/objectives.data.ts', obj + rules) +
+    sheet('현장 변형 (의뢰마다 0~2개)', 'src/data/modifiers.data.ts', mods, `0개 ${pct(d.modifiers.count[0])} · 1개 ${pct(d.modifiers.count[1])} · 2개 ${pct(d.modifiers.count[2])}`) +
+    sheet('의뢰 사연 (목표마다 틀)', 'src/data/requests.data.ts, 글은 ko.ts request.*', req) +
+    sheet('보수 · 난이도 · 판', 'src/data/office.data.ts', formula + kv({ '판에 일반 의뢰': d.office.boardSize, '마감 최소(일)': d.office.deadline.min, '마감 최대(일)': d.office.deadline.max, '합동 출동 최대': d.office.joint.max, '공중전화 나오는 길이': g.payphoneFrom })) +
+    sheet('오염 · 넘침', 'src/data/office.data.ts contamination', kv({ '최대': d.office.contamination.max, '만료 시 +': d.office.contamination.expireRise, '실패 시 +': d.office.contamination.failRise, '넘침 시작': d.office.contamination.overflow.at, '긴급 마감(일)': d.office.contamination.overflow.days, '긴급 보수 ×': d.office.contamination.overflow.feeMult, '긴급 평판 ×': d.office.contamination.overflow.repMult, '놓치면 이웃 +': d.office.contamination.overflow.rise, '놓치면 평판 −': d.office.contamination.overflow.rep, '메인 끝내면 −': d.office.contamination.cleanse.main })) +
+    sheet('현상수배 · 추격 표적 이름', 'ko.ts wanted.pre.N + wanted.suf.N (office.data.ts wantedNames)', `<p style="margin:0">앞말 ${d.office.wantedNames.pre}개 × 뒷말 ${d.office.wantedNames.suf}개를 무작위로 붙인다(괴이 종류와 상관없음). 놓칠 때마다 단계 +1, 이름은 그대로.</p><p style="margin:0;font-size:14px">${esc(names.join(' · '))}</p>`);
+}
+
+function city() {
+  const d = DATA;
+  const nodes = table('node', [
+    { h: '동네', f: (r) => esc(r.label), cls: 'name' },
+    { h: '평판 등급', f: (r) => r.rank, cls: 'num' },
+    { h: '시작 오염', f: (r) => r.startContamination, cls: 'num' },
+    { h: '나오는 괴이', f: (r) => esc(r.pool.map(ghost).join(', ')) },
+    { h: '층 모습', f: (r) => esc(r.themes.join(', ')) },
+    { h: '이웃', f: (r) => esc(r.links.map(node).join(', ')) },
+  ], rowsOf(d.nodes, (id, v) => T(v.nameKey)));
+  const ghosts = table('ghost', [
+    { h: '괴이', f: (r) => esc(r.label), cls: 'name' },
+    { h: '체력', f: (r) => r.hp, cls: 'num' },
+    { h: '피해', f: (r) => r.fodder ? `닿으면 ${r.contactDamage}` : r.damage, cls: 'num' },
+    { h: '속도', f: (r) => r.speed, cls: 'num' },
+    { h: '공격', f: (r) => ({ cone: '부채꼴(받아치기 가능)', circle: '원(받아치기 가능)', line: '돌진(피하기만)', none: '몸통' })[r.attack] },
+    { h: '예고', f: (r) => (r.windup ? `${r.windup}초` : '—'), cls: 'num' },
+    { h: '영력', f: (r) => r.drop, cls: 'num' },
+    { h: '특징', f: (r) => esc([r.teleportEvery ? `${r.teleportEvery}초마다 뒤로 순간이동` : '', r.darkness ? `맞으면 ${r.darkness}초 어둠` : '', r.fodder ? '무리' : ''].filter(Boolean).join(' · ') || '—'), cls: 'text' },
+  ], rowsOf(d.ghosts, (id) => ghost(id)));
+  const bosses = Object.entries(d.bosses).map(([id, v]) => `<details><summary>${esc(ghost(id))}</summary>${kv(v)}</details>`).join('');
+  return sheet('동네 (을지로 작전 지도)', 'src/data/nodes.data.ts', nodes) + sheet('괴이', 'src/data/ghosts.data.ts', ghosts) + sheet('보스', 'src/data/ghosts.data.ts BOSSES', bosses);
+}
+
+function story() {
+  const d = DATA;
+  const ch = table('chapter', [
+    { h: '장', f: (r) => esc(r.label), cls: 'name' },
+    { h: '앞 장', f: (r) => esc(r.after ? T(d.chapters[r.after].nameKey) : '—') },
+    { h: '열리는 때', f: (r) => esc(r.after ? `앞 장 끝나고 ${r.startAfterDays}일, 또는 단서 동네 오염 ${r.startHeat}` : '처음부터') },
+    { h: '단서', f: (r) => `${r.clues}개`, cls: 'num' },
+    { h: '단서 동네', f: (r) => esc(r.clueNodes.map(node).join(', ')) },
+    { h: '본 의뢰', f: (r) => { const c = d.contracts[r.contract]; return esc(`${T(c.nameKey) || r.contract} · ${c.floors.length}층 · ${won(c.fee)}`); } },
+    { h: '평판 등급', f: (r) => r.rank, cls: 'num' },
+  ], rowsOf(d.chapters, (id, v) => T(v.nameKey)));
+  const scenes = Object.entries(d.story.scenes).map(([id, lines]) => {
+    noteLabel.set(noteId('scene', id), `대사 ${id}`);
+    const n = notes.get(noteId('scene', id));
+    return `<details><summary>${esc(id)} <span class="dim" style="font-weight:400">· ${lines.length}줄</span></summary>${lines.map((l) => `<div class="line"><span>${esc(T(d.story.speakers[l.speaker].nameKey))}</span><span>${esc(T(l.key))}</span></div>`).join('')}<div style="padding-top:6px"><button type="button" class="memo-btn${n ? ' has' : ''}" data-note="${noteId('scene', id)}">${n ? '메모 있음' : '이 장면에 메모'}</button></div></details>`;
+  }).join('');
+  return sheet('메인 스토리 장', 'src/data/chapters.data.ts · contracts.data.ts', ch, '장이 열리면 단서 동네의 일반 의뢰를 끝낼 때마다 단서가 하나씩 모이고, 다 모으면 본 의뢰가 판에 올라온다.') +
+    sheet('장면과 대사', 'src/data/story.data.ts (순서), 글은 ko.ts scene.*', scenes);
+}
+
+function growth() {
+  const d = DATA;
+  const unit = (l, v) => (l.unit === 'pct' ? `${v > 0 ? '+' : ''}${pct(v)}` : l.unit === 'sec' ? `${v > 0 ? '+' : ''}${Math.round(v * 1000) / 1000}초` : l.unit === 'tiles' ? `+${Math.round(v * 1000) / 1000}칸` : `${v > 0 ? '+' : ''}${v}`);
+  const train = table('training', [
+    { h: '갈래', f: (r) => esc(T(`training.group.${r.group}`)) },
+    { h: '줄', f: (r) => esc(r.label), cls: 'name' },
+    { h: '단계당', f: (r) => unit(r, r.per), cls: 'num' },
+    { h: '최대', f: (r) => r.max, cls: 'num' },
+    { h: '다 찍으면', f: (r) => unit(r, r.per * r.max), cls: 'num' },
+    { h: '첫 값', f: (r) => won(r.cost), cls: 'num' },
+  ], rowsOf(d.training.lines, (id, v) => T(v.nameKey)));
+  const slots = table('slot', [
+    { h: '칸', f: (r) => esc(`${T(`skill.branch.${r.id.replace(/\d$/, '')}`)} ${r.id.slice(-1)}`), cls: 'name' },
+    { h: '파편', f: (r) => r.cost, cls: 'num' },
+    { h: '고를 수 있는 것 (하나만 켜짐)', f: (r) => r.sides.map((p) => `<div><b>${esc(T(d.skills.passives[p].nameKey))}</b> — ${esc(T(d.skills.passives[p].descKey))} <span class="dim">(${esc(d.skills.passives[p].ref)})</span></div>`).join(''), cls: 'text' },
+  ], rowsOf(d.skills.slots, (id) => `기술 칸 ${id}`));
+  const duos = table('duo', [
+    { h: '듀오', f: (r) => esc(r.label), cls: 'name' },
+    { h: '둘 다 켜면', f: (r) => esc(r.requires.map((p) => T(d.skills.passives[p].nameKey)).join(' + ')) },
+    { h: '효과', f: (r) => esc(T(r.descKey)), cls: 'text' },
+  ], rowsOf(d.skills.duos, (id, v) => T(v.nameKey)));
+  const acts = table('active', [
+    { h: '액티브 (L)', f: (r) => esc(r.label), cls: 'name' },
+    { h: '파편', f: (r) => r.cost, cls: 'num' },
+    { h: '재사용', f: (r) => `${r.cooldown}초`, cls: 'num' },
+    { h: '효과', f: (r) => esc(T(r.descKey)), cls: 'text' },
+    { h: '개조 (셋 중 하나)', f: (r) => Object.values(d.skills.upgrades).filter((u) => u.of === r.id).map((u) => `<div>${esc(T(u.nameKey))} <span class="dim">— ${esc(T(u.descKey))}</span></div>`).join('') || '—', cls: 'text' },
+  ], rowsOf(d.skills.actives, (id, v) => T(v.nameKey)));
+  const gs = d.gear;
+  const gslots = table('gearslot', [
+    { h: '칸', f: (r) => esc(r.label), cls: 'name' },
+    { h: '역할', f: (r) => esc(T(r.roleKey)) },
+    { h: '주옵션 후보', f: (r) => esc(r.mains.map((m) => m.stat === 'maxHp' ? `${T(`stat.${m.stat}`)} ${m.base} +${m.perLevel}/단계` : `${T(`stat.${m.stat}`)} ${pct(m.base)} +${pct(m.perLevel)}/단계`).join(' · ')), cls: 'text' },
+  ], rowsOf(gs.slots, (id, v) => T(v.nameKey)));
+  const grades = table('grade', [
+    { h: '등급', f: (r) => esc(r.label), cls: 'name' },
+    { h: '부옵션', f: (r) => r.subs, cls: 'num' },
+    { h: '전설 특수', f: (r) => (r.special ? '있음' : '—') },
+    { h: '강화 값 배율', f: (r) => `×${r.costMult}`, cls: 'num' },
+    { h: '끝까지 강화', f: (r) => won(gs.full[r.id]), cls: 'num' },
+  ], rowsOf(gs.grades, (id, v) => T(v.nameKey)));
+  const subs = table('gearsub', [
+    { h: '부옵션', f: (r) => esc(r.label), cls: 'name' },
+    { h: '범위', f: (r) => (r.stat === 'maxHp' ? `${r.min}~${r.max}` : `${pct(r.min)}~${pct(r.max)}`), cls: 'num' },
+  ], gs.subs.map((s) => ({ id: s.stat, label: T(`stat.${s.stat}`), ...s })));
+  const specials = table('gearspecial', [
+    { h: '전설 특수', f: (r) => esc(r.label), cls: 'name' },
+    { h: '효과', f: (r) => esc(T(r.descKey)), cls: 'text' },
+  ], rowsOf(gs.specials, (id, v) => T(v.nameKey)));
+  const drops = table('geardrop', [
+    { h: '떨어지는 곳', f: (r) => esc(r.label), cls: 'name' },
+    { h: '확률', f: (r) => pct(r.chance), cls: 'num' },
+    { h: '최소 등급', f: (r) => esc(r.minGrade ? T(gs.grades[r.minGrade].nameKey) : '—') },
+  ], rowsOf(gs.drops, (id, v) => T(v.nameKey)));
+  const fac = table('facility', [
+    { h: '시설', f: (r) => esc(r.label), cls: 'name' },
+    { h: '단계별 값', f: (r) => r.costs.map(won).join(' → '), cls: 'num' },
+    { h: '단계별 평판 등급', f: (r) => r.ranks.join(' / '), cls: 'num' },
+    { h: '단계별 효과', f: (r) => r.levelKeys.map((k) => `<div>${esc(T(k))}</div>`).join(''), cls: 'text' },
+  ], rowsOf(d.facilities.rows, (id, v) => T(v.nameKey)));
+  const sup = table('supply', [
+    { h: '보급품', f: (r) => esc(r.label), cls: 'name' },
+    { h: '값', f: (r) => won(r.cost), cls: 'num' },
+    { h: '작업대 단계', f: (r) => r.benchLevel, cls: 'num' },
+    { h: '효과', f: (r) => esc(T(r.descKey)), cls: 'text' },
+  ], rowsOf(d.facilities.supplies, (id, v) => T(v.nameKey)));
+  const tr = d.trauma;
+  return sheet('트레이닝 (돈)', 'src/data/training.data.ts', train, `전부 사면 ${won(d.training.tree.total)} · ${d.training.tree.ranks}단계 · 값 = 첫 값 × (그 줄 단계 + 1) × (1 + ${d.training.price.inflation} × 산 횟수)`) +
+    sheet('기술 칸 (심연 파편)', 'src/data/skills.data.ts PASSIVES · SKILL_SLOTS', slots) +
+    sheet('듀오', 'src/data/skills.data.ts DUOS', duos) +
+    sheet('액티브와 개조', 'src/data/skills.data.ts ACTIVES · UPGRADES', acts) +
+    sheet('장신구 칸', 'src/data/gear.data.ts', gslots, `가방 ${gs.economy.bag}칸 · 강화 최대 +${gs.economy.maxLevel} · 다시 굴리기 파편 1 → ${gs.economy.rerollMax}`) +
+    sheet('장신구 등급', 'src/data/gear.data.ts GRADES', grades) +
+    sheet('장신구 부옵션', 'src/data/gear.data.ts SUB_OPTIONS', subs) +
+    sheet('장신구 전설 특수 (효과 부품)', 'src/data/gear.data.ts GEAR_SPECIALS', specials) +
+    sheet('장신구 떨어지는 곳', 'src/data/gear.data.ts DROPS', drops) +
+    sheet('시설 (경리 장부)', 'src/data/facilities.data.ts', fac) +
+    sheet('보급품 (부적 작업대)', 'src/data/facilities.data.ts SUPPLIES', sup) +
+    sheet('트라우마', 'src/data/penalties.data.ts TRAUMA', `<p style="margin:0">${tr.fewerCardsAt} 이상 카드 ${tr.fewerCards}장 · ${tr.weakAt} 이상 체력 −${tr.weakHp}로 시작 · ${tr.groundedAt} 이상 출동 불가. 휴식하기 −${tr.rest}(+소파 단계), 자본 치료 ${won(tr.capitalCost)} → −${tr.capitalAmount}.</p>`);
+}
+
+function rank() {
+  const d = DATA;
+  const opens = (r) => [
+    ...Object.entries(d.objectives.general).filter(([, v]) => v.rank === r).map(([id]) => `목표 ${objName(id)}`),
+    ...Object.entries(d.modifiers.rows).filter(([, v]) => v.rank === r).map(([, v]) => `변형 ${T(v.nameKey)}`),
+    ...Object.entries(d.nodes).filter(([, v]) => v.rank === r).map(([, v]) => `동네 ${T(v.nameKey)}`),
+    ...Object.entries(d.facilities.rows).flatMap(([, v]) => v.ranks.map((x, i) => (x === r ? `${T(v.nameKey)} ${i + 1}단계` : null)).filter(Boolean)),
+    ...Object.entries(d.chapters).filter(([, v]) => v.rank === r).map(([, v]) => T(v.nameKey)),
+  ];
+  const rows = d.reputation.ranks.map((v, i) => ({ id: String(i), label: T(v.nameKey), ...v, i }));
+  const t = table('rank', [
+    { h: '등급', f: (r) => `${r.i} · ${esc(r.label)}`, cls: 'name' },
+    { h: '필요 평판', f: (r) => r.at, cls: 'num' },
+    { h: '트레이닝 한도', f: (r) => pct(d.reputation.rules.trainingCap[r.i]), cls: 'num' },
+    { h: '열리는 것', f: (r) => opens(r.i).map((s) => `<span class="chip">${esc(s)}</span>`).join('') || '—', cls: 'text' },
+    { h: '등급 오른 아침 문자', f: (r) => esc(`${T(r.from)}: ${T(r.textKey)}`), cls: 'text' },
+  ], rows);
+  return sheet('평판 등급', 'src/data/reputation.data.ts (+ 각 데이터 줄의 rank 칸)', t, `끝낸 일반 의뢰 = 난이도 × ${d.reputation.rules.perDifficulty} (오염 ${d.reputation.rules.hotAt} 이상 동네면 +${d.reputation.rules.hotBonus}), 메인 스토리 ${d.reputation.rules.main}.`);
+}
+
+function night() {
+  const d = DATA;
+  const cards = table('card', [
+    { h: '카드', f: (r) => esc(r.label), cls: 'name' },
+    { h: '덱', f: (r) => esc(r.source === 'base' ? '기본' : T(`weapon.${r.source}`) || r.source) },
+    { h: '설명', f: (r) => esc(T(`card.${r.id}.desc`)), cls: 'text' },
+    { h: '숫자', f: (r) => esc(Object.entries(r).filter(([k, v]) => typeof v === 'number' && v !== 0).map(([k, v]) => `${k} ${v}`).join(' · ') || '—'), cls: 'num' },
+  ], rowsOf(d.cards.rows, (id) => T(`card.${id}.name`)));
+  const weapons = Object.entries(d.weapons).map(([id, v]) => `<details open><summary>${esc(T(`weapon.${id}`) || id)}</summary>${kv(v)}</details>`).join('');
+  const ex = Object.entries(d.exorcists).map(([id, v]) => `<details><summary>${esc(T(`name.${id}`) || id)}</summary>${kv(v)}</details>`).join('');
+  return sheet('강화 카드 (층마다 셋 중 하나)', 'src/data/cards.data.ts, 효과는 src/registry/cardEffects.ts', cards, `한 번에 ${d.cards.offer}장`) +
+    sheet('무기', 'src/data/weapons.data.ts', weapons) + sheet('주인공 기본 능력치', 'src/data/protagonist.data.ts', ex) +
+    sheet('층 만들기', 'src/data/dungeon.data.ts', kv(d.dungeon)) + sheet('밤 벌칙', 'src/data/penalties.data.ts RUN_PENALTIES', kv(d.penalties));
+}
+
+function effects() {
+  const d = DATA;
+  const parts = table('part', [
+    { h: '부품', f: (r) => `<code>${esc(r.id)}</code>`, cls: 'name' },
+    { h: '하는 일', f: (r) => esc(r.what), cls: 'text' },
+  ], d.effects.parts.map((p) => ({ ...p, label: `효과 부품 ${p.id}` })));
+  const hooks = table('hook', [
+    { h: '언제', f: (r) => `<code>${esc(r.id)}</code>`, cls: 'name' },
+    { h: '뜻', f: (r) => esc(r.what || '—'), cls: 'text' },
+  ], d.effects.hooks.map((h) => ({ ...h, label: `훅 ${h.id}` })));
+  return sheet('효과 부품', 'src/registry/effects/parts/', parts, '기술·장신구 특수·보급품은 전부 "언제 + 조건 → 부품 + 숫자" 한 줄로 적는다. 새 동작이 필요할 때만 부품 파일을 하나 더한다.') +
+    sheet('언제 (훅)', 'src/registry/hookPoints.ts', hooks);
+}
+
+function notesView() {
+  if (!db) return sheet('메모', '', '<p style="margin:0">이 화면에서는 메모를 불러올 수 없다.</p>');
+  const all = [...notes.entries()].sort((a, b) => String(b[1].at).localeCompare(String(a[1].at)));
+  if (all.length === 0) return sheet('메모', '', '<p style="margin:0">아직 메모가 없다. 아무 탭에서나 줄 끝의 "메모"를 눌러 고칠 점을 적으면 여기에 모이고, Claude에게 "장부 메모 반영해"라고 하면 읽어서 고친다.</p>');
+  const rows = all.map(([id, n]) => `<tr${n.done ? ' style="opacity:.55"' : ''}><td class="name">${esc(n.label || id)}</td><td class="text">${esc(n.text)}</td><td class="num">${esc(String(n.at).slice(0, 10))}</td><td>${n.done ? '반영됨' : '대기'}</td><td class="memo"><button type="button" class="memo-btn has" data-note="${id}">고치기</button></td></tr>`).join('');
+  return sheet(`메모 ${all.length}개`, '', `<div class="scroll"><table><thead><tr><th>줄</th><th>메모</th><th>날짜</th><th>상태</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`);
+}
+
+// ---- routing and render ----
+const current = () => (VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'overview');
+function render() {
+  const cur = current();
+  const open = notes.size ? [...notes.values()].filter((n) => !n.done).length : 0;
+  document.getElementById('tabs').innerHTML = Object.entries(VIEWS).map(([id, v]) => `<a href="#${id}"${id === cur ? ' aria-current="page"' : ''}>${esc(v.name)}${id === 'notes' && open ? `<span class="n">${open}</span>` : ''}</a>`).join('');
+  const view = document.getElementById('view');
+  const scroll = window.scrollY;
+  view.innerHTML = VIEWS[cur].render();
+  window.scrollTo(0, scroll);
+}
+document.getElementById('stamp').textContent = `코드에서 뽑은 때 ${DATA.at.slice(0, 16).replace('T', ' ')} UTC`;
+window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
+
+// One memo editor at a time, opened under the row (or the button) that asked for it.
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-note]');
+  if (!btn) return;
+  if (!db) { document.getElementById('memo-off').hidden = false; return; }
+  const id = btn.dataset.note;
+  document.querySelectorAll('.memo-editor').forEach((x) => x.remove());
+  const n = notes.get(id);
+  const box = document.createElement('div');
+  box.className = 'memo-box';
+  box.innerHTML = `<label for="memo-text" class="dim" style="font-size:13px">${esc(noteLabel.get(id) || n?.label || id)} — 무엇을 바꾸고 싶은지</label><textarea id="memo-text">${esc(n?.text || '')}</textarea><div class="row"><button type="button" data-act="save">저장</button><button type="button" class="ghost" data-act="cancel">닫기</button>${n ? '<button type="button" class="ghost" data-act="del">지우기</button>' : ''}<span class="status" role="status"></span></div>`;
+  const tr = btn.closest('tr');
+  let host;
+  if (tr) {
+    host = document.createElement('tr');
+    host.className = 'memo-editor';
+    const td = document.createElement('td');
+    td.colSpan = tr.children.length;
+    td.appendChild(box);
+    host.appendChild(td);
+    tr.after(host);
+  } else {
+    host = document.createElement('div');
+    host.className = 'memo-editor';
+    host.appendChild(box);
+    btn.after(host);
+  }
+  const ta = box.querySelector('textarea');
+  ta.focus();
+  box.addEventListener('click', async (ev) => {
+    const act = ev.target.closest('[data-act]')?.dataset.act;
+    if (!act) return;
+    if (act === 'cancel') return host.remove();
+    const status = box.querySelector('.status');
+    status.textContent = '저장 중…';
+    try {
+      await saveNote(id, noteLabel.get(id) || n?.label || id, act === 'del' ? '' : ta.value);
+      host.remove();
+    } catch (err) {
+      status.textContent = `저장 못 함: ${err?.message || err?.code || '다시 눌러 보세요'}`;
+    }
+  });
+});
+render();
+</script>
