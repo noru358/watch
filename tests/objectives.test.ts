@@ -217,6 +217,49 @@ describe('objectives: 첫차까지', () => {
   });
 });
 
+describe('objectives: 속전속결', () => {
+  const T = OBJECTIVES.timeattack;
+  const strong = (f: Floor) => f.enemies.filter((e) => e.hp > 0 && e.kind !== 'gumiho' && !GHOSTS[e.kind as keyof typeof GHOSTS].fodder && e.role !== 'lair');
+
+  it('the clock starts from the strong ghosts, a kill puts time back, finishing pays the time left as spirit', () => {
+    const rng = new SeededRNG(5);
+    const f = generateFloor(0, planOf('timeattack', { swarm: null }), rng, carry());
+    f.player.iframes = 9999;
+    stepFloor(f, NO_INPUT, DT, rng);
+    const o = f.objective as Extract<NonNullable<Floor['objective']>, { kind: 'timeattack' }>;
+    const n = strong(f).length;
+    expect(n).toBeGreaterThan(0);
+    expect(o.top).toBe(T.startBase + T.startPerStrong * n);
+    expect(stairsOpen(f)).toBe(false);
+    const before = o.left;
+    strong(f)[0]!.hp = 0;
+    stepFloor(f, NO_INPUT, DT, rng);
+    expect(o.left).toBeCloseTo(before + T.perKill - DT, 3);
+    for (const e of strong(f)) e.hp = 0;
+    const pickups = f.pickups.length;
+    stepFloor(f, NO_INPUT, DT, rng);
+    expect(o.done).toBe(true);
+    expect(o.paid).toBe(Math.min(T.spiritCap, Math.round(o.left * T.spiritPerSecond)));
+    expect(f.pickups.length).toBeGreaterThan(pickups);
+    expect(f.pickups.slice(pickups).reduce((n2, p) => n2 + p.value, 0)).toBe(o.paid);
+    expect(stairsOpen(f)).toBe(true);
+  });
+
+  it('out of time: the objective is lost (no fee) but the stairs open', () => {
+    const rng = new SeededRNG(6);
+    const f = generateFloor(0, planOf('timeattack', { swarm: null }), rng, carry());
+    f.player.iframes = 9999;
+    for (const e of f.enemies) e.state = 'stun';
+    stepFloor(f, NO_INPUT, DT, rng);
+    const o = f.objective as Extract<NonNullable<Floor['objective']>, { kind: 'timeattack' }>;
+    o.left = DT / 2;
+    stepFloor(f, NO_INPUT, DT, rng);
+    expect(o.failed).toBe(true);
+    expect(o.done).toBe(false);
+    expect(stairsOpen(f)).toBe(true);
+  });
+});
+
 describe('현장 변형 and deep floors', () => {
   it('괴이 소굴: a sleeping pack that does not count for 섬멸; walking in seals the doors until it is down', () => {
     let f: Floor | null = null;

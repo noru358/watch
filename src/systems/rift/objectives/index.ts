@@ -1,4 +1,3 @@
-import { GHOSTS } from '../../../data/ghosts.data';
 import type { FloorPlan } from '../../../data/contracts.data';
 import type { SeededRNG } from '../../../core/SeededRNG';
 import type { Floor, Pos } from '../types';
@@ -8,15 +7,13 @@ import { setupFirstTrain, updateFirstTrain } from './firsttrain';
 import { hurtSurvivor, setupRescue, updateRescue } from './rescue';
 import type { ObjectiveState, QuarryCarry, Survivor } from './types';
 import { setupWard, updateWard } from './ward';
+import { setupTimeAttack, updateTimeAttack } from './timeattack';
+import { strongLeft } from './strong';
 import { OBJECTIVES } from '../../../data/objectives.data';
 
 export type { ObjectiveState, Survivor, QuarryCarry, WardSite } from './types';
 
-// Strong (non-fodder) ghosts still standing on this floor that 섬멸 asks for. A 괴이 소굴 pack is
-// optional (you may walk past the nest), so it does not count.
-export function strongLeft(f: Floor): number {
-  return f.enemies.filter((e) => e.hp > 0 && e.kind !== 'gumiho' && !GHOSTS[e.kind].fodder && e.role !== 'lair').length;
-}
+export { strongLeft } from './strong';
 
 // Where things go on a normal floor (mapgen hands these out).
 export interface ObjectiveSpots {
@@ -50,6 +47,8 @@ export function setupObjective(f: Floor, plan: Extract<FloorPlan, { kind: 'norma
       return setupWard(at.apart(OBJECTIVES.ward.sites, OBJECTIVES.ward.minApart));
     case 'firsttrain':
       return setupFirstTrain(brief.time * (1 + f.stats.trainTime), plan.pool);
+    case 'timeattack':
+      return setupTimeAttack();
   }
 }
 
@@ -67,6 +66,8 @@ export function updateObjective(f: Floor, dt: number, rng: SeededRNG): void {
       return updateWard(f, o, dt);
     case 'firsttrain':
       return updateFirstTrain(f, o, dt, rng);
+    case 'timeattack':
+      return updateTimeAttack(f, o, dt);
     case 'clear':
       if (!o.done && strongLeft(f) === 0) {
         o.done = true;
@@ -81,6 +82,7 @@ export function objectiveReady(f: Floor): boolean {
   if (!o) return true;
   if (o.kind === 'rescue') return o.survivor.state === 'following';
   if (o.kind === 'chase') return o.done || o.fled;
+  if (o.kind === 'timeattack') return o.done || o.failed;
   return o.done;
 }
 

@@ -101,7 +101,7 @@ export class RiftHud {
     if (o?.kind === 'ward' && !o.done) {
       for (const site of o.sites) if (site.progress < 1) this.edgeArrow(f, site, PALETTE.accent, 0.8);
     }
-    const open = !o || (o.kind === 'chase' ? o.done || o.fled : o.kind === 'rescue' ? o.survivor.state === 'following' : o.done);
+    const open = !o || (o.kind === 'chase' ? o.done || o.fled : o.kind === 'rescue' ? o.survivor.state === 'following' : o.kind === 'timeattack' ? o.done || o.failed : o.done);
     const hud = new Set(f.perks.map(perkHud));
     if (f.stairs && (open || hud.has('mapAll') || (f.index === 0 && hud.has('mapFirst')))) this.edgeArrow(f, f.stairs, PALETTE.textDimHex, 0.7);
     if (hud.has('ghostEye')) for (const e of f.enemies) if (e.hp > 0 && isStrong(e)) this.edgeArrow(f, e, PALETTE.parriable, 0.45);
@@ -145,6 +145,12 @@ export class RiftHud {
       line = o.done ? t('hud.obj.wardDone') : t('hud.obj.ward', { done: finished, total: o.sites.length });
       const live = o.sites.find((s) => s.progress > 0 && s.progress < 1);
       if (!o.done) gauge = { value: live ? live.progress : 0, color: PALETTE.accent, label: o.charging ? t('hud.obj.wardCharging') : '' };
+    } else if (o?.kind === 'timeattack') {
+      open = o.done || o.failed;
+      const left = Math.ceil(o.left);
+      const clock = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+      line = o.done ? t('hud.obj.timeattackDone') : o.failed ? t('hud.obj.timeattackFail') : t('hud.obj.timeattack', { time: clock, count: strongStanding(f) });
+      if (!o.done && !o.failed) gauge = { value: o.top > 0 ? o.left / o.top : 1, color: o.left < 10 ? PALETTE.bountyMark : PALETTE.accent, label: '' };
     } else if (o?.kind === 'firsttrain') {
       open = o.done;
       const left = Math.ceil(o.left);

@@ -30,4 +30,5 @@ export type ObjectiveState =
   | { kind: 'bounty'; done: boolean; targetId: number; shards: number }
   | { kind: 'chase'; done: boolean; targetId: number | null; fled: boolean; quarry: QuarryCarry; shards: number; last: boolean }
   | { kind: 'ward'; done: boolean; sites: WardSite[]; charging: boolean }
-  | { kind: 'firsttrain'; done: boolean; left: number; total: number; spawnT: number; growT: number; pool: readonly GhostId[] };
+  | { kind: 'firsttrain'; done: boolean; left: number; total: number; spawnT: number; growT: number; pool: readonly GhostId[] }
+  | { kind: 'timeattack'; done: boolean; failed: boolean; started: boolean; left: number; top: number; strong: number; paid: number };

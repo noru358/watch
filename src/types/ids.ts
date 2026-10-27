@@ -20,10 +20,11 @@ export type RequestId =
   | 'faceless' | 'poster'
   | 'footsteps' | 'snatcher'
   | 'cold_spot' | 'shrine'
-  | 'last_train' | 'taxi';
+  | 'last_train' | 'taxi'
+  | 'closing' | 'checkout' | 'deadline';
 // What opens a floor's stairs (docs/design/2-night/objectives.md). A general contract has exactly one
 // main objective (not 'clear' on its goal floor unless it is a 섬멸 contract); other floors are 'clear'.
-export type ObjectiveKind = 'clear' | 'rescue' | 'bounty' | 'chase' | 'ward' | 'firsttrain';
+export type ObjectiveKind = 'clear' | 'rescue' | 'bounty' | 'chase' | 'ward' | 'firsttrain' | 'timeattack';
 // 현장 변형 (src/data/modifiers.data.ts): warnings make the night harder (and pay more), boons help.
 export type ModifierId = 'blackout' | 'lair' | 'surge' | 'regen' | 'lethal' | 'haste' | 'tough' | 'lesshealing' | 'subwayline' | 'windfall' | 'clearnight' | 'weakspot';
 export type FloorTheme = 'basement' | 'alley' | 'arcade' | 'rooftop' | 'lot';

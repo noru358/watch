@@ -305,7 +305,7 @@ describe('office: generated nights are playable', () => {
     expect(runs.filter((r) => r.outcome === 'success').length, JSON.stringify(runs)).toBeGreaterThanOrEqual(3);
   });
 
-  it.each(['bounty', 'chase', 'ward', 'firsttrain'] as const)('a reading bot can finish a %s contract', (objective) => {
+  it.each(['bounty', 'chase', 'ward', 'firsttrain', 'timeattack'] as const)('a reading bot can finish a %s contract', (objective) => {
     const s = fresh();
     let o = general(s, 'alley', 1, objective, objective === 'firsttrain' ? 1 : objective === 'chase' ? 3 : 2);
     if (objective === 'bounty' || objective === 'chase') o = named(o, objective);

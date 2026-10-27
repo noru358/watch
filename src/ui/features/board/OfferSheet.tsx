@@ -51,6 +51,12 @@ function GoalIcon({ kind }: { kind: GoalKind }) {
         <circle cx="12" cy="12" r="9" strokeDasharray="3 2" /><rect x="9" y="7" width="6" height="10" /><path d="M10.5 10h3M10.5 13h3" />
       </svg>
     );
+  if (kind === 'timeattack')
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="13.5" r="7.5" /><path d="M12 13.5V9.5M12 13.5l3 2M10 3h4M12 3v3" />
+      </svg>
+    );
   if (kind === 'firsttrain')
     return (
       <svg {...common}>

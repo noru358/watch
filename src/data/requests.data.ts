@@ -33,4 +33,7 @@ export const REQUESTS: Record<RequestId, RequestData> = {
   // 첫차까지
   last_train: { clientKey: 'request.last_train.client', textKey: 'request.last_train.text', nodes: ['station', 'arcade'], pool: ['subway', 'cheonyeo'], objective: 'firsttrain' },
   taxi: { clientKey: 'request.taxi.client', textKey: 'request.taxi.text', nodes: ['station', 'printshop', 'rooftop'], pool: null, objective: 'firsttrain' },
+  closing: { clientKey: 'request.closing.client', textKey: 'request.closing.text', nodes: ['arcade', 'alley'], pool: null, objective: 'timeattack' },
+  checkout: { clientKey: 'request.checkout.client', textKey: 'request.checkout.text', nodes: ['motel'], pool: null, objective: 'timeattack' },
+  deadline: { clientKey: 'request.deadline.client', textKey: 'request.deadline.text', nodes: ['printshop', 'rooftop', 'station'], pool: null, objective: 'timeattack' },
 };

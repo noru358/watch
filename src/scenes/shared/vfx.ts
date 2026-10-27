@@ -3,6 +3,7 @@ import type { EventBus } from '../../core/EventBus';
 import { FEEL, PALETTE } from '../../data/feel.data';
 import { GHOSTS } from '../../data/ghosts.data';
 import { playSfx } from './sfx';
+import { t } from '../../i18n';
 
 interface VfxHooks {
   freeze(seconds: number): void; // hit-stop: pauses the simulation clock briefly (the scene rate-limits small ones)
@@ -93,6 +94,11 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
     bus.on('quarryFled', (e) => {
       ring(scene, e.x, e.y, 18, PALETTE.bountyMark);
       playSfx('dash');
+    }),
+    bus.on('clockAdded', (e) => popup(scene, e.x, e.y - 20, t('hud.clockAdd', { sec: e.sec }), PALETTE.accentText, FEEL.popupSizeBig)),
+    bus.on('clockOut', (e) => {
+      ring(scene, e.x, e.y, 30, PALETTE.bountyMark);
+      playSfx('hurt');
     }),
     bus.on('wardSealed', (e) => {
       ring(scene, e.x, e.y, 28, PALETTE.barrier);

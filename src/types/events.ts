@@ -24,6 +24,8 @@ export interface GameEventMap {
   lastBreath: { x: number; y: number }; // 마지막 숨 kept the director at 1 HP
   quarryFled: { x: number; y: number }; // 추격: the quarry bolted to the next floor
   wardSealed: { x: number; y: number }; // 결계: one site finished
+  clockAdded: { x: number; y: number; sec: number }; // 속전속결: a strong kill put time back on the clock
+  clockOut: { x: number; y: number }; // 속전속결: time ran out
   lairLocked: { x: number; y: number }; // 괴이 소굴: the doors sealed (the map redraws)
   lairOpened: { x: number; y: number };
   shardCollected: { x: number; y: number };

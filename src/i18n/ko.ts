@@ -647,6 +647,17 @@ export const ko = {
   'board.caseLinked': '사건 파일과 연결됨',
   'board.markKey': 'F 담기',
   'board.unmarkKey': 'F 빼기',
+  'board.goal.timeattack': '속전속결',
+  'request.closing.client': '지하상가 상인회장',
+  'request.closing.text': '셔터 내리기 전에 다 치워 주셔야 해요. 문 닫고 나면 그것들이 가게 안으로 들어와요.',
+  'request.checkout.client': '모텔 야간 카운터',
+  'request.checkout.text': '퇴실 시간 전에 복도를 비워 주세요. 손님들이 나오다 마주치면 큰일 나요.',
+  'request.deadline.client': '마감 앞둔 인쇄소 사장',
+  'request.deadline.text': '새벽 다섯 시에 판을 돌려야 해요. 그 전에 기계 앞에 선 것들 좀 치워 주세요. 빨리요.',
+  'hud.obj.timeattack': '속전속결 {time} · 남은 강적 {count}',
+  'hud.obj.timeattackDone': '속전속결 성공 — 남은 시간이 영력으로',
+  'hud.obj.timeattackFail': '시간 초과 — 이 목표는 보수 없음, 계단은 열림',
+  'hud.clockAdd': '+{sec}초',
 } as const;
 
 export type TKey = keyof typeof ko;
