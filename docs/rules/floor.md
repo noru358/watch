@@ -1,6 +1,6 @@
 # 🧮 밤 · 한 층 규칙
 
-← [장부 목록](README.md) · 기획 이유: [전투](../design/2-night/combat.md), [괴이](../design/2-night/enemies.md), [의뢰·현장](../design/2-night/contract.md)
+← [장부 목록](README.md) · 기획 이유: [전투](../design/2-night/combat.md), [괴이](../design/2-night/enemies.md), [의뢰·현장](../design/2-night/objectives.md)
 계산 코드: `src/systems/rift/` — `layout.ts`(방·복도·방 역할), `mapgen.ts`(무엇을 어디에 세우나), `step.ts`(계단·공중전화), `objectives/`(층 목표: 목표 하나 = 파일 하나), `lair.ts`(괴이 소굴), `skills.ts`(액티브 기술), `spawner.ts`(도깨비불 물결). 숫자: 목표는 `src/data/objectives.data.ts`, 현장 변형은 `modifiers.data.ts`. 테스트: `tests/rift.test.ts`, `mapgen.test.ts`, `objectives.test.ts`.
 
 ## 층의 종류 (`contracts.data.ts` `FloorPlan`)

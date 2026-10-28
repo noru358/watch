@@ -1,6 +1,6 @@
 # 🧮 밤 · 한 판 규칙
 
-← [장부 목록](README.md) · 기획 이유: [실패·정산](../design/2-night/run-result.md), [강화 카드](../design/3-growth/party.md), [주인공·무기](../design/2-night/protagonist.md)
+← [장부 목록](README.md) · 기획 이유: [실패·정산](../design/2-night/objectives.md), [강화 카드](../design/3-growth/party.md), [주인공·무기](../design/2-night/protagonist.md)
 계산 코드: `src/systems/run/` — `run.ts`(층 순서·카드), `stats.ts`(능력치), `settle.ts`(정산). 카드 효과: `src/registry/cardEffects.ts`. 테스트: `tests/run.test.ts`, `balance.test.ts`.
 
 ## 한 판의 흐름

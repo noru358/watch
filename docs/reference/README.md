@@ -5,7 +5,7 @@
 | 문서 | 다루는 게임 | 쓰인 곳 |
 |------|-----------|--------|
 | [탑다운 실시간 액션](topdown-action.md) | japda(《봉인 너머》), Core Keeper, Death's Door, Ghostlore, Enter the Gungeon, Moonlighter, Hades | [전투](../design/2-night/combat.md) |
-| [포켓몬 불가사의 던전](pokemon-mystery-dungeon.md) | 파랑/빨강 구조대, 시간·어둠·하늘의 탐험대 (던전·마을·의뢰판·영입) | [의뢰판](../design/4-day/contracts-map-ops.md), [영입](../design/3-growth/recruit.md) |
+| [포켓몬 불가사의 던전](pokemon-mystery-dungeon.md) | 파랑/빨강 구조대, 시간·어둠·하늘의 탐험대 (던전·마을·의뢰판·영입) | [의뢰판](../design/4-day/contracts-map-ops.md), [영입](../design/3-growth/party.md) |
 | [미션 구조 비교](mission-structures.md) | 다키스트 던전, 딥 락 갤럭틱, 몬스터 헌터 월드, 헬다이버즈 2, XCOM 2 | [의뢰 목표](../design/2-night/objectives.md) |
 | [소녀전선](girls-frontline.md) | 소녀전선 (편성·군수·숙소) | [조 편성](../design/3-growth/party.md), [경제](../design/4-day/economy.md) |
 | [파견 게임 비교](dispatch-games.md) | 소녀전선, MGSV, XCOM 2 WotC, 어쌔신 크리드 브라더후드, 드래곤 에이지 인퀴지션 | [분대 작전](../design/4-day/contracts-map-ops.md) |

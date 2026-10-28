@@ -7,7 +7,7 @@
 | 장부 | 다루는 것 | 숫자 파일 | 계산 코드 |
 |------|----------|----------|----------|
 | [낮 · 사무소](office.md) | 날짜, 월세·빚, 의뢰판 생성(메인 스토리 / 일반 의뢰 = 목표·사연·동네·길이·변형·표적의 조합), 수임료·마감, 의뢰서 지표(목표·난이도·길이), 놓친 표적, 오염과 확산, 정보 안개, 합동 출동 | `src/data/office.data.ts`, `nodes.data.ts`, `requests.data.ts`, `contracts.data.ts` | `src/systems/office/` |
-| [밤 · 한 층](floor.md) | 방 역할, 강적 배치, 층 목표 6종과 계단, 목표 층 귀환, 계속 보상, 현장 변형(정전·괴이 소굴·물결 폭증), 도깨비불 물결, 공중전화, 영력·심연 파편 줍기 | `src/data/dungeon.data.ts`, `ghosts.data.ts`, `objectives.data.ts`, `modifiers.data.ts`, `contracts.data.ts` | `src/systems/rift/` |
+| [밤 · 한 층](floor.md) | 방 역할, 강적 배치, 층 목표 7종과 계단, 목표 층 귀환, 계속 보상, 현장 변형 12종, 도깨비불 물결, 공중전화, 영력·심연 파편 줍기 | `src/data/dungeon.data.ts`, `ghosts.data.ts`, `objectives.data.ts`, `modifiers.data.ts`, `contracts.data.ts` | `src/systems/rift/` |
 | [밤 · 한 판](night.md) | 층 순서, 강화 카드 뽑기, 능력치 계산, 성공·귀환·쓰러짐 정산, 트라우마 | `src/data/cards.data.ts`, `penalties.data.ts`, `protagonist.data.ts`, `weapons.data.ts` | `src/systems/run/`, `src/registry/cardEffects.ts` |
 | [성장](growth.md) | 효과 부품, 트레이닝 v2 33줄과 값, 기술 v2(패시브 4갈래 14칸, 듀오, 액티브 10과 개조), 장신구, 심연 파편, 트라우마, 시설 3종, 보급품 | `src/data/training.data.ts`, `skills.data.ts`, `gear.data.ts`, `facilities.data.ts`, `penalties.data.ts` | `src/systems/growth/`, `src/systems/gear/`, `src/registry/effects/` |
 | [평판](reputation.md) | 평판 얻고 잃기, 등급 5단계, 등급이 여는 의뢰 종류·변형·동네·시설 단계·트레이닝 한도, 등급 오른 날 연락 | `src/data/reputation.data.ts` + 각 표의 `rank` | `src/systems/reputation/`, `office/board.ts` |
