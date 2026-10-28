@@ -18,7 +18,7 @@
 
 | 묶음 | 문서 | 상태 | 주 코드 위치 |
 |------|------|------|-------------|
-| [1 기준](1-foundation/README.md) | [기획 방향](1-foundation/direction.md) · [세계관·톤](1-foundation/world.md) · [이야기](1-foundation/story.md) · [화면·UI](1-foundation/ui.md) · [플랫폼·입력](1-foundation/platform.md) · [저장](1-foundation/save.md) | 🟢 입력·저장 / 📝 화면 개편·이야기 | `core/`, `data/input.data.ts`, `ui/`, `scenes/rift/RiftHud.ts` |
+| [1 기준](1-foundation/README.md) | [기획 방향](1-foundation/direction.md) · [이야기 바이블](1-foundation/bible.md) · [화면·UI](1-foundation/ui.md) · [플랫폼·입력](1-foundation/platform.md) · [저장](1-foundation/save.md) | 🟢 입력·저장 / 📝 화면 개편·이야기 | `core/`, `data/input.data.ts`, `ui/`, `scenes/rift/RiftHud.ts` |
 | [2 밤](2-night/README.md) | [전투](2-night/combat.md) · [주인공·무기](2-night/protagonist.md) · [괴이 도감](2-night/enemies.md) · [이야기 의뢰와 층 구조](2-night/contract.md) · [의뢰 목표](2-night/objectives.md) · [실패·정산](2-night/run-result.md) | 🟢 Gate 1 본체 / 📝 의뢰 목표 | `systems/rift/`, `systems/run/`, `scenes/rift/` |
 | [3 성장](3-growth/README.md) | [강화 카드·조 편성](3-growth/party.md) · [괴이 영입](3-growth/recruit.md) · [성장·시설·트라우마](3-growth/progression.md) | 🟢 카드 / 📝 나머지 | `data/cards.data.ts`, `registry/cardEffects.ts` |
 | [4 낮](4-day/README.md) | [허브](4-day/hub.md) · [의뢰판·작전 지도·분대 작전](4-day/contracts-map-ops.md) · [경제·경영](4-day/economy.md) | 🧪 허브·의뢰판·지도·월세 / 📝 분대 작전 | `scenes/hub/`, `systems/hub/`, `systems/office/`, `ui/features/`, `store/gameStore.ts` |

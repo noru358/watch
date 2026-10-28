@@ -12,7 +12,7 @@
 **보스**는 층 하나를 통째로 쓰고 예고 → 회피 → 경직 리듬을 가진다. 구미호 「월하」(`gumiho`): 꼬리 쓸기 띠(빨강, 2페이즈엔 가로+세로), 가까우면 덮치기(노랑), 여우불(도깨비불) 흩뿌리기, 체력 절반에서 꼬리 불이 분홍 네온이 되는 2페이즈. 이야기는 [이야기 의뢰](contract.md).
 
 ## 새 괴이 추가하는 법
-강적은 `ghosts.data.ts`에 한 줄을 넣고 `attack`을 `'cone' | 'circle' | 'line'` 중 하나로. 잡몹은 `attack: 'none'`, `fodder: true`, `contactDamage`. 이름은 `src/i18n/ko.ts`·`en.ts`의 `enemy.<id>`, ID는 `src/types/ids.ts`. 그림은 `draw/ghosts.ts`에 한 칸. 특별한 행동(괴담 규칙: "머리카락을 자르면 약해진다" 같은 것)이 필요하면 `enemies.ts`에 분기. [세계관 톤](../1-foundation/world.md)의 "서울 어디서 튀어나오나" 체크 필수. 동네마다 나오는 괴이는 `nodes.data.ts`의 `pool`.
+강적은 `ghosts.data.ts`에 한 줄을 넣고 `attack`을 `'cone' | 'circle' | 'line'` 중 하나로. 잡몹은 `attack: 'none'`, `fodder: true`, `contactDamage`. 이름은 `src/i18n/ko.ts`·`en.ts`의 `enemy.<id>`, ID는 `src/types/ids.ts`. 그림은 `draw/ghosts.ts`에 한 칸. 특별한 행동(괴담 규칙: "머리카락을 자르면 약해진다" 같은 것)이 필요하면 `enemies.ts`에 분기. [이야기 바이블](../1-foundation/bible.md)의 "서울 어디서 튀어나오나" 체크 필수. 동네마다 나오는 괴이는 `nodes.data.ts`의 `pool`.
 
 ## 🤔 남은 것
 잡몹 종류 늘리기(쥐귀신, 종이 인형 등), 엘리트 강적(더 강한 변종), 괴담 규칙 기믹(Ghostlore식, [역설계](../../reference/topdown-action.md)).

@@ -1,6 +1,6 @@
 # 지역 — 장이 넘어가면 새 동네가 열린다
 
-← [4 낮](README.md) · 관련: [의뢰판·작전 지도](contracts-map-ops.md), [메인 스토리](../1-foundation/story.md), 규칙 [낮 규칙](../../rules/office.md)
+← [4 낮](README.md) · 관련: [의뢰판·작전 지도](contracts-map-ops.md), [이야기 바이블](../1-foundation/bible.md), 규칙 [낮 규칙](../../rules/office.md)
 
 **상태: ✅ 방향 채택 (사용자 2026-10-28 "세부 사항들 채택", "오갈 수 있게"), 📝 아직 구현 안 함.** 지금 게임은 을지로 하나뿐이고, 이것이 1지역이 된다.
 

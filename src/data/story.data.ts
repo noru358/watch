@@ -2,7 +2,7 @@ import type { TKey } from '../i18n';
 import type { SceneId } from '../types/ids';
 
 // Story scenes in the dialogue box and hub chatter (docs/design/1-foundation/ui.md "대화창",
-// docs/design/1-foundation/story.md). Lines are i18n keys; who speaks decides name and portrait.
+// docs/design/1-foundation/bible.md). Lines are i18n keys; who speaks decides name and portrait.
 
 export type SpeakerId = 'director' | 'bookkeeper' | 'wolha';
 

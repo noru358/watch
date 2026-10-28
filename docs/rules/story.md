@@ -1,6 +1,6 @@
 # 📖 메인 스토리 장(章) 규칙
 
-← [장부 목록](README.md) · 기획: [이야기](../design/1-foundation/story.md) · 장면 순서: [사무소 허브](hub.md#이야기-장면-대화창)
+← [장부 목록](README.md) · 기획: [이야기 바이블](../design/1-foundation/bible.md) · 장면 순서: [사무소 허브](hub.md#이야기-장면-대화창)
 계산 코드: `src/systems/office/chapters.ts`(`chapterStatus`, `startChapters`, `chapterAfterNight`, `mainContractsDue`), 장면 순서는 `src/systems/story/index.ts`. 숫자: `src/data/chapters.data.ts` `CHAPTERS`, 의뢰 층 구성은 `contracts.data.ts`. 테스트: `tests/chapters.test.ts`, `tests/story.test.ts`.
 
 메인 스토리는 장 단위로 흐른다. 한 장 = 손으로 쓴 메인 의뢰 하나 + 그 장을 여는·준비되는·끝나는 장면 셋. 장은 순서대로만 열린다(앞 장이 끝나야 다음 장).

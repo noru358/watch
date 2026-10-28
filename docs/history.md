@@ -37,3 +37,25 @@ Long-form log moved out of HANDOFF.md on 2026-10-28 so a new session reads less.
 
 ## History (short)
 Action prototype (auto-aim) lost to a stand-still bot → turn-based grid → user disliked it → Core Keeper–style real-time on a tile grid (old code: `d170e4b`, `0278d77`). 2026-10-25: swarm fodder, 발도 tiers, design docs in 5 groups, save, art lab, Gemini pipeline, 24px tiles, gumiho boss, director poses, walkable office hub, feel pass. 2026-10-26: design review; Gate 2-A day loop + board + map + save v2; floor roles, seal, arena, themes; hero master + palette; art roles. Afternoon: rule ledger, objective and progression designs, reference research, 12 screen mockups. Evening: mockups picked, docs cleanup. Night: objectives + rescue, board A, HUD, dialogue, title, save v3. 2026-10-27: growth (training, skills, trauma, facilities, supplies, save v4) and general-contract rework (six objectives, modifiers, deep floors, main story split); later main-story chapters + Ch.2, rent presentation, save v5; then joint sortie (bundling removed) and reputation ranks, save v6.
+
+## 화면 결정 기록 (2026-10-29 ui.md에서 옮김)
+
+**2026-10-27 의뢰판 손질(사용자):** 의뢰가 없는 동네는 흐리게(누를 수 없음), 의뢰가 있는 동네만 밝게. 이동은 동네 단위: A/D가 의뢰 있는 동네를 지도 왼쪽부터 오가고, 한 동네에 의뢰가 둘 이상이면 마감이 가까운 순으로 W/S(의뢰서 위에 "1/2 (W·S)"), 동네를 다시 눌러도 다음 의뢰. 의뢰서는 늘 같은 크기: 현장 줄을 빼고 변형·괴이를 아래 칸으로 키웠고, "같은 동네 일반 의뢰 n건 같이 끝남"은 보수 칸 안에, 보급품은 위 줄, 출동 불가는 출동 버튼 글자로. "번지는 중" 점선은 없애고, 내일 이웃에서 오염이 옮겨 올 수 있는 동네 이름 밑에 "▲ 내일 번져 올 수 있음"을 쓴다.
+
+**2026-10-27 저녁:** 번짐 표시 개편 — "▲ 내일 번져 올 수 있음" 삭제, 긴급 의뢰 동네에서 이웃으로 분홍 점선 화살표 + "+1", 범례는 "층마다 괴이 +n". 의뢰서 마감 도장에 "긴급". 담기 화면·메인 스토리 봉투는 시안 단계(캔버스 https://claude.ai/artifact/SZksbAdYMtCzoup7wyBzEE, A2·번짐·메인 스토리).
+
+**2026-10-27 낮 추가:** 평판 — 지도에서 잠긴 동네 아래 "평판 n등급부터", 장부에 평판 줄과 다음 등급에 열리는 것, 트레이닝 막힌 칸 점선 + "평판 n등급에 더", 시설 "평판 n등급 필요", 정산 "평판 +n", 등급 오른 아침 문자. 합동 출동 귀환 카드는 받을 보수와 남는 의뢰 수, 다음 목표 층을 말한다. 밤 HUD 층 막대는 남은 목표 층마다 테두리.
+
+**2026-10-27 밤 추가:** 작전 지도에 지금 장의 단서 동네 아래 "단서 n / 3"(청록). 경리 장부에 "이야기" 줄(어느 장, 단서 몇 개 / 의뢰판에 올라옴 / 다음 이야기 기다리는 중). 정산 화면에 "단서 +1". 화면 위 문자 알림(`ui/PhoneToast.tsx`, 집주인 문자), 사무소 벽 달력 D-n.
+
+**2026-10-27 추가:** 소장 책상(트레이닝·기술 탭), 소파(휴식하기·자본 치료·진정제), 부적 작업대(보급품) 창은 `src/ui/features/training|sofa|bench/`, 목록 키 처리는 `features/useNav.ts`. 경리 장부에 "시설 공사" 칸. 의뢰서에 표적 이름·변형 도장·심연 파편 줄, 메인 스토리 도장. 밤 HUD 목표 패널은 목표 6종 문구·게이지(현상수배·추격 표적 체력, 결계 진행, 첫차 시간)와 가장자리 화살표(표적, 결계 자리, 열린 계단, 귀신 눈, 지도 사본).
+
+**2026-10-28 의뢰판 3차(사용자: A3 + 출동 전표 + M2 사건 파일):** 의뢰서 칸 6개를 같은 크기 2×3으로, 사연 두 줄 복원, 마감·메인 도장 높이 맞춤, 합동 출동에 담으면 둥근 "담음" 도장(잉크만, 바탕 없음 — 시안에서 '달걀귀신'이 흐려 보인 건 도장의 반투명 바탕이 글자를 덮어서였다). 난이도 점 옆에 말(가벼움 ~ 목숨 걸기), 오염이 보탠 몫은 동네 색(규칙 `docs/rules/office.md`). 지도 아래 출동 전표(`SortieSlip.tsx`). 지금 장은 지도 위 사진 카드(사건 파일)와 단서 동네로 이어진 붉은 실, 단서 동네 의뢰서에 "사건 파일과 연결됨". 출동 버튼에 "F 담기 / F 빼기".
+
+**2026-10-28 가안 (사용자 "절충안 ㅇㅋ, 아침 보고 ㅇㅋ", 디자인은 추후 수정):** 작전 지도를 옛 인쇄 지도 종이로(`look.ts` `MAP_PRINT`: 남색 인쇄 블록, 오염 = 붉은 빗금 촘촘함, 고른 동네만 청록 형광 원, 긴급은 분홍 압정·점선). 의뢰서 칸은 채운 상자 대신 점선, 출동 버튼은 네온 테두리. 아침 보고(`features/morning/MorningPanel.tsx`): 밤 다음 아침 사무소에 들어오면 한 번 저절로 열림(이야기 장면은 닫은 뒤), 어젯밤 의뢰마다 줄, 끝낸 것엔 "해결" 도장, 받은 것, 오늘 할 일, 잔고. Enter = 의뢰판으로, 장부에서 다시 보기. 저장은 안 됨(껐다 켜면 그날 보고는 사라짐). 글꼴 셋과 톤 3 전체 적용은 아직.
+
+**2026-10-29 (사용자 피드백):** 지도의 빗금 → 블록 색(종이색 → 짙은 빨강, Plague Inc식) + 이름 아래 큐브 5칸(팬데믹 질병 큐브·XCOM 2 패닉 칸). 지도 위 "긴급 · 마감" 상자 삭제(동네를 가림) — 의뢰서 도장이 "긴급 D-n"으로 말한다. 책상 탭(1/2/3)을 바꾸면 멈춰 있는 마우스 밑 줄로 커서가 튀던 버그: 마우스가 실제로 움직일 때만 커서를 옮기고, 탭을 바꾸면 맨 위부터.
+
+## 다른 AI의 제안 기록 (direction.md에서 옮김) (다른 AI, 2026-10-26, 채택 여부 미정)
+분대 자동 작전을 핵심 축으로 삼되 직접 출동과 서로 돕게(주인공의 단서가 작전을 돕고, 작전 정보가 탐색·보스전을 돕기), 을지로 작전 노드 5~8개, 액션 맵의 작은 단서 줍기, 영입 = 에피소드, 이야기 4막과 은혼식 운용(일상 의뢰는 그 자체로 재미있게). 그쪽은 실시간 전투·발도·투잡 설정·게이트 구조를 모르는 상태였고, 한 판 강화 카드가 빠져 있으며 "서울에 종속시키지 않는다"는 점이 지금 기준과 부딪힌다. 노드 지도와 이야기 틀은 이미 받아들였다([의뢰판·작전 지도](../4-day/contracts-map-ops.md), [이야기](story.md)).
+

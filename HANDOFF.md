@@ -53,7 +53,7 @@ Companion call key, protagonist look, big story and ending, first companion and 
 | Day hub (walk, `E` spots, unlocks, chatter bubble) | `src/systems/hub/`, `src/data/lobby.data.ts`, `hubLook.data.ts`, `src/scenes/hub/`, `src/app/features.ts` | `4-day/hub.md` |
 | Story scenes (which plays next — chapter scenes derived from `CHAPTERS`; dialogue box, `modal` context; phone toast) | `src/systems/story/`, `src/data/story.data.ts`, `src/app/dialogue.ts`, `src/ui/DialogueBox.tsx`, `src/app/toast.ts`, `src/ui/PhoneToast.tsx` | `1-foundation/ui.md`, rules `hub.md` |
 | Reputation (points → rank, training caps; gains / losses in `office/board.ts`; rank fields on data rows) | `src/systems/reputation/`, `src/data/reputation.data.ts` | rules `reputation.md` |
-| Main story chapters (start by days or heat, clues, posting the main contract) | `src/systems/office/chapters.ts`, `src/data/chapters.data.ts`, `contracts.data.ts` | `1-foundation/story.md`, rules `story.md` |
+| Main story chapters (start by days or heat, clues, posting the main contract) | `src/systems/office/chapters.ts`, `src/data/chapters.data.ts`, `contracts.data.ts` | `1-foundation/bible.md`, rules `story.md` |
 | Title | `src/scenes/title/TitleScene.ts`, `src/data/titleLook.data.ts` | `1-foundation/ui.md` |
 | Card and perk effects (fixed hook points, `registry/hookPoints.ts`; 10 points added 2026-10-27) | `src/registry/cardEffects.ts`, `src/registry/effects/` (parts), `src/systems/rift/hooks.ts`, `src/data/cards.data.ts` | `3-growth/party.md`, rules `growth.md` |
 | Night screen flow (hit-stop, cameras, aim, pause (4 cards incl. sound)/cards/payphone/goal prompt/end) | `src/scenes/rift/RiftScene.ts`, `RiftHud.ts`, `src/scenes/shared/Overlay.ts` | `2-night/combat.md`, `1-foundation/ui.md` |

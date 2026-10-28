@@ -15,5 +15,6 @@ Do not read `docs/history.md`, `docs/reference/` or old design docs unless the t
 - The user is on a MacBook (zsh): give terminal commands one per line without inline `#` comments.
 - Current scope: Fun Gate 2 (office & growth; plan in `docs/design/roadmap.md`), with Gate 1 art/feel polish in parallel. Do not build anything listed as out of scope.
 - No hard-coding: content is data rows (`src/data/`), behaviour is registered parts; text goes through `t()` (`src/i18n/ko.ts`, `en.ts`).
+- Docs: one topic in one file, one fact in one place. Edit the existing doc that owns a topic instead of creating a new one; a new doc only when no doc covers the topic, and then link it from its group README. Design docs say what is true now; dated "we changed X" notes go to `docs/history.md`.
 - Run `npm run check` before every commit. After changing data, run `npm run catalog` and commit `docs/catalog.md`.
 - End of every session: update `HANDOFF.md` (Now + Next tasks only; move finished detail to `docs/history.md`) and keep `GUIDE.md` (the owner's Korean map) in sync when folders or responsibilities change.
