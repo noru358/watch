@@ -109,7 +109,7 @@ src/
 tests/            ✅ 자동 테스트
 tools/artlab/     🎨 그림체 견본 작업대 (게임 밖, 그림을 글자 격자로 적어서 뽑음; 구미호 생성기 gumiho_grid.py)
 tools/spritekit/  🧹 AI가 만든 픽셀 시트를 진짜 픽셀로 정리하는 도구 (+ 얼굴 손보기 face_edit.py)
-tools/catalog/    📒 총괄 장부: 게임의 모든 숫자·글을 코드에서 뽑아 웹 페이지 하나로 (npm run catalog). 줄마다 메모 → "장부 메모 반영해"
+tools/catalog/    📒 총괄 장부: 게임의 모든 숫자·글을 코드에서 뽑아 웹 페이지 하나로 (npm run catalog). 줄마다 메모 → "장부 메모 반영해". 글 버전은 docs/catalog.md (AI가 읽는 용)
 assets/source/    🗃️ 받은 그림 원본 보관 (제미나이 시트 등, 지우지 않음)
 assets/sprites/   🖼️ 원본을 정리한 게임용 그림 (지금: 주인공 제미나이 1차·3차) → assets/README.md
 docs/design/      📐 기획(무엇을 왜): 1-foundation 기준 · 2-night 밤 · 3-growth 성장 · 4-day 낮 · 5-business 사업·제작
@@ -205,8 +205,9 @@ docs/rules/       🧮 규칙 장부(지금 코드가 계산하는 공식과 숫
 | [`docs/rules/`](docs/rules/README.md) | 사람 + AI | 🧮 규칙 장부 — 지금 코드가 계산하는 공식과 숫자 위치 |
 | [`docs/reference/`](docs/reference/README.md) | 사람 + AI | 🔍 참고 게임 역설계 (목록은 README) |
 | `ARCHITECTURE.md` | AI | 정식 코드 규칙 (영어) |
-| `HANDOFF.md` | AI + 사람 | 지난 세션에 뭘 했고, 뭐가 검증됐고, 다음에 뭘 할지 |
-| `CLAUDE.md` | AI | 세션 시작할 때 자동으로 읽는 안내문 |
+| `HANDOFF.md` | AI + 사람 | 지금 상태와 다음 할 일만 짧게 (지난 기록은 `docs/history.md`) |
+| `AGENTS.md` · `CLAUDE.md` | AI | 세션 시작 안내문. 코덱스는 AGENTS.md, Claude는 CLAUDE.md를 읽음 (내용 같게 유지) |
+| `docs/catalog.md` | AI | 게임 숫자·글 전부를 글로 뽑은 것. 데이터 파일 여러 개 대신 이것 하나만 읽게 |
 | `assets/README.md`, `tools/*/README.md` | AI + 사람 | 그림 파일 폴더와 그림 도구 쓰는 법 |
 
 ---
@@ -232,5 +233,5 @@ docs/rules/       🧮 규칙 장부(지금 코드가 계산하는 공식과 숫
 - **용어:** 층마다 고르는 강화 = **강화 카드** (코드에서도 `card`). "기질"은 나중에 동료의 영구 성격·트라우마에만 씁니다.
 - **현재 단계 확인:** 지금은 Gate 2이고 Gate 1 그림·손맛 마무리를 같이 합니다. Seoul 지도·파견(Gate 3)이나 대여(Gate 4)를 만들자고 하면 AI가 "범위 밖인데 진행할까요?" 하고 묻는 게 정상입니다.
 - **그림 파일은 첨부로:** 대화창에 붙인 이미지는 AI가 볼 수만 있고 파일로 쓸 수 없습니다. 정리·게임 연결이 필요한 그림은 파일로 첨부하세요.
-- **새 세션 시작할 때:** *"HANDOFF.md 읽고 이어서 하자"* 한 마디면 됩니다.
+- **새 세션 시작할 때 (Claude든 코덱스든):** *"HANDOFF.md 읽고 다음 할 일 이어서 하자"* 한 마디면 됩니다. 처음 읽는 양이 HANDOFF + ARCHITECTURE 정도라 가볍습니다.
 - **세션 끝낼 때:** *"HANDOFF 업데이트하고 커밋해 줘"*
