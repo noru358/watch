@@ -10,7 +10,8 @@ import { BOARD_LOOK as L } from '../board/look';
 import { offerTitle, targetName } from '../board/offerText';
 import { morningLines } from '../ledger/LedgerPanel';
 
-const STAMP = { width: 64, height: 64, boxSizing: 'border-box' as const, borderRadius: '50%', border: `4px solid ${L.stamp}`, color: L.stamp, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 18, lineHeight: 1, opacity: 0.82, mixBlendMode: 'multiply' as const, pointerEvents: 'none' as const };
+// Small enough to sit in its own column of a row: never over another row or the fee.
+const STAMP = { width: 40, height: 40, boxSizing: 'border-box' as const, borderRadius: '50%', border: `3px solid ${L.stamp}`, color: L.stamp, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12, lineHeight: 1, opacity: 0.82, mixBlendMode: 'multiply' as const, pointerEvents: 'none' as const };
 const label = { fontSize: 11, color: L.paperDim, letterSpacing: 3 };
 
 // What one offer was, in a line: 의뢰인 · 목표 (+ 표적 이름).
@@ -53,10 +54,10 @@ export function MorningPanel() {
                 const paid = r.paid?.[o.id];
                 const done = paid !== undefined && !died;
                 return (
-                  <div key={o.id} style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 86px', gap: 10, padding: '8px 0', borderBottom: `1px dashed rgba(42,34,51,0.3)`, color: done ? L.paperInk : L.paperDim, alignItems: 'center' }}>
+                  <div key={o.id} style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 44px 86px', gap: 10, padding: '6px 0', borderBottom: `1px dashed rgba(42,34,51,0.3)`, color: done ? L.paperInk : L.paperDim, alignItems: 'center' }}>
                     <span style={{ minWidth: 0 }}><b>{offerTitle(o)}</b> <span style={{ fontSize: 13, color: L.paperDim }}>· {what(o)}</span></span>
+                    <span style={{ display: 'flex', justifyContent: 'center' }}>{done && <span style={{ ...STAMP, transform: `rotate(${(o.id % 5) * 5 - 10}deg)` }}>{t('morning.stamp')}</span>}</span>
                     <span style={{ textAlign: 'right', fontWeight: done ? 700 : 400, fontVariantNumeric: 'tabular-nums' }}>{done ? `₩ ${paid}` : t('morning.noFee')}</span>
-                    {done && <span style={{ ...STAMP, position: 'absolute', right: 96, top: -10, transform: `rotate(${(o.id % 5) * 5 - 10}deg)` }}>{t('morning.stamp')}</span>}
                   </div>
                 );
               })}
