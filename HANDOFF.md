@@ -12,7 +12,7 @@ Branch: `main` only. Docs: `docs/design/` (what and why, map in its README), `do
 
 ## Next tasks (in order)
 1. Apply the three fonts (self-hosted woff2 subsets, roles in `feel.data.ts`) and tone 3 to all day screens. The provisional printed map + neon-outline sortie (`look.ts` `MAP_PRINT`) and the morning report (`ui/features/morning/`) are built; the report is not saved across a reload yet.
-2. ARCHITECTURE.md cleanup: the owner asked to review it first (stale parts listed in the 2026-10-29 reply: Tiled, save v2, rental/2nd-squad loop, Rule 2 vs effect rows). Wait for the owner's OK on the new outline, then rewrite.
+2. 0장 → 1장 trigger: provisional "day 4 or 30 평판" (`chapters.data.ts` `startAfterDays` / `startReputation`); the owner wants to decide days vs a condition together.
 3. Regions (adopted 2026-10-28, `docs/design/4-day/regions.md`): rules stay, material changes per region; old regions stay reachable (region tabs on the map). Build when the second region's content (Ch.3) is written.
 4. Named-target traits (user wants to design it together): 앞말 = a trait row (data), 뒷말 = flavour; see the open question in `docs/rules/office.md` "표적".
 5. Owner plays; retune from feedback (`objectives.data.ts`, `modifiers.data.ts`, `training.data.ts`, `office.data.ts`, `reputation.data.ts`). Apply memos from the 총괄 장부 when asked ("장부 메모 반영해").

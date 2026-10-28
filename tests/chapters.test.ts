@@ -24,14 +24,32 @@ const general = (s: OfficeState, node: NodeId): ContractOffer => {
   s.board.push(o);
   return o;
 };
+const openCh1 = (s: OfficeState) => {
+  s.reputation = CHAPTERS.ch1.startReputation!;
+  refillBoard(s, new SeededRNG(2));
+};
 const finishCh1 = (s: OfficeState) => {
+  if (!s.chapters.ch1) openCh1(s);
   const main = s.board.find((o) => o.story === 'lights_out')!;
   resolveNight(s, main.id, true);
 };
 
 describe('main story chapters', () => {
-  it('chapter 1 is open from day one, its contract on the board', () => {
+  it('0장: chapter 1 waits a few days, or opens sooner with enough 평판', () => {
     const s = fresh();
+    expect(chapterStatus(s, 'ch1')).toBe('locked');
+    expect(s.board.some((o) => o.story === 'lights_out')).toBe(false);
+    s.day = 1 + CHAPTERS.ch1.startAfterDays;
+    refillBoard(s, new SeededRNG(1));
+    expect(chapterStatus(s, 'ch1')).toBe('ready');
+    const t = fresh();
+    openCh1(t);
+    expect(chapterStatus(t, 'ch1')).toBe('ready');
+  });
+
+  it('chapter 1 once open: its contract on the board, chapter 2 still locked', () => {
+    const s = fresh();
+    openCh1(s);
     expect(chapterStatus(s, 'ch1')).toBe('ready');
     expect(s.board.some((o) => o.story === 'lights_out')).toBe(true);
     expect(chapterStatus(s, 'ch2')).toBe('locked');

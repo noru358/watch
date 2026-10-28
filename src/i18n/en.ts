@@ -445,9 +445,6 @@ export const en: Record<TKey, string> = {
   'board.legendGhosts': 'Ghosts per floor',
   'board.legendOverflow': 'Overflow',
   'board.legendFee': 'Fees rise with it',
-  'board.urgentToday': 'Urgent · tonight only',
-  'board.urgentLeft': 'Urgent · D-{days}',
-  'board.urgentHint': 'Miss it and it spills along the arrows',
   'board.urgentStamp': 'Urgent',
   'morning.overflow': 'We missed the urgent job in {nodes}; it spilled into the neighbours.',
   'training.slash': 'Slash damage',
@@ -717,4 +714,5 @@ export const en: Record<TKey, string> = {
   'wanted.suf.23': 'Doorkeeper',
   'wanted.suf.24': 'Meter Reader',
   'wanted.suf.25': 'Last Train',
+  'board.urgentDays': 'URGENT D-{days}',
 };

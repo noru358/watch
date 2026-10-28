@@ -1,3 +1,4 @@
+import { CH1_OPEN } from './helpers';
 import { describe, expect, it } from 'vitest';
 import { migrate, SAVE_VERSION } from '../src/core/SaveManager';
 import { SeededRNG } from '../src/core/SeededRNG';
@@ -12,7 +13,7 @@ import type { NodeId, ObjectiveKind } from '../src/types/ids';
 import { playNight, skilled } from './bots';
 
 function fresh(): OfficeState {
-  const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 0, rankReached: 0 };
+  const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: CH1_OPEN.reputation, rankReached: 0 };
   refillBoard(s, new SeededRNG(5));
   return s;
 }

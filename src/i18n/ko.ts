@@ -444,9 +444,6 @@ export const ko = {
   'board.legendGhosts': '층마다 괴이',
   'board.legendOverflow': '넘침',
   'board.legendFee': '보수도 그만큼 오름',
-  'board.urgentToday': '긴급 · 오늘 밤까지',
-  'board.urgentLeft': '긴급 · 마감 D-{days}',
-  'board.urgentHint': '놓치면 화살표대로 번진다',
   'board.urgentStamp': '긴급',
   'morning.overflow': '{nodes} 긴급 의뢰를 놓쳐서 이웃 동네까지 번졌어요.',
   'training.slash': '베기 피해',
@@ -716,6 +713,7 @@ export const ko = {
   'wanted.suf.23': '문지기',
   'wanted.suf.24': '검침원',
   'wanted.suf.25': '막차',
+  'board.urgentDays': '긴급 D-{days}',
 } as const;
 
 export type TKey = keyof typeof ko;

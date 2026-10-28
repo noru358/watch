@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { input, store } from '../../../app/services';
 import { t } from '../../../i18n';
 import { panelCss as css } from '../panel';
@@ -10,6 +10,11 @@ import { GearTab } from './GearTab';
 export function TrainingPanel() {
   const [tab, setTab] = useState<'training' | 'skills' | 'gear'>('training');
   const s = useSyncExternalStore(store.subscribe, store.getState);
+  // A new tab starts at its top (the card scrolls; it kept the old tab's position before).
+  const top = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    top.current?.parentElement?.scrollTo({ top: 0 });
+  }, [tab]);
   useEffect(
     () =>
       input.onAction((action, ctx) => {
@@ -25,7 +30,7 @@ export function TrainingPanel() {
   });
   return (
     <>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <div ref={top} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <button style={tabStyle(tab === 'training')} onClick={() => setTab('training')}>1 {t('training.tab.training')}</button>
         <button style={tabStyle(tab === 'skills')} onClick={() => setTab('skills')}>2 {t('training.tab.skills')}</button>
         <button style={tabStyle(tab === 'gear')} onClick={() => setTab('gear')}>3 {t('gear.tab')}</button>

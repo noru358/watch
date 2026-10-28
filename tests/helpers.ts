@@ -1,3 +1,4 @@
+import { CHAPTERS } from '../src/data/chapters.data';
 import { SeededRNG } from '../src/core/SeededRNG';
 import { CONTRACTS } from '../src/data/contracts.data';
 import { GHOSTS } from '../src/data/ghosts.data';
@@ -55,3 +56,6 @@ export function param(rows: readonly { with: unknown }[], key: string): number {
   }
   throw new Error(`no ${key} in rows`);
 }
+
+// A start where 메인 스토리 1장 is already open (0장 skipped): enough 평판 for chapter 1.
+export const CH1_OPEN = { reputation: CHAPTERS.ch1.startReputation ?? 0 };

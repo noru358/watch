@@ -18,6 +18,8 @@
 
 **2026-10-28 가안 (사용자 "절충안 ㅇㅋ, 아침 보고 ㅇㅋ", 디자인은 추후 수정):** 작전 지도를 옛 인쇄 지도 종이로(`look.ts` `MAP_PRINT`: 남색 인쇄 블록, 오염 = 붉은 빗금 촘촘함, 고른 동네만 청록 형광 원, 긴급은 분홍 압정·점선). 의뢰서 칸은 채운 상자 대신 점선, 출동 버튼은 네온 테두리. 아침 보고(`features/morning/MorningPanel.tsx`): 밤 다음 아침 사무소에 들어오면 한 번 저절로 열림(이야기 장면은 닫은 뒤), 어젯밤 의뢰마다 줄, 끝낸 것엔 "해결" 도장, 받은 것, 오늘 할 일, 잔고. Enter = 의뢰판으로, 장부에서 다시 보기. 저장은 안 됨(껐다 켜면 그날 보고는 사라짐). 글꼴 셋과 톤 3 전체 적용은 아직.
 
+**2026-10-29 (사용자 피드백):** 지도의 빗금 → 블록 색(종이색 → 짙은 빨강, Plague Inc식) + 이름 아래 큐브 5칸(팬데믹 질병 큐브·XCOM 2 패닉 칸). 지도 위 "긴급 · 마감" 상자 삭제(동네를 가림) — 의뢰서 도장이 "긴급 D-n"으로 말한다. 책상 탭(1/2/3)을 바꾸면 멈춰 있는 마우스 밑 줄로 커서가 튀던 버그: 마우스가 실제로 움직일 때만 커서를 옮기고, 탭을 바꾸면 맨 위부터.
+
 **지금 코드:** 의뢰판 `src/ui/features/board/`(`BoardPanel`, 지도 `OpsMap`(사건 파일 포함), 의뢰서 `OfferSheet`, 출동 전표 `SortieSlip`, 색 `look.ts`), 장부 `src/ui/features/ledger/`, 밤 HUD `src/scenes/rift/RiftHud.ts`, 일시정지·카드·공중전화·귀환 창 `src/scenes/shared/Overlay.ts`, 대화창 `src/ui/DialogueBox.tsx` + `src/app/dialogue.ts`, 잡담 말풍선 `src/scenes/hub/HubScene.ts`, 타이틀 `src/scenes/title/TitleScene.ts` + `src/data/titleLook.data.ts`, 음량 `src/app/settings.ts`.
 
 ## 공통

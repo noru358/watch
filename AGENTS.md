@@ -6,6 +6,7 @@ Start of a session, in this order and no more unless the task needs it:
 1. `HANDOFF.md` — what is true now and the next tasks (short on purpose).
 2. `ARCHITECTURE.md` — read in full before any code change; its Hard Rules are mandatory.
 3. For a question about numbers or text in the game, `docs/catalog.md` (generated from the code) instead of opening data files one by one. For a rule's formula, the matching file in `docs/rules/`.
+4. For story, dialogue, world or request-text work, `docs/design/1-foundation/bible.md` first (the story bible: world rules, characters, places, how story enters the game, writing style, what is still undecided).
 Do not read `docs/history.md`, `docs/reference/` or old design docs unless the task is about them.
 
 - Respond to the user in Korean. Prose first; the user dislikes AI-looking walls of tables, bold text and numbered lists — use them only where they truly help.

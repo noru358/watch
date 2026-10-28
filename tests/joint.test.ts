@@ -1,3 +1,4 @@
+import { CH1_OPEN } from './helpers';
 import { describe, expect, it } from 'vitest';
 import { OFFICE } from '../src/data/office.data';
 import { NODES } from '../src/data/nodes.data';
@@ -120,7 +121,7 @@ describe('합동 출동: pay per objective', () => {
   });
 
   it('what the board shows goes out: a sheet outside the set (main story, 추격, unmarked) goes alone', () => {
-    const store = new GameStore({ seedBase: 9 });
+    const store = new GameStore({ seedBase: 9, ...CH1_OPEN });
     const s = store.getState();
     s.board.push(offer('alley', 'clear', 3, 1), offer('alley', 'ward', 4, 3));
     const [a, b] = s.board.slice(-2);

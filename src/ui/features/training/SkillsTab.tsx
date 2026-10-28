@@ -57,7 +57,7 @@ export function SkillsTab() {
               const tier = Number(slot.slice(-1));
               const prevOpen = tier === 1 || s.passives[`${b}${tier - 1}` as SkillSlotId] !== undefined;
               return (
-                <div key={slot} style={{ ...rowStyle(i === cursor), flexDirection: 'column', alignItems: 'stretch', gap: 4 }} data-cursor={i === cursor || undefined} onMouseEnter={() => setCursor(i)}>
+                <div key={slot} style={{ ...rowStyle(i === cursor), flexDirection: 'column', alignItems: 'stretch', gap: 4 }} data-cursor={i === cursor || undefined} onMouseMove={() => setCursor(i)}>
                   {data.sides.map((id, side) => {
                     const p = PASSIVES[id];
                     const lit = on === side;
@@ -100,7 +100,7 @@ export function SkillsTab() {
             const learned = s.actives.includes(id);
             const equipped = s.active === id;
             return (
-              <div key={id} style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseEnter={() => setCursor(i)} onClick={() => act(i)}>
+              <div key={id} style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseMove={() => setCursor(i)} onClick={() => act(i)}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: equipped ? 700 : 400 }}>{t(a.nameKey)}{s.upgrades[id] ? <span style={{ fontSize: 11, color: '#41e0c8' }}> · {t(UPGRADES[s.upgrades[id]!].nameKey)}</span> : null}</div>
                   <div style={{ fontSize: 12, color: '#c9bfe8' }}>{t(a.descKey)}</div>
@@ -119,7 +119,7 @@ export function SkillsTab() {
               const i = SLOTS.length + ACTIVE_IDS.length + k;
               const on = s.upgrades[UPGRADES[u].of] === u;
               return (
-                <div key={u} style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseEnter={() => setCursor(i)} onClick={() => act(i)}>
+                <div key={u} style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseMove={() => setCursor(i)} onClick={() => act(i)}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: on ? 700 : 400 }}>{t(UPGRADES[u].nameKey)}</div>
                     <div style={{ fontSize: 12, color: '#c9bfe8' }}>{t(UPGRADES[u].descKey)}</div>

@@ -32,9 +32,12 @@ export const MAP_PRINT = {
   block: '#ddd1b0',
   navy: '#23345e',
   street: '#f7f1e1',
-  hatch: '#c2333f',
-  // hatch spacing per contamination 0..5 (view units; 0 = none); the last level is cross-hatched
-  hatchGap: [0, 3.4, 2.5, 1.9, 1.4, 1.1],
+  // Contamination 0..5, read two ways at once (user 2026-10-29 "빗금은 잘 안 들어옴"): the block's ink
+  // gets redder (Plague Inc / choropleth), and a row of 5 cubes under the name counts it (Pandemic
+  // disease cubes, XCOM 2 panic pips). 5 = overflow.
+  heat: ['#e6dcbf', '#ecd2b0', '#e8b393', '#dd8a70', '#c9584f', '#a82a3a'],
+  pip: '#23345e', // filled cube = the navy print ink (readable on every block colour)
+  pips: 5,
   block_w: 19,
   block_h: 10,
   glow: '#41e0c8',

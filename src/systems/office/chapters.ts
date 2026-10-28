@@ -30,7 +30,8 @@ export function startChapters(s: OfficeState): ChapterId[] {
     const since = prev?.done ?? 1;
     const due = s.day >= since + ch.startAfterDays;
     const hot = ch.startHeat > 0 && ch.clueNodes.some((n) => s.contamination[n] >= ch.startHeat);
-    if (!due && !hot) continue;
+    const known = (ch.startReputation ?? 0) > 0 && s.reputation >= ch.startReputation!;
+    if (!due && !hot && !known) continue;
     s.chapters = { ...s.chapters, [id]: { started: s.day, clues: 0, done: null } };
     started.push(id);
   }

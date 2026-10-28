@@ -5,7 +5,7 @@ import type { NodeId } from '../../../types/ids';
 import { BOARD_LOOK as L, MAP_PRINT } from './look';
 
 // The Euljiro operations map (docs/design/1-foundation/ui.md "의뢰판"), drawn as a printed paper map
-// (look.ts MAP_PRINT): a district's state is its red hatching only (no numbers, no "contamination" word). Districts with an offer are lit and clickable;
+// (look.ts MAP_PRINT): a district's state is its block colour and its row of cubes only (no numbers, no "contamination" word). Districts with an offer are lit and clickable;
 // the rest are dimmed. A district that may catch the spread from a neighbour tomorrow says so in
 // words under its name. Presentation only: it reads state and reports clicks.
 
@@ -39,7 +39,7 @@ function overflows(board: readonly ContractOffer[], contamination: Contamination
   return board.filter((o) => o.urgent).map((o) => ({ from: o.node, to: overflowTargets({ contamination, rankReached: rank }, o.node), left: o.deadline }));
 }
 
-export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0, day = 0 }: Props) {
+export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0 }: Props) {
   const P = MAP_PRINT;
   const spill = overflows(board, contamination, rank);
   const links = NODE_IDS.flatMap((a) => NODES[a].links.filter((b) => a < b).map((b) => [a, b] as const));
@@ -51,12 +51,6 @@ export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0,
       <svg viewBox={`0 0 ${VIEW.w} ${VIEW.h}`} style={{ width: '100%', display: 'block' }} role="img" aria-label={t('board.mapTitle')}>
         <defs>
           <marker id="spill-head" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill={L.spread} /></marker>
-          {P.hatchGap.map((gap, i) => gap > 0 && (
-            <pattern key={i} id={`hatch-${i}`} width={gap} height={gap} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <rect width={0.32} height={gap} fill={P.hatch} />
-              {i === P.hatchGap.length - 1 && <rect width={gap} height={0.32} fill={P.hatch} />}
-            </pattern>
-          ))}
         </defs>
         {links.map(([a, b]) => (
           <g key={`${a}-${b}`}>
@@ -71,7 +65,7 @@ export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0,
         })}
         {NODE_IDS.map((id) => {
           const n = NODES[id];
-          const c = Math.min(contamination[id], P.hatchGap.length - 1);
+          const c = Math.min(contamination[id], P.heat.length - 1);
           const pins = board.filter((o) => o.node === id);
           const live = pins.length > 0;
           const isSel = selected?.node === id;
@@ -81,8 +75,7 @@ export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0,
           const box = { x: n.x - half.w, y: cy - half.h };
           return (
             <g key={id} onClick={() => live && onPick(id)} style={{ cursor: live ? 'pointer' : 'default' }} opacity={live ? 1 : 0.42}>
-              <rect x={box.x} y={box.y} width={P.block_w} height={P.block_h} fill={P.block} stroke={P.navy} strokeWidth={0.35} />
-              {c > 0 && <rect x={box.x + 0.4} y={box.y - 0.3} width={P.block_w} height={P.block_h} fill={`url(#hatch-${c})`} opacity={0.85} />}
+              <rect x={box.x} y={box.y} width={P.block_w} height={P.block_h} fill={P.heat[c]} stroke={P.navy} strokeWidth={0.35} />
               {isSel && (
                 <>
                   <ellipse cx={n.x} cy={cy} rx={half.w + 2.6} ry={half.h + 2.4} fill="none" stroke={P.glow} strokeWidth={2.2} opacity={0.22} />
@@ -90,7 +83,10 @@ export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0,
                 </>
               )}
               {urgent && <ellipse cx={n.x} cy={cy} rx={half.w + 1.6} ry={half.h + 1.5} fill="none" stroke={P.pinUrgent} strokeWidth={0.5} strokeDasharray="1 0.8" />}
-              <text x={n.x} y={cy + 1} textAnchor="middle" fontSize={2.8} fontWeight={900} fill={P.navy} stroke={P.paper} strokeWidth={0.8} paintOrder="stroke">{t(n.nameKey)}</text>
+              {Array.from({ length: P.pips }, (_, k) => (
+                <rect key={k} x={n.x - P.pips + k * 2 + 0.3} y={cy + 1.6} width={1.4} height={1.4} fill={k < c ? P.pip : P.paper} stroke={P.navy} strokeWidth={0.18} />
+              ))}
+              <text x={n.x} y={cy - 0.2} textAnchor="middle" fontSize={2.8} fontWeight={900} fill={P.navy} stroke={P.paper} strokeWidth={0.8} paintOrder="stroke">{t(n.nameKey)}</text>
               {locked && <text x={n.x} y={cy + half.h + 2.8} textAnchor="middle" fontSize={2.1} fill={P.navy}>{t('board.locked', { rank: n.rank })}</text>}
               {clue?.nodes.includes(id) && <circle cx={n.x - 1.5} cy={box.y} r={1.1} fill={L.stamp} stroke="#7a1f28" strokeWidth={0.3} />}
               {pins.map((o, i) => (
@@ -113,23 +109,14 @@ export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0,
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, flexWrap: 'wrap', padding: '6px 10px 8px', borderTop: `1px solid ${P.navy}` }}>
         <span>{t('board.legendGhosts')}</span>
-        {P.hatchGap.map((gap, i) => (
+        {P.heat.map((fill, i) => (
           <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <svg width="20" height="12" viewBox={`0 0 ${P.block_w} ${P.block_h}`} aria-hidden="true">
-              <rect width={P.block_w} height={P.block_h} fill={P.block} stroke={P.navy} strokeWidth={0.6} />
-              {gap > 0 && <rect width={P.block_w} height={P.block_h} fill={`url(#hatch-${i})`} />}
-            </svg>
-            {i < P.hatchGap.length - 1 ? `+${i}` : t('board.legendOverflow')}
+            <span style={{ width: 18, height: 11, background: fill, border: `1px solid ${P.navy}` }} />
+            {i < P.heat.length - 1 ? `+${i}` : t('board.legendOverflow')}
           </span>
         ))}
         <span>{t('board.legendFee')}</span>
       </div>
-      {spill.length > 0 && (
-        <div style={{ position: 'absolute', right: 10, top: 10, background: P.paper, border: `2px solid ${P.pinUrgent}`, borderRadius: 2, padding: '6px 10px', display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 170, boxShadow: `0 0 12px rgba(255,60,172,0.35)` }}>
-          <span style={{ fontSize: 12, fontWeight: 800, color: '#b0186f' }}>{(spill[0]!.left ?? day) - day > 0 ? t('board.urgentLeft', { days: (spill[0]!.left ?? day) - day }) : t('board.urgentToday')}</span>
-          <span style={{ fontSize: 11, color: P.navy }}>{t('board.urgentHint')}</span>
-        </div>
-      )}
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { RUN_PENALTIES } from '../src/data/penalties.data';
 import { WEAPONS } from '../src/data/weapons.data';
 import { cardPool, computeExorcistStats, enterFloor, leaveFloor, offerCards, pickCard, runResult, settleRun, startRun } from '../src/systems/run';
 import { GameStore } from '../src/store/gameStore';
-import { storySetup } from './helpers';
+import { storySetup, CH1_OPEN } from './helpers';
 
 const setup = storySetup;
 
@@ -78,7 +78,7 @@ describe('settlement', () => {
   });
 
   it('store applies results and notifies subscribers', () => {
-    const store = new GameStore();
+    const store = new GameStore(CH1_OPEN);
     let calls = 0;
     store.subscribe(() => calls++);
     const story = store.getState().board.find((o) => o.story === 'lights_out')!;

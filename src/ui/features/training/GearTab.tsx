@@ -62,7 +62,7 @@ export function GearTab() {
           <div style={{ ...css.dim, fontSize: 13, padding: '0 6px 6px' }}>{t('gear.bag', { count: bag.length, max: GEAR_ECONOMY.bag })}</div>
           {bag.length === 0 && <div style={{ fontSize: 13, color: '#c9bfe8', padding: 6 }}>{t('gear.bagEmpty')}</div>}
           {bag.map((it, i) => (
-            <div key={it.id} style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseEnter={() => setCursor(i)} onClick={() => store.toggleWear(it.id)}>
+            <div key={it.id} style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseMove={() => setCursor(i)} onClick={() => store.toggleWear(it.id)}>
               <ItemLine it={it} worn={wornId(it.slot) === it.id} />
             </div>
           ))}

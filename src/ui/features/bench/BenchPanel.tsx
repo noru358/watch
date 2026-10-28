@@ -23,7 +23,7 @@ export function BenchPanel() {
           const sup = SUPPLIES[id];
           const packed = s.supply === id;
           return (
-            <div key={id} style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseEnter={() => setCursor(i)} onClick={() => pick(i)}>
+            <div key={id} style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseMove={() => setCursor(i)} onClick={() => pick(i)}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: packed ? 700 : 400 }}>{t(sup.nameKey)}{packed ? ` · ${t('bench.packedTag')}` : ''}</div>
                 <div style={{ fontSize: 12, color: '#c9bfe8' }}>{t(sup.descKey)}</div>
