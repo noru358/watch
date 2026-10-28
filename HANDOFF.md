@@ -11,7 +11,7 @@ Branch: `main` only. Docs: `docs/design/` (what and why, map in its README), `do
 - Canvas of all screen drafts: https://claude.ai/artifact/SZksbAdYMtCzoup7wyBzEE. 총괄 장부 (Claude artifact, memos in its db `notes`): https://claude.ai/artifact/YFeE4XiaLTBUWSPg1Hrm8X.
 
 ## Next tasks (in order)
-1. Build the provisional board look (canvas `MapHybrid`) and the morning report (canvas `MorningReport`) in the game; apply the three fonts and tone 3 to the day screens.
+1. Apply the three fonts (self-hosted woff2 subsets, roles in `feel.data.ts`) and tone 3 to all day screens. The provisional printed map + neon-outline sortie (`look.ts` `MAP_PRINT`) and the morning report (`ui/features/morning/`) are built; the report is not saved across a reload yet.
 2. Named-target traits (user wants to design it together): 앞말 = a trait row (data), 뒷말 = flavour; see the open question in `docs/rules/office.md` "표적".
 3. Owner plays; retune from feedback (`objectives.data.ts`, `modifiers.data.ts`, `training.data.ts`, `office.data.ts`, `reputation.data.ts`). Apply memos from the 총괄 장부 when asked ("장부 메모 반영해").
 4. Later: story pacing once the play-time target is set, Ch.3, bookkeeper arrival tied to story, sedative item, weapon honing, escort / retrieval / challenge objectives, companions (decisions first).

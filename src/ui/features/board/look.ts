@@ -23,3 +23,23 @@ export const BOARD_LOOK = {
   shardInk: '#5b3fc4', // 심연 파편 on paper
   bundleInk: '#1f7a4c', // what gets finished together, on paper
 } as const;
+
+// The provisional printed-paper map (canvas MapHybrid, user 2026-10-28 "가안 ㅇㅋ"): city blocks printed in
+// navy on aged paper, contamination as red hatching (denser = more ghosts per floor), neon only on what
+// is lit (the chosen district's teal ring, an urgent district's pink pin and arrows).
+export const MAP_PRINT = {
+  paper: '#e9dfc4',
+  block: '#ddd1b0',
+  navy: '#23345e',
+  street: '#f7f1e1',
+  hatch: '#c2333f',
+  // hatch spacing per contamination 0..5 (view units; 0 = none); the last level is cross-hatched
+  hatchGap: [0, 3.4, 2.5, 1.9, 1.4, 1.1],
+  block_w: 19,
+  block_h: 10,
+  glow: '#41e0c8',
+  pinWork: '#e0a92e',
+  pinBounty: '#c2333f',
+  pinMain: '#1f7f72',
+  pinUrgent: '#ff3cac',
+} as const;

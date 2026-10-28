@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { input, store } from '../../app/services';
-import { openFeature } from '../../app/features';
+import { openFeature, openPanel } from '../../app/features';
 import { playScene } from '../../app/dialogue';
 import { nextScene } from '../../systems/story';
 import { chapterStatus } from '../../systems/office';
@@ -92,7 +92,23 @@ export class HubScene extends Phaser.Scene {
     }
     const chapters = Object.fromEntries(CHAPTER_IDS.map((id) => [id, chapterStatus(s, id)]));
     const scene = nextScene({ seen: s.seen, solved: s.solved, chapters });
-    if (scene) this.time.delayedCall(HUB_LOOK.sceneDelay, () => playScene(scene));
+    // The morning after a night: the bookkeeper's 아침 보고 first, then any story scene once it is closed.
+    if (s.lastRun && !s.lastRun.shown) {
+      this.time.delayedCall(HUB_LOOK.sceneDelay, () => {
+        openFeature('morning');
+        if (!scene) return;
+        // Enter on the report opens the board right after closing it: wait until no panel is open.
+        let played = false;
+        const off = openPanel.subscribe(() => {
+          setTimeout(() => {
+            if (openPanel.get() || played) return;
+            played = true;
+            off();
+            playScene(scene);
+          }, 0);
+        });
+      });
+    } else if (scene) this.time.delayedCall(HUB_LOOK.sceneDelay, () => playScene(scene));
     // Dev-only read access for automated play-testing; stripped from production builds.
     if (import.meta.env.DEV) (window as unknown as { __hub?: unknown }).__hub = this;
   }

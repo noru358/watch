@@ -72,4 +72,5 @@ export const LOBBY_FEATURES: Record<LobbyFeatureId, LobbyFeatureData> = {
   training: { titleKey: 'feature.training.title', wide: true },
   sofa: { titleKey: 'feature.sofa.title', wide: false },
   bench: { titleKey: 'feature.bench.title', wide: false },
+  morning: { titleKey: 'feature.morning.title', wide: false }, // 아침 보고: opens by itself the morning after a night
 };

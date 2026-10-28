@@ -76,7 +76,7 @@ function GoalIcon({ kind }: { kind: GoalKind }) {
   );
 }
 
-const cell = { background: L.paperCell, borderRadius: 4, padding: '6px 10px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', gap: 4, minWidth: 0, minHeight: 0, overflow: 'hidden' };
+const cell = { borderTop: `1px dashed rgba(42,34,51,0.35)`, padding: '6px 4px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', gap: 4, minWidth: 0, minHeight: 0, overflow: 'hidden' };
 const small = { fontSize: 11, color: L.paperDim };
 
 const SHEET_H = 452; // fixed: the board must not change size between offers (user, 2026-10-27)

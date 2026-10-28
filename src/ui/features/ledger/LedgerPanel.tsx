@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { store } from '../../../app/services';
+import { closeFeature, openFeature } from '../../../app/features';
 import { NODES } from '../../../data/nodes.data';
 import { OFFICE } from '../../../data/office.data';
 import { t } from '../../../i18n';
@@ -15,7 +16,7 @@ import { panelCss as css } from '../panel';
 import { priceStyle, rowStyle, useNav } from '../useNav';
 
 // What the bookkeeper says this morning (rent, the city, expired offers).
-function morningLines(m: MorningReport | null): string[] {
+export function morningLines(m: MorningReport | null): string[] {
   if (!m) return [t('morning.quiet')];
   const lines: string[] = [];
   if (m.rentDue && m.debtAdded > 0) lines.push(t('morning.rentShort', { short: m.debtAdded }));
@@ -67,6 +68,7 @@ export function LedgerPanel() {
         <div style={css.box}>
           <div style={{ ...css.row, ...css.dim }}>{t('day.lastResult')}</div>
           <div style={css.row}><span>{outcomeLabel(s.lastRun)}</span><span>+{s.lastRun.settlement.moneyDelta}</span></div>
+          <button style={{ ...css.chip, marginTop: 6 }} onClick={() => { closeFeature(); openFeature('morning'); }}>{t('morning.open')}</button>
         </div>
       )}
     </>

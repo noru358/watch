@@ -10,6 +10,7 @@ import { BoardPanel } from './features/board/BoardPanel';
 import { BenchPanel } from './features/bench/BenchPanel';
 import { SofaPanel } from './features/sofa/SofaPanel';
 import { TrainingPanel } from './features/training/TrainingPanel';
+import { MorningPanel } from './features/morning/MorningPanel';
 import { DialogueBox } from './DialogueBox';
 import { PhoneToast } from './PhoneToast';
 
@@ -19,6 +20,7 @@ const PANELS: Record<LobbyFeatureId, ComponentType> = {
   training: TrainingPanel,
   sofa: SofaPanel,
   bench: BenchPanel,
+  morning: MorningPanel,
 };
 
 // Day overlay: the story dialogue box, the one open hub panel, or nothing (the hub canvas stays clickable).

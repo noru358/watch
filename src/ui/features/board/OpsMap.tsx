@@ -2,10 +2,10 @@ import { NODES } from '../../../data/nodes.data';
 import { t, type TKey } from '../../../i18n';
 import { overflowTargets, type ContractOffer, type Contamination } from '../../../systems/office';
 import type { NodeId } from '../../../types/ids';
-import { BOARD_LOOK as L } from './look';
+import { BOARD_LOOK as L, MAP_PRINT } from './look';
 
-// The Euljiro operations map (docs/design/1-foundation/ui.md "의뢰판"): a district's state is its
-// colour only (no numbers, no "contamination" word). Districts with an offer are lit and clickable;
+// The Euljiro operations map (docs/design/1-foundation/ui.md "의뢰판"), drawn as a printed paper map
+// (look.ts MAP_PRINT): a district's state is its red hatching only (no numbers, no "contamination" word). Districts with an offer are lit and clickable;
 // the rest are dimmed. A district that may catch the spread from a neighbour tomorrow says so in
 // words under its name. Presentation only: it reads state and reports clicks.
 
@@ -40,54 +40,70 @@ function overflows(board: readonly ContractOffer[], contamination: Contamination
 }
 
 export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0, day = 0 }: Props) {
+  const P = MAP_PRINT;
   const spill = overflows(board, contamination, rank);
   const links = NODE_IDS.flatMap((a) => NODES[a].links.filter((b) => a < b).map((b) => [a, b] as const));
   const y = (id: NodeId) => NODES[id].y * 0.6 + 3;
+  const half = { w: P.block_w / 2, h: P.block_h / 2 };
   return (
-    <div style={{ position: 'relative', background: L.mapBg, border: `1px solid ${L.line}`, borderRadius: 6, overflow: 'hidden' }}>
+    <div style={{ position: 'relative', background: P.paper, borderRadius: 2, overflow: 'hidden', boxShadow: '0 12px 26px rgba(0,0,0,0.55)', color: P.navy }}>
       <div style={{ position: 'relative' }}>
       <svg viewBox={`0 0 ${VIEW.w} ${VIEW.h}`} style={{ width: '100%', display: 'block' }} role="img" aria-label={t('board.mapTitle')}>
-        {links.map(([a, b]) => (
-          <line key={`${a}-${b}`} x1={NODES[a].x} y1={y(a)} x2={NODES[b].x} y2={y(b)} stroke={L.line} strokeWidth={0.6} />
-        ))}
         <defs>
           <marker id="spill-head" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill={L.spread} /></marker>
+          {P.hatchGap.map((gap, i) => gap > 0 && (
+            <pattern key={i} id={`hatch-${i}`} width={gap} height={gap} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <rect width={0.32} height={gap} fill={P.hatch} />
+              {i === P.hatchGap.length - 1 && <rect width={gap} height={0.32} fill={P.hatch} />}
+            </pattern>
+          ))}
         </defs>
+        {links.map(([a, b]) => (
+          <g key={`${a}-${b}`}>
+            <line x1={NODES[a].x} y1={y(a)} x2={NODES[b].x} y2={y(b)} stroke={P.navy} strokeWidth={2.2} strokeLinecap="round" opacity={0.55} />
+            <line x1={NODES[a].x} y1={y(a)} x2={NODES[b].x} y2={y(b)} stroke={P.street} strokeWidth={1.7} strokeLinecap="round" />
+          </g>
+        ))}
         {clue?.nodes.map((id) => {
           const bx = NODES[id].x;
-          const by = y(id) - 3;
+          const by = y(id) - half.h;
           return <path key={`str-${id}`} d={`M${CASE_AT.x} ${CASE_AT.y} Q ${(CASE_AT.x + bx) / 2} ${Math.max(CASE_AT.y, by) + 6} ${bx - 1.5} ${by}`} fill="none" stroke={L.stamp} strokeWidth={0.45} />;
         })}
-        {spill.flatMap((x) => x.to.map((to) => <SpillArrow key={`${x.from}-${to}`} from={x.from} to={to} y={y} r={(id) => 2.6 + contamination[id] * 0.55} />))}
         {NODE_IDS.map((id) => {
           const n = NODES[id];
-          const c = contamination[id];
+          const c = Math.min(contamination[id], P.hatchGap.length - 1);
           const pins = board.filter((o) => o.node === id);
           const live = pins.length > 0;
           const isSel = selected?.node === id;
-          const r = 2.6 + c * 0.55;
           const cy = y(id);
           const locked = n.rank > rank;
           const urgent = spill.some((x) => x.from === id);
+          const box = { x: n.x - half.w, y: cy - half.h };
           return (
-            <g key={id} onClick={() => live && onPick(id)} style={{ cursor: live ? 'pointer' : 'default' }} opacity={live ? 1 : 0.32}>
-              {live && <circle cx={n.x} cy={cy} r={r + 3.2} fill={L.heat[c] ?? L.heat[L.heat.length - 1]} opacity={0.14} />}
-              <circle cx={n.x} cy={cy} r={r} fill={L.heat[c] ?? L.heat[L.heat.length - 1]} stroke={live ? L.ink : 'none'} strokeWidth={live ? 0.35 : 0} />
-              {isSel && <circle cx={n.x} cy={cy} r={r + 1.8} fill="none" stroke={L.accent} strokeWidth={0.9} />}
-              <text x={n.x} y={cy + r + 3.6} textAnchor="middle" fontSize={2.7} fill={isSel ? L.ink : live ? L.dim : L.off} fontWeight={isSel || live ? 700 : 400}>{t(n.nameKey)}</text>
-              {urgent && <circle cx={n.x} cy={cy} r={r + 1.6} fill="none" stroke={L.spread} strokeWidth={0.5} strokeDasharray="1 0.8" />}
-              {locked && <text x={n.x} y={cy + r + 6.6} textAnchor="middle" fontSize={2.1} fill={L.dim}>{t('board.locked', { rank: n.rank })}</text>}
-              {clue?.nodes.includes(id) && <circle cx={n.x - 1.5} cy={cy - 3} r={1.1} fill={L.stamp} stroke="#7a1f28" strokeWidth={0.3} />}
+            <g key={id} onClick={() => live && onPick(id)} style={{ cursor: live ? 'pointer' : 'default' }} opacity={live ? 1 : 0.42}>
+              <rect x={box.x} y={box.y} width={P.block_w} height={P.block_h} fill={P.block} stroke={P.navy} strokeWidth={0.35} />
+              {c > 0 && <rect x={box.x + 0.4} y={box.y - 0.3} width={P.block_w} height={P.block_h} fill={`url(#hatch-${c})`} opacity={0.85} />}
+              {isSel && (
+                <>
+                  <ellipse cx={n.x} cy={cy} rx={half.w + 2.6} ry={half.h + 2.4} fill="none" stroke={P.glow} strokeWidth={2.2} opacity={0.22} />
+                  <ellipse cx={n.x} cy={cy} rx={half.w + 2.6} ry={half.h + 2.4} fill="none" stroke={P.glow} strokeWidth={0.7} />
+                </>
+              )}
+              {urgent && <ellipse cx={n.x} cy={cy} rx={half.w + 1.6} ry={half.h + 1.5} fill="none" stroke={P.pinUrgent} strokeWidth={0.5} strokeDasharray="1 0.8" />}
+              <text x={n.x} y={cy + 1} textAnchor="middle" fontSize={2.8} fontWeight={900} fill={P.navy} stroke={P.paper} strokeWidth={0.8} paintOrder="stroke">{t(n.nameKey)}</text>
+              {locked && <text x={n.x} y={cy + half.h + 2.8} textAnchor="middle" fontSize={2.1} fill={P.navy}>{t('board.locked', { rank: n.rank })}</text>}
+              {clue?.nodes.includes(id) && <circle cx={n.x - 1.5} cy={box.y} r={1.1} fill={L.stamp} stroke="#7a1f28" strokeWidth={0.3} />}
               {pins.map((o, i) => (
-                <rect key={o.id} x={n.x - (pins.length * 2.6) / 2 + i * 2.6 + 0.3} y={cy - r - 4.2} width={2} height={2.6} rx={0.3}
-                  fill={o.kind === 'main' ? L.accent : o.urgent ? L.spread : o.target ? L.bounty : L.general} />
+                <circle key={o.id} cx={box.x + P.block_w - 1.2 - i * 2.6} cy={box.y - 0.6} r={1.05} strokeWidth={0.3}
+                  fill={o.kind === 'main' ? P.pinMain : o.urgent ? P.pinUrgent : o.target ? P.pinBounty : P.pinWork} stroke={P.navy} />
               ))}
             </g>
           );
         })}
+        {spill.flatMap((x) => x.to.map((to) => <SpillArrow key={`${x.from}-${to}`} from={x.from} to={to} y={y} r={() => half.w * 0.75} />))}
       </svg>
       {clue && (
-        <div aria-label={t('board.caseFile')} style={{ position: 'absolute', left: CASE_AT.left, top: CASE_AT.top, width: 118, background: '#f4efe2', color: L.paperInk, borderRadius: 2, padding: '8px 8px 6px', transform: 'rotate(-4deg)', boxShadow: '0 8px 16px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', gap: 3, pointerEvents: 'none' }}>
+        <div aria-label={t('board.caseFile')} style={{ position: 'absolute', left: CASE_AT.left, top: CASE_AT.top, width: 118, background: '#f4efe2', color: L.paperInk, borderRadius: 2, padding: '8px 8px 6px', transform: 'rotate(-4deg)', boxShadow: '0 8px 16px rgba(0,0,0,0.45)', display: 'flex', flexDirection: 'column', gap: 3, pointerEvents: 'none' }}>
           <span aria-hidden="true" style={{ position: 'absolute', left: '50%', top: -6, width: 12, height: 12, marginLeft: -6, borderRadius: '50%', background: L.stamp, boxShadow: '0 2px 0 #7a1f28' }} />
           <span style={{ fontSize: 10, color: L.paperDim, letterSpacing: 2 }}>{t('board.caseFile')}</span>
           <span style={{ fontSize: 12, fontWeight: 900, lineHeight: 1.25 }}>{t(clue.nameKey)}</span>
@@ -95,21 +111,23 @@ export function OpsMap({ contamination, board, selected, onPick, clue, rank = 0,
         </div>
       )}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: L.dim, flexWrap: 'wrap', padding: '6px 10px 8px', borderTop: `1px solid ${L.line}` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, flexWrap: 'wrap', padding: '6px 10px 8px', borderTop: `1px solid ${P.navy}` }}>
         <span>{t('board.legendGhosts')}</span>
-        <span style={{ display: 'flex', gap: 2 }}>
-          {L.heat.map((h, i) => (
-            <span key={h} style={{ minWidth: 34, textAlign: 'center', background: h, color: i >= 2 ? L.paperInk : L.ink }}>
-              {i < L.heat.length - 1 ? `+${i}` : t('board.legendOverflow')}
-            </span>
-          ))}
-        </span>
+        {P.hatchGap.map((gap, i) => (
+          <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <svg width="20" height="12" viewBox={`0 0 ${P.block_w} ${P.block_h}`} aria-hidden="true">
+              <rect width={P.block_w} height={P.block_h} fill={P.block} stroke={P.navy} strokeWidth={0.6} />
+              {gap > 0 && <rect width={P.block_w} height={P.block_h} fill={`url(#hatch-${i})`} />}
+            </svg>
+            {i < P.hatchGap.length - 1 ? `+${i}` : t('board.legendOverflow')}
+          </span>
+        ))}
         <span>{t('board.legendFee')}</span>
       </div>
       {spill.length > 0 && (
-        <div style={{ position: 'absolute', right: 10, top: 10, background: '#2a1534', border: `1px solid ${L.spread}`, borderRadius: 6, padding: '6px 10px', display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 170 }}>
-          <span style={{ fontSize: 12, fontWeight: 800, color: L.spread }}>{(spill[0]!.left ?? day) - day > 0 ? t('board.urgentLeft', { days: (spill[0]!.left ?? day) - day }) : t('board.urgentToday')}</span>
-          <span style={{ fontSize: 11, color: L.ink }}>{t('board.urgentHint')}</span>
+        <div style={{ position: 'absolute', right: 10, top: 10, background: P.paper, border: `2px solid ${P.pinUrgent}`, borderRadius: 2, padding: '6px 10px', display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 170, boxShadow: `0 0 12px rgba(255,60,172,0.35)` }}>
+          <span style={{ fontSize: 12, fontWeight: 800, color: '#b0186f' }}>{(spill[0]!.left ?? day) - day > 0 ? t('board.urgentLeft', { days: (spill[0]!.left ?? day) - day }) : t('board.urgentToday')}</span>
+          <span style={{ fontSize: 11, color: P.navy }}>{t('board.urgentHint')}</span>
         </div>
       )}
     </div>

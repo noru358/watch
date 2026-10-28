@@ -23,7 +23,7 @@ export type ModifierId = 'blackout' | 'lair' | 'surge' | 'regen' | 'lethal' | 'h
 export type FloorTheme = 'basement' | 'alley' | 'arcade' | 'rooftop' | 'lot';
 export type SceneId = 'intro' | 'bookkeeper' | 'lights_out_done' | 'ch2_start' | 'ch2_ready' | 'ch2_done'; // story scenes in the dialogue box
 export type Phase = 'title' | 'day' | 'night';
-export type LobbyFeatureId = 'sortie' | 'ledger' | 'training' | 'sofa' | 'bench'; // hub panels (src/ui/features/<id>/)
+export type LobbyFeatureId = 'sortie' | 'ledger' | 'training' | 'sofa' | 'bench' | 'morning'; // hub panels (src/ui/features/<id>/)
 export type HubSpotId = 'door' | 'bookkeeper' | 'directorDesk' | 'sofa' | 'bench'; // things in the hub you can walk up to and use
 export type HubPropId = 'bookkeeperDesk' | 'directorDesk' | 'sofa' | 'cabinet' | 'plant' | 'water' | 'bench'; // office furniture (solid)
 

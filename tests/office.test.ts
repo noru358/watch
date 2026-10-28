@@ -239,6 +239,18 @@ describe('office: store and save', () => {
     expect(st.money).toBeGreaterThanOrEqual(10 + offer.fee);
   });
 
+  it('the morning report keeps the offers taken and what each paid, and opens once', () => {
+    const store = new GameStore({ seedBase: 4 });
+    const [a, b] = store.getState().board.filter((o) => o.kind === 'general');
+    store.applyRunResult({ offerId: a!.id, outcome: 'success', loot: 10, fee: 0, shards: 0, offers: [a!.id, b!.id], completed: [a!.id], reached: [a!.id, b!.id], drops: [] });
+    const r = store.getState().lastRun!;
+    expect(r.offers?.map((o) => o.id)).toEqual([a!.id, b!.id]);
+    expect(r.paid).toEqual({ [a!.id]: a!.fee });
+    expect(r.shown).toBe(false);
+    store.markReportShown();
+    expect(store.getState().lastRun!.shown).toBe(true);
+  });
+
   it('migrates a v1 save: calendar from day 1, the main story contract remembered if anything was solved', () => {
     const v2 = migrate({ schemaVersion: 1, money: 50, trauma: 1, solved: 3, seedBase: 7, runCounter: 4 });
     expect(v2?.schemaVersion).toBe(SAVE_VERSION);

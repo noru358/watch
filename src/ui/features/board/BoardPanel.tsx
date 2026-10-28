@@ -69,7 +69,7 @@ function joinState(board: readonly ContractOffer[], joined: readonly number[], s
   return canJoin(set) ? 'can' : 'full';
 }
 
-const keyChip = { fontSize: 11, fontWeight: 400, whiteSpace: 'nowrap', padding: '2px 6px', border: '1px solid rgba(20,16,31,0.45)', borderRadius: 3 } as const;
+const keyChip = { fontSize: 11, fontWeight: 400, whiteSpace: 'nowrap', padding: '2px 6px', border: `1px solid ${L.accent}`, borderRadius: 3 } as const;
 
 const arrow = {
   flex: '0 0 52px', height: 52, boxSizing: 'border-box' as const, borderRadius: 6, border: `1px solid ${L.line}`, background: L.mapBg, color: L.ink,
@@ -148,7 +148,7 @@ export function BoardPanel() {
             <span style={{ fontSize: 20, lineHeight: 1 }}>‹</span><span style={{ fontSize: 10, color: L.dim, lineHeight: 1 }}>A</span>
           </button>
           <button onClick={sortie} disabled={!canGo}
-            style={{ flex: 1, height: 52, boxSizing: 'border-box', borderRadius: 6, border: 'none', background: L.accent, color: '#14101f', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: canGo ? 'pointer' : 'default', opacity: canGo ? 1 : 0.5, fontFamily: 'inherit' }}>
+            style={{ flex: 1, height: 52, boxSizing: 'border-box', borderRadius: 6, border: `2px solid ${L.accent}`, background: 'rgba(65,224,200,0.08)', color: L.accent, boxShadow: '0 0 14px rgba(65,224,200,0.35), inset 0 0 10px rgba(65,224,200,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: canGo ? 'pointer' : 'default', opacity: canGo ? 1 : 0.5, fontFamily: 'inherit' }}>
             <span style={{ fontSize: grounded ? 14 : joint ? 17 : 19, fontWeight: 700 }}>{grounded ? t('board.grounded') : joint ? t('board.sortieJoint', joint) : t('day.sortie')}</span>
             {!grounded && <span style={keyChip}>Enter</span>}
             {!grounded && (join === 'in' || join === 'can') && <span style={keyChip}>{t(join === 'in' ? 'board.unmarkKey' : 'board.markKey')}</span>}

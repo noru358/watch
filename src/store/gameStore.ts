@@ -29,6 +29,13 @@ export interface LastRun {
   settlement: Settlement;
   completed: number; // offers finished tonight (합동 출동 can finish several)
   clue?: NightResolution['clue']; // 메인 스토리 단서 gained that night
+  // For the morning report (아침 보고): the offers taken as they were, what each paid, the rest.
+  offers?: ContractOffer[];
+  paid?: Record<number, number>;
+  reputation?: number;
+  gear?: GearItem[];
+  gearMelted?: number;
+  shown?: boolean; // the report was opened this morning
 }
 
 export interface GameState {
@@ -391,6 +398,11 @@ export class GameStore {
     return seed;
   }
 
+  // The morning report was opened (it opens by itself once per morning).
+  markReportShown(): void {
+    if (this.state.lastRun && !this.state.lastRun.shown) this.set({ lastRun: { ...this.state.lastRun, shown: true } });
+  }
+
   // Night over: settle the contract (and its bundle), pay out, then it is the next morning.
   applyRunResult(result: RunResult): NightSettlement {
     const taken = result.offers.map((id) => this.state.board.find((x) => x.id === id)).filter((x): x is ContractOffer => !!x);
@@ -419,7 +431,11 @@ export class GameStore {
       solved: this.state.solved + night.completed.length,
       activeOfferId: null,
       joined: [],
-      lastRun: { result, settlement, completed: night.completed.length, clue: night.clue },
+      lastRun: {
+        result, settlement, completed: night.completed.length, clue: night.clue,
+        offers: taken, paid: Object.fromEntries(night.completed.map((id) => [id, Math.round((taken.find((x) => x.id === id)?.fee ?? 0) * (1 + feeBonus))])),
+        reputation: night.reputation, gear: stowed.kept, gearMelted: stowed.melted, shown: false,
+      },
       lastMorning: { ...morning, rankUp: night.rankUp },
     });
     return { ...settlement, clue: night.clue, completed: night.completed.length, reputation: night.reputation, gear: stowed.kept, gearMelted: stowed.melted };

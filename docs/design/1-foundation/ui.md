@@ -16,6 +16,8 @@
 
 **2026-10-28 의뢰판 3차(사용자: A3 + 출동 전표 + M2 사건 파일):** 의뢰서 칸 6개를 같은 크기 2×3으로, 사연 두 줄 복원, 마감·메인 도장 높이 맞춤, 합동 출동에 담으면 둥근 "담음" 도장(잉크만, 바탕 없음 — 시안에서 '달걀귀신'이 흐려 보인 건 도장의 반투명 바탕이 글자를 덮어서였다). 난이도 점 옆에 말(가벼움 ~ 목숨 걸기), 오염이 보탠 몫은 동네 색(규칙 `docs/rules/office.md`). 지도 아래 출동 전표(`SortieSlip.tsx`). 지금 장은 지도 위 사진 카드(사건 파일)와 단서 동네로 이어진 붉은 실, 단서 동네 의뢰서에 "사건 파일과 연결됨". 출동 버튼에 "F 담기 / F 빼기".
 
+**2026-10-28 가안 (사용자 "절충안 ㅇㅋ, 아침 보고 ㅇㅋ", 디자인은 추후 수정):** 작전 지도를 옛 인쇄 지도 종이로(`look.ts` `MAP_PRINT`: 남색 인쇄 블록, 오염 = 붉은 빗금 촘촘함, 고른 동네만 청록 형광 원, 긴급은 분홍 압정·점선). 의뢰서 칸은 채운 상자 대신 점선, 출동 버튼은 네온 테두리. 아침 보고(`features/morning/MorningPanel.tsx`): 밤 다음 아침 사무소에 들어오면 한 번 저절로 열림(이야기 장면은 닫은 뒤), 어젯밤 의뢰마다 줄, 끝낸 것엔 "해결" 도장, 받은 것, 오늘 할 일, 잔고. Enter = 의뢰판으로, 장부에서 다시 보기. 저장은 안 됨(껐다 켜면 그날 보고는 사라짐). 글꼴 셋과 톤 3 전체 적용은 아직.
+
 **지금 코드:** 의뢰판 `src/ui/features/board/`(`BoardPanel`, 지도 `OpsMap`(사건 파일 포함), 의뢰서 `OfferSheet`, 출동 전표 `SortieSlip`, 색 `look.ts`), 장부 `src/ui/features/ledger/`, 밤 HUD `src/scenes/rift/RiftHud.ts`, 일시정지·카드·공중전화·귀환 창 `src/scenes/shared/Overlay.ts`, 대화창 `src/ui/DialogueBox.tsx` + `src/app/dialogue.ts`, 잡담 말풍선 `src/scenes/hub/HubScene.ts`, 타이틀 `src/scenes/title/TitleScene.ts` + `src/data/titleLook.data.ts`, 음량 `src/app/settings.ts`.
 
 ## 공통
