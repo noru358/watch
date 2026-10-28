@@ -1,5 +1,5 @@
 import type { TKey } from '../i18n';
-import type { GhostId, NodeId, ObjectiveKind, RequestId } from '../types/ids';
+import type { GhostId, NodeId, ObjectiveKind } from '../types/ids';
 
 // Story frames for generated general contracts: who asks and what they saw.
 // `nodes` limits where the frame can appear; `pool` overrides the node's ghosts (null = the node's own).
@@ -13,7 +13,8 @@ export interface RequestData {
   objective: ObjectiveKind;
 }
 
-export const REQUESTS: Record<RequestId, RequestData> = {
+// Adding a frame = one row here + its two lines in ko.ts / en.ts (request.<id>.client / .text).
+const ROWS = {
   // 섬멸
   flicker: { clientKey: 'request.flicker.client', textKey: 'request.flicker.text', nodes: null, pool: null, objective: 'clear' },
   smoke: { clientKey: 'request.smoke.client', textKey: 'request.smoke.text', nodes: ['rooftop', 'motel', 'alley'], pool: null, objective: 'clear' },
@@ -36,4 +37,7 @@ export const REQUESTS: Record<RequestId, RequestData> = {
   closing: { clientKey: 'request.closing.client', textKey: 'request.closing.text', nodes: ['arcade', 'alley'], pool: null, objective: 'timeattack' },
   checkout: { clientKey: 'request.checkout.client', textKey: 'request.checkout.text', nodes: ['motel'], pool: null, objective: 'timeattack' },
   deadline: { clientKey: 'request.deadline.client', textKey: 'request.deadline.text', nodes: ['printshop', 'rooftop', 'station'], pool: null, objective: 'timeattack' },
-};
+} satisfies Record<string, RequestData>;
+
+export type RequestId = keyof typeof ROWS;
+export const REQUESTS: Record<RequestId, RequestData> = ROWS;

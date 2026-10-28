@@ -233,7 +233,9 @@ function contracts() {
     { h: '사연', f: (r) => esc(T(r.textKey)), cls: 'text' },
   ], rowsOf(d.requests, (id, v) => T(v.clientKey)));
   const names = [];
-  for (let i = 0; i < d.office.wantedNames.pre; i++) for (let j = 0; j < d.office.wantedNames.suf; j++) names.push(`${T(`wanted.pre.${i}`)} ${T(`wanted.suf.${j}`)}`);
+  const pre = Object.keys(d.t).filter((k) => k.startsWith('wanted.pre.')).map(T);
+  const suf = Object.keys(d.t).filter((k) => k.startsWith('wanted.suf.')).map(T);
+  for (const a of pre) for (const b of suf) names.push(`${a} ${b}`);
   const g = d.office.general;
   const formula = `<p style="margin:0">보수 = (${g.feeBase} + 난이도 × ${g.feePerDifficulty} + 층수 × ${g.feePerFloor}) × 목표 배율 × (1 + 변형 보수 합 + 놓친 횟수 × ${g.feePerTargetLevel}), 10원 단위. 난이도 = 목표 층까지 강적 수 + 목표 가점 + 변형 가점이 ${d.office.difficulty.steps.join(' / ')}를 몇 개 넘었나 + 1. 층마다 강적 = ${g.enemiesBase} + 오염 + 층 번호.</p>`;
   return sheet('목표 (일반 의뢰는 이 중 하나)', 'src/data/objectives.data.ts', obj + rules) +
@@ -241,7 +243,7 @@ function contracts() {
     sheet('의뢰 사연 (목표마다 틀)', 'src/data/requests.data.ts, 글은 ko.ts request.*', req) +
     sheet('보수 · 난이도 · 판', 'src/data/office.data.ts', formula + kv({ '판에 일반 의뢰': d.office.boardSize, '마감 최소(일)': d.office.deadline.min, '마감 최대(일)': d.office.deadline.max, '합동 출동 최대': d.office.joint.max, '공중전화 나오는 길이': g.payphoneFrom })) +
     sheet('오염 · 넘침', 'src/data/office.data.ts contamination', kv({ '최대': d.office.contamination.max, '만료 시 +': d.office.contamination.expireRise, '실패 시 +': d.office.contamination.failRise, '넘침 시작': d.office.contamination.overflow.at, '긴급 마감(일)': d.office.contamination.overflow.days, '긴급 보수 ×': d.office.contamination.overflow.feeMult, '긴급 평판 ×': d.office.contamination.overflow.repMult, '놓치면 이웃 +': d.office.contamination.overflow.rise, '놓치면 평판 −': d.office.contamination.overflow.rep, '메인 끝내면 −': d.office.contamination.cleanse.main })) +
-    sheet('현상수배 · 추격 표적 이름', 'ko.ts wanted.pre.N + wanted.suf.N (office.data.ts wantedNames)', `<p style="margin:0">앞말 ${d.office.wantedNames.pre}개 × 뒷말 ${d.office.wantedNames.suf}개를 무작위로 붙인다(괴이 종류와 상관없음). 놓칠 때마다 단계 +1, 이름은 그대로.</p><p style="margin:0;font-size:14px">${esc(names.join(' · '))}</p>`);
+    sheet('현상수배 · 추격 표적 이름', 'src/i18n/ko.ts wanted.pre.N · wanted.suf.N (줄만 더하면 됨)', `<p style="margin:0">앞말 ${pre.length}개 × 뒷말 ${suf.length}개를 무작위로 붙인다(괴이 종류와 상관없음). 놓칠 때마다 단계 +1, 이름은 그대로.</p><p style="margin:0;font-size:14px">${esc(names.join(' · '))}</p>`);
 }
 
 function city() {

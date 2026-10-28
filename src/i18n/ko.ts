@@ -15,7 +15,7 @@ export const ko = {
   'feature.ledger.line': '소장님, 장부 보세요.',
   'feature.close': 'Esc 닫기',
 
-  'rift.loot': '영력 {value}',
+  'rift.loot': '영력 {value} = ₩{value}',
   'rift.focus': '진심',
   'hud.draw.now': '지금! 받아치기',
   'hud.draw.full': '주변 일섬',

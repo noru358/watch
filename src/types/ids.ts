@@ -14,14 +14,7 @@ export type ChapterId = 'ch1' | 'ch2'; // 메인 스토리 장 (src/data/chapter
 export type ContractKind = 'main' | 'general'; // 메인 스토리 (hand-written, required to progress) / 일반 의뢰 (generated)
 export type NodeId = 'alley' | 'printshop' | 'arcade' | 'station' | 'motel' | 'rooftop'; // 을지로 작전 지도 노드
 // 일반 의뢰 사연 틀 (each belongs to one objective, src/data/requests.data.ts)
-export type RequestId =
-  | 'flicker' | 'smoke' | 'karaoke'
-  | 'crying' | 'missing'
-  | 'faceless' | 'poster'
-  | 'footsteps' | 'snatcher'
-  | 'cold_spot' | 'shrine'
-  | 'last_train' | 'taxi'
-  | 'closing' | 'checkout' | 'deadline';
+export type { RequestId } from '../data/requests.data';
 // What opens a floor's stairs (docs/design/2-night/objectives.md). A general contract has exactly one
 // main objective (not 'clear' on its goal floor unless it is a 섬멸 contract); other floors are 'clear'.
 export type ObjectiveKind = 'clear' | 'rescue' | 'bounty' | 'chase' | 'ward' | 'firsttrain' | 'timeattack';

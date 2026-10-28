@@ -16,7 +16,7 @@ export const en: Record<TKey, string> = {
   'feature.ledger.line': 'Boss, the books.',
   'feature.close': 'Esc close',
 
-  'rift.loot': 'Spirit {value}',
+  'rift.loot': 'Spirit {value} = ₩{value}',
   'rift.focus': 'Focus',
   'hud.draw.now': 'NOW! counter',
   'hud.draw.full': 'all-round strike',

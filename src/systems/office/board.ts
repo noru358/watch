@@ -1,3 +1,4 @@
+import { keysWith } from '../../i18n';
 import { CONTRACTS } from '../../data/contracts.data';
 import { FACILITY_EFFECTS } from '../../data/facilities.data';
 import { MODIFIER_COUNT, MODIFIERS } from '../../data/modifiers.data';
@@ -66,9 +67,13 @@ function rollMods(rng: SeededRNG, rank: number): ModifierId[] {
   return mods;
 }
 
+// Named 현상수배 / 추격 targets: "<앞말> <뒷말>" from the numbered i18n tables wanted.pre.N / wanted.suf.N
+// (ko.ts). Adding a word = one line there (and en.ts); the count follows. Saves keep the indices.
+const WANTED_PRE = keysWith('wanted.pre.').length;
+const WANTED_SUF = keysWith('wanted.suf.').length;
 const newTarget = (pool: readonly GhostId[], rng: SeededRNG): OfferTarget => ({
   ghost: rng.pick(pool),
-  name: [rng.int(0, OFFICE.wantedNames.pre - 1), rng.int(0, OFFICE.wantedNames.suf - 1)],
+  name: [rng.int(0, WANTED_PRE - 1), rng.int(0, WANTED_SUF - 1)],
   level: 0,
 });
 

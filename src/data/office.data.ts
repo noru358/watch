@@ -34,6 +34,4 @@ export const OFFICE = {
   // long as the longest; objectives on the same floor push the later one down, at most `extraFloors`
   // past that length. Not with main story or 추격 (it uses every floor).
   joint: { max: 3, extraFloors: 1 },
-  // Named 현상수배 targets: "<pre> <suf>" from these i18n tables (wanted.pre.N / wanted.suf.N).
-  wantedNames: { pre: 6, suf: 6 },
 } as const;
