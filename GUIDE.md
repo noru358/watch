@@ -206,7 +206,7 @@ docs/rules/       🧮 규칙 장부(지금 코드가 계산하는 공식과 숫
 | [`docs/reference/`](docs/reference/README.md) | 사람 + AI | 🔍 참고 게임 역설계 (목록은 README) |
 | `ARCHITECTURE.md` | AI | 정식 코드 규칙 (영어) |
 | `HANDOFF.md` | AI + 사람 | 지금 상태와 다음 할 일만 짧게 (지난 기록은 `docs/history.md`) |
-| `AGENTS.md` · `CLAUDE.md` | AI | 세션 시작 안내문. 코덱스는 AGENTS.md, Claude는 CLAUDE.md를 읽음 (내용 같게 유지) |
+| `AGENTS.md` (+ `CLAUDE.md`) | AI | 세션 시작 안내문. 내용은 AGENTS.md 한 곳에만 쓰고, CLAUDE.md는 그걸 불러오기만 함 (코덱스·Claude 공용) |
 | `docs/catalog.md` | AI | 게임 숫자·글 전부를 글로 뽑은 것. 데이터 파일 여러 개 대신 이것 하나만 읽게 |
 | `assets/README.md`, `tools/*/README.md` | AI + 사람 | 그림 파일 폴더와 그림 도구 쓰는 법 |
 

@@ -1,6 +1,6 @@
 # Seoul Nightwatch — instructions for any coding agent
 
-Same rules for Claude (reads `CLAUDE.md`, which mirrors this file) and Codex or others (read this file). Keep the two identical in substance.
+The one instruction file for every agent: Codex reads it directly, Claude reads it through `CLAUDE.md` (which only imports this file).
 
 Start of a session, in this order and no more unless the task needs it:
 1. `HANDOFF.md` — what is true now and the next tasks (short on purpose).
