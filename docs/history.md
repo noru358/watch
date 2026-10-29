@@ -3,6 +3,7 @@
 Long-form log moved out of HANDOFF.md on 2026-10-28 so a new session reads less. Newest status first; read only when you need the story behind something.
 
 ## Status log (to 2026-10-28)
+- **2026-10-29 (user "현 1,2장 스토리 관련 문서에서 다 삭제해"):** ch.1 「불 꺼지는 동네」 (월하) and ch.2 「막차가 끊기지 않는 역」 (막차 기관사) stories dropped from the design docs and rules; only the chapter frames remain in code. Big story will be rewritten from ch.1.
 - **Gate 1** (night combat): feature-complete, waits on the user's playtest. Main story contract 「불 꺼지는 동네」 = 4 floors (alley → basement → arcade ☎ → rooftop) + gumiho (3 심연 파편).
 - **Gate 2** (office & growth): day loop, screens (board A, night HUD, dialogue + chatter, title + volume) from 2026-10-26. **2026-10-27 (user: "ㅇㅋ 구현해"):**
   - Money sinks: 트레이닝 (15 lines in 6 groups, small % steps, price inflates per line and overall), 기술 (passives 3 branches × 3 slots with A/B sides, paid in 심연 파편; actives on L: 부적 던지기 / 결계 펴기 / 소금 뿌리기), trauma effects (2: 2 cards, 4: start −2 HP, 6: grounded) and recovery at the sofa (휴식하기, 자본 치료 1,000 → −2, 진정제 slot disabled until the item exists), facilities (경리 책상, 부적 작업대, 소파) ordered from the ledger, supplies (salt pack, bacchus, map copy). Save v4.

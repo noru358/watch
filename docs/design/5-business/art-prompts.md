@@ -43,7 +43,7 @@ Row 5 - hurt, 1 frame: flinching backward with a frown (see above).
 ```
 몸 스프라이트에서는 크로스백·노리개·부적을 빼고(대화창 초상화에서 살림), 칼은 그리지 않는다(게임이 따로 그려 조준 방향으로 돌림).
 
-## 보스: 구미호 「월하」 (64×64)
+## 보스: 구미호 (64×64)
 지금은 몹 굵기 도트 한 장을 직접 그려 넣었다(`tools/artlab/gumiho_grid.py`). 패턴별 자세가 필요해지면:
 ```
 Boss sprite, art size 64x64 per frame.
