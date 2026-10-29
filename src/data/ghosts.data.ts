@@ -63,7 +63,7 @@ export interface BossData {
 }
 
 export const BOSSES: Record<BossId, BossData> = {
-  // 구미호 「월하」: nine tails sweep a row (phase 2: row + column), pounces up close, scatters fox-fire wisps.
+  // 구미호: nine tails sweep a row (phase 2: row + column), pounces up close, scatters fox-fire wisps.
   gumiho: {
     hp: 120,
     damage: 3,

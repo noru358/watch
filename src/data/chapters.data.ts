@@ -25,10 +25,10 @@ export interface ChapterData {
 }
 
 export const CHAPTERS: Record<ChapterId, ChapterData> = {
-  // 1장 불 꺼지는 동네: after 0장 (provisional, user 2026-10-29 "0장은 둬야 해, 날짜냐 조건이냐는 같이 고민"):
+  // 1장 (story TBD): after 0장 (provisional, user 2026-10-29 "0장은 둬야 해, 날짜냐 조건이냐는 같이 고민"):
   // opens on day 4 or once the office has 30 평판 (about two or three general offers), no clues needed.
   ch1: { nameKey: 'chapter.ch1', contract: 'lights_out', after: null, startAfterDays: 3, startHeat: 0, startReputation: 30, rank: 0, clues: 0, clueNodes: ['alley'], scenes: { start: null, ready: null, done: 'lights_out_done' } },
-  // 2장 막차가 끊기지 않는 역.
+  // 2장 (story TBD).
   ch2: { nameKey: 'chapter.ch2', contract: 'last_line', after: 'ch1', startAfterDays: 4, startHeat: 4, rank: 0, clues: 3, clueNodes: ['station', 'arcade'], scenes: { start: 'ch2_start', ready: 'ch2_ready', done: 'ch2_done' } },
 };
 

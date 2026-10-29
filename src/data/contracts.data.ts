@@ -53,8 +53,7 @@ export interface ContractData {
 
 // 메인 스토리: hand-written contracts. 일반 의뢰 are generated (src/systems/office/).
 export const CONTRACTS: Record<ContractId, ContractData> = {
-  // 불 꺼지는 동네: 구미호 「월하」 (docs/design/2-night/contract.md)
-  // 불 꺼진 골목 → 인쇄소 지하 → 지하상가(☎) → 옥상 → 불이 전부 꺼진 공터
+  // 1장 main contract (story TBD): alley → basement → arcade (☎) → rooftop → gumiho boss
   lights_out: {
     nameKey: 'board.storyName.lights_out',
     textKey: 'board.storyText.lights_out',
@@ -68,14 +67,13 @@ export const CONTRACTS: Record<ContractId, ContractData> = {
       { kind: 'boss', boss: 'gumiho', swarm: wisps(7, 4, 10), theme: 'lot', shards: 3 },
     ],
   },
-  // 막차가 끊기지 않는 역 (2장): 을지로3가역 승강장 → 지하상가 → 선로 옆 대피 통로 → 끊기지 않는 막차.
-  // The source is a named subway wraith, 「막차 기관사」, fought as a 현상수배-style elite on the last floor.
+  // 2장 main contract (story TBD): arcade → basement (blackout, ☎) → arcade (haste) → named subway wraith as a 현상수배-style target.
   last_line: {
     nameKey: 'board.storyName.last_line',
     textKey: 'board.storyText.last_line',
     node: 'station',
     fee: 450,
-    targetNameKey: 'name.lastDriver',
+    targetNameKey: 'name.storyTarget',
     floors: [
       { kind: 'normal', enemies: 5, pool: ['cheonyeo', 'dalgyal', 'subway'], payphone: false, swarm: wisps(6.5, 4, 10), objective: 'clear', goal: false, theme: 'arcade' },
       { kind: 'normal', enemies: 5, pool: ['dalgyal', 'subway'], payphone: true, swarm: wisps(6, 4, 12), objective: 'clear', goal: false, theme: 'basement', mods: ['blackout'] },

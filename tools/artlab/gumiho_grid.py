@@ -1,4 +1,4 @@
-"""Gumiho 「월하」 pixel grid generator (2026-10-25). Builds the letter grid used in
+"""Gumiho pixel grid generator (2026-10-25). Builds the letter grid used in
 src/scenes/rift/draw/art/ghostArt.ts (GUMIHO_ROWS): a fan of nine tails with fox fire, then a chibi
 white fox in front, each layer outlined separately so the head reads against the tails.
 

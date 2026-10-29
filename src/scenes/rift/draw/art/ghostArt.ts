@@ -11,7 +11,7 @@ export interface GridArt {
 
 const O = 0x2b1e2f;
 
-// 구미호 「월하」: chibi white fox in front of a fan of nine tails with fox fire at the tips
+// 구미호: chibi white fox in front of a fan of nine tails with fox fire at the tips
 // (made with tools/artlab/gumiho_grid.py, 2026-10-25). Phase 2 swaps the fire / eye colours.
 const GUMIHO_ROWS = [
       '.............f..............',

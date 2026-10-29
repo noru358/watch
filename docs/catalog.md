@@ -1,6 +1,6 @@
 # 나이트워치 총괄 장부 (자동 생성)
 
-`npm run catalog`가 코드에서 뽑은 것 (2026-10-28). 손으로 고치지 말 것 — 표의 원본을 고치고 다시 뽑는다. 글자는 전부 `src/i18n/ko.ts`.
+`npm run catalog`가 코드에서 뽑은 것 (2026-10-29). 손으로 고치지 말 것 — 표의 원본을 고치고 다시 뽑는다. 글자는 전부 `src/i18n/ko.ts`.
 
 ## 의뢰 목표
 고치는 곳: `src/data/objectives.data.ts`
@@ -100,25 +100,25 @@
 | 지하철 망령 | subway | 11 | 3 | 1.8 | line | 0.7 | 4 |  |
 | enemy.dokkaebibul | dokkaebibul | 2 | 닿으면 1 | 3.1 | none | 0 | 1 | 무리 |
 
-- 보스 구미호 「월하」: hp 120 · damage 3 · speed 1.1 · radius 0.9 · drop 40 · slamRange 1.9 · slamTrigger 1.3 · slamWindup 0.8 · sweepEvery 4.5 · sweepWindup 1 · sweepWidth 1.3 · sweepDamage 3 · summonEvery 8 · summon dokkaebibul · summonCount 3 · summonSpread 2 · recover 0.9 · phase2Ratio 0.5 · phase2Mult 0.7
+- 보스 구미호: hp 120 · damage 3 · speed 1.1 · radius 0.9 · drop 40 · slamRange 1.9 · slamTrigger 1.3 · slamWindup 0.8 · sweepEvery 4.5 · sweepWindup 1 · sweepWidth 1.3 · sweepDamage 3 · summonEvery 8 · summon dokkaebibul · summonCount 3 · summonSpread 2 · recover 0.9 · phase2Ratio 0.5 · phase2Mult 0.7
 
 ## 메인 스토리 장
 고치는 곳: `src/data/chapters.data.ts · contracts.data.ts`
 
 | 장 | id | 앞 장 | 열림(일 / 오염) | 단서 | 단서 동네 | 본 의뢰 | 보수 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1장 불 꺼지는 동네 | ch1 |  | 3 / 0 | 0 | 노포 골목 | 불 꺼지는 동네 5층 | 300 |
-| 2장 막차가 끊기지 않는 역 | ch2 | ch1 | 4 / 4 | 3 | 을지로3가역, 을지로 지하상가 | 막차가 끊기지 않는 역 4층 | 450 |
+| 1장 | ch1 |  | 3 / 0 | 0 | 노포 골목 | 메인 의뢰 1 5층 | 300 |
+| 2장 | ch2 | ch1 | 4 / 4 | 3 | 을지로3가역, 을지로 지하상가 | 메인 의뢰 2 4층 | 450 |
 
 ## 장면 대사
 고치는 곳: `src/data/story.data.ts (순서) · ko.ts scene.*`
 
 - **intro**: 소장 "…또 월세 고지서네." / 소장 "낮엔 회사, 밤엔 퇴마. 투잡 인생 만세다." / 소장 "현관문 앞 의뢰판부터 보자. 오늘 밤 갈 데를 골라야 월세를 막지."
 - **bookkeeper**: 경리 "소장님! 의뢰 하나 끝냈다면서요? 장부는 제가 볼게요." / 소장 "…누구세요?" / 경리 "옥탑방에 얹혀사는 취준생이요. 월세 같이 막아야죠. 제 책상 앞에서 E 누르시면 장부 보여 드릴게요."
-- **lights_out_done**: 월하 "…그냥 좀 자고 싶었어." / 소장 "알지. 나도 매일 그래." / 소장 "(사무소에 굴러다니던 수면 안대를 건넸다.)"
-- **ch2_start**: 경리 "소장님, 요즘 역 쪽 의뢰가 이상해요. 다들 "막차를 탔는데 내린 기억이 없다"래요." / 소장 "막차는 열두 시 반에 끊기잖아." / 경리 "그러니까요. 역이랑 지하상가 쪽 의뢰 몇 개 하면서 단서 좀 모아 와요. 제가 장부에 적어 둘게요." / 소장 "(을지로3가역과 지하상가의 일반 의뢰를 성공하면 단서가 모인다.)"
-- **ch2_ready**: 경리 "단서 다 모였어요. 매일 새벽 두 시, 2번 승강장. 기관사석엔 아무도 없대요." / 소장 "…아무도 없는 게 아니겠지." / 경리 "의뢰판에 올려 뒀어요. 「막차가 끊기지 않는 역」. 마감은 없지만 오래 두면 역 쪽이 계속 시끄러울 거예요."
-- **ch2_done**: 소장 "기관사가 마지막 역 이름을 불렀어. 이십 년 전에 없어진 역이었고." / 경리 "…그 열차, 이제 안 오는 거죠?" / 소장 "응. 종점에 내려 줬어. 다음 이야기는 아직 안 왔고."
+- **lights_out_done**: (장 인물) "(대사 미정)" / 소장 "(대사 미정)" / 소장 "(대사 미정)"
+- **ch2_start**: 경리 "(대사 미정)" / 소장 "(대사 미정)" / 경리 "(대사 미정)" / 소장 "(대사 미정)"
+- **ch2_ready**: 경리 "(대사 미정)" / 소장 "(대사 미정)" / 경리 "(대사 미정)"
+- **ch2_done**: 소장 "(대사 미정)" / 경리 "(대사 미정)" / 소장 "(대사 미정)"
 
 ## 트레이닝 (돈)
 고치는 곳: `src/data/training.data.ts`

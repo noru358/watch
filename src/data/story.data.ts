@@ -4,7 +4,7 @@ import type { SceneId } from '../types/ids';
 // Story scenes in the dialogue box and hub chatter (docs/design/1-foundation/ui.md "대화창",
 // docs/design/1-foundation/bible.md). Lines are i18n keys; who speaks decides name and portrait.
 
-export type SpeakerId = 'director' | 'bookkeeper' | 'wolha';
+export type SpeakerId = 'director' | 'bookkeeper' | 'guest';
 
 export interface SpeakerData {
   nameKey: TKey;
@@ -14,7 +14,7 @@ export interface SpeakerData {
 export const SPEAKERS: Record<SpeakerId, SpeakerData> = {
   director: { nameKey: 'name.director', side: 'left' },
   bookkeeper: { nameKey: 'name.bookkeeper', side: 'right' },
-  wolha: { nameKey: 'name.wolha', side: 'right' },
+  guest: { nameKey: 'name.guest', side: 'right' }, // the chapter's own character (story TBD)
 };
 
 export interface SceneLine {
@@ -35,11 +35,11 @@ export const SCENES: Record<SceneId, readonly SceneLine[]> = {
     { speaker: 'bookkeeper', key: 'scene.bookkeeper.3' },
   ],
   lights_out_done: [
-    { speaker: 'wolha', key: 'scene.lights_out_done.1' },
+    { speaker: 'guest', key: 'scene.lights_out_done.1' },
     { speaker: 'director', key: 'scene.lights_out_done.2' },
     { speaker: 'director', key: 'scene.lights_out_done.3' },
   ],
-  // 2장 막차가 끊기지 않는 역
+  // 2장 (story TBD)
   ch2_start: [
     { speaker: 'bookkeeper', key: 'scene.ch2_start.1' },
     { speaker: 'director', key: 'scene.ch2_start.2' },

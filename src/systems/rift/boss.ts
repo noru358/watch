@@ -10,7 +10,7 @@ function band(f: Floor, axis: 'row' | 'col', data: BossData, time: number): Tele
   return { shape: 'band', x: p.x, y: p.y, angle: 0, range: 0, width: data.sweepWidth, axis, t: time, total: time, damage: data.sweepDamage, parriable: false, darkness: 0 };
 }
 
-// 구미호 「월하」: nine-tail sweep across the room (cannot be countered — dodge it),
+// 구미호: nine-tail sweep across the room (cannot be countered — dodge it),
 // close-range pounce (counter it with 발도), scatters fox-fire wisps. Phase 2 sweeps row + column, faster.
 export function updateBoss(f: Floor, e: Enemy, dt: number, rng: SeededRNG, data: BossData): void {
   const b = f.boss;
