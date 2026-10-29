@@ -3,6 +3,7 @@
 Long-form log moved out of HANDOFF.md on 2026-10-28 so a new session reads less. Newest status first; read only when you need the story behind something.
 
 ## Status log (to 2026-10-28)
+- **2026-10-29 (user "투잡도 우선 빼자"):** the two-job premise (office worker by day) removed from docs and the intro line; the director works the night, two-job vs full-time is open.
 - **2026-10-29 (user "현 1,2장 스토리 관련 문서에서 다 삭제해"):** ch.1 「불 꺼지는 동네」 (월하) and ch.2 「막차가 끊기지 않는 역」 (막차 기관사) stories dropped from the design docs and rules; only the chapter frames remain in code. Big story will be rewritten from ch.1.
 - **Gate 1** (night combat): feature-complete, waits on the user's playtest. Main story contract 「불 꺼지는 동네」 = 4 floors (alley → basement → arcade ☎ → rooftop) + gumiho (3 심연 파편).
 - **Gate 2** (office & growth): day loop, screens (board A, night HUD, dialogue + chatter, title + volume) from 2026-10-26. **2026-10-27 (user: "ㅇㅋ 구현해"):**

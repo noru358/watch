@@ -144,7 +144,7 @@ export const en: Record<TKey, string> = {
   'name.bookkeeper': 'Bookkeeper',
   'name.guest': '(chapter guest)',
   'scene.intro.1': '…Another rent notice.',
-  'scene.intro.2': 'Office by day, exorcism by night. Long live the side hustle.',
+  'scene.intro.2': 'Sun\'s down. We\'re open.',
   'scene.intro.3': 'Let\'s check the board by the front door. Pick tonight\'s job, keep the rent paid.',
   'scene.bookkeeper.1': 'Boss! I heard you closed a case? I\'ll keep the books.',
   'scene.bookkeeper.2': '…Who are you?',

@@ -143,7 +143,7 @@ export const ko = {
   'name.bookkeeper': '경리',
   'name.guest': '(장 인물)',
   'scene.intro.1': '…또 월세 고지서네.',
-  'scene.intro.2': '낮엔 회사, 밤엔 퇴마. 투잡 인생 만세다.',
+  'scene.intro.2': '해 떨어졌다. 영업 시작이다.',
   'scene.intro.3': '현관문 앞 의뢰판부터 보자. 오늘 밤 갈 데를 골라야 월세를 막지.',
   'scene.bookkeeper.1': '소장님! 의뢰 하나 끝냈다면서요? 장부는 제가 볼게요.',
   'scene.bookkeeper.2': '…누구세요?',
