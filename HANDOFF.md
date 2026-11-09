@@ -4,24 +4,29 @@ The one file a new session (Claude, Codex or anyone) reads after `AGENTS.md` / `
 
 Branch: `main` only. Docs: `docs/design/` (what and why, map in its README), `docs/rules/` (what the code computes, updated with every rule change), `docs/reference/` (other games). The owner's Korean map is `GUIDE.md`. Every number and text in the game, as one generated file: `docs/catalog.md` (`npm run catalog`) — read it instead of opening the data files one by one.
 
-## Now (2026-10-28)
-- Gate 1 (night combat) and Gate 2 (office & growth) are built and bot-tested; nobody has played them yet.
-- Latest work: effect parts + skills v2 + training v2 + 장신구 (save v7), board round 3 (A3 sheet, 출동 전표, 사건 파일, contamination share), 속전속결 objective, 총괄 장부.
-- Design direction picked by the user (2026-10-28): tone "neon only on what is lit, information on paper"; fonts Black Han Sans + IBM Plex Sans KR + Nanum Myeongjo; stamps without a failure stamp; map = printed paper map on the night desk (canvas `MapHybrid`, provisional); morning report sheet (canvas `MorningReport`, provisional). Currencies: money + 심연 파편; 영력 is money picked up at night.
-- Canvas of all screen drafts: https://claude.ai/artifact/SZksbAdYMtCzoup7wyBzEE. 총괄 장부 (Claude artifact, memos in its db `notes`): https://claude.ai/artifact/YFeE4XiaLTBUWSPg1Hrm8X.
+## Now (2026-11-10)
+- The owner HAS played Gate 1 + Gate 2 (earlier docs saying "nobody has played" were wrong). Verdict: night combat is fun (attack patterns, difficulty, ghost traits) and "one more run" holds, but the content ends after one round of sorties — nothing new to see or do afterwards.
+- Direction change (owner, 2026-11-10; full list in `docs/design/1-foundation/direction.md` "2026-11-10 방향"): this is a real management game, not action with management trimmings. The office gets a roster of exorcists; each night the board has more jobs than the office can cover; the director plays one job, staff are assigned to the rest (auto-resolved, odds shown); payroll, staff trauma, hiring, lending/borrowing between offices. Companion = staff = story character = lendable unit. Older repo decisions are strong considerations, not absolutes — they may be overturned.
+- Working mode: Claude recommends with a default, the owner confirms or vetoes. Do not leave work blocked on "open decisions".
+- Menu-side additions (skills, training lines, modifiers) are frozen. Work goes to what is on screen: ghosts, rooms, longer sorties, staff.
+- No code changed since 2026-10-29 (save v7). Canvas of screen drafts: https://claude.ai/artifact/SZksbAdYMtCzoup7wyBzEE. 총괄 장부: https://claude.ai/artifact/YFeE4XiaLTBUWSPg1Hrm8X.
 
 ## Next tasks (in order)
-1. Apply the three fonts (self-hosted woff2 subsets, roles in `feel.data.ts`) and tone 3 to all day screens. The provisional printed map + neon-outline sortie (`look.ts` `MAP_PRINT`) and the morning report (`ui/features/morning/`) are built; the report is not saved across a reload yet.
-2. 0장 → 1장 trigger: provisional "day 4 or 30 평판" (`chapters.data.ts` `startAfterDays` / `startReputation`); the owner wants to decide days vs a condition together.
-3. Regions (adopted 2026-10-28, `docs/design/4-day/regions.md`): rules stay, material changes per region; old regions stay reachable (region tabs on the map). Build when the second region's content (Ch.3) is written.
-4. Named-target traits (user wants to design it together): 앞말 = a trait row (data), 뒷말 = flavour; see the open question in `docs/rules/office.md` "표적".
-5. Owner plays; retune from feedback (`objectives.data.ts`, `modifiers.data.ts`, `training.data.ts`, `office.data.ts`, `reputation.data.ts`). Apply memos from the 총괄 장부 when asked ("장부 메모 반영해").
-6. Later: story pacing once the play-time target is set, Ch.3, bookkeeper arrival tied to story, sedative item, weapon honing, escort / retrieval / challenge objectives, companions (decisions first).
+1. Ghosts by role (confirmed): eight new behaviours — ranged shot, front guard (only from behind / by counter), grab from a puddle, thief, summoner-buffer, exploder, grows over time, leaping ambush. Each needs its own effect like 처녀귀신's teleport or 달걀귀신's darkness; the thief must matter (proposal: steals the active skill, awaiting the owner). Variants through named-target prefixes carrying an effect row. District assignment comes after the behaviours. Walking ghosts use a 2-frame hop; grabbers and guards barely move.
+2. Rooms as text templates (confirmed): character grids in a data file, stitched and mirrored by the generator, 4–5 per district, plus a generated page that renders every room for a pass/fail pick. No map tool.
+3. Sortie lengths (direction confirmed, numbers proposed): short 3–4 floors; normal about 6–8; expedition 15+ with a return point and mid-boss every 5 floors. Reward grows steeply with depth; shards and rare+ gear only deep. Falling loses the haul.
+4. Management core (confirmed): roster, nightly assignment, payroll, staff trauma/rest/training, gear handed to staff, then lending with NPC offices. Design doc first (`4-day/economy.md`), then the smallest playable version with one staff member.
+5. Contamination: proposal to delete it (owner doubts it; awaiting confirmation) — see `direction.md`. Do not extend it meanwhile.
+6. Story by pairs (confirmed method, `bible.md` "큰 이야기 짜는 순서"): six cards of "a person who becomes staff + an enemy with a face"; the owner keeps four; order them; decide the through-line last.
+7. Feedback coverage table generated from `src/types/events.ts` × channels (hit-stop, shake, flash, particles, sound, HUD), checked against "The Art of Screenshake", "Juice it or lose it" and Swink's Game Feel, marking both gaps and excess; screen × state table for the day panels; first-night guidance.
+8. Small fixes that actually annoy: black jacket sinking into dark floors, morning report lost on reload, the disabled sedative row. Protagonist look waits for the art pass.
+9. Art: fix a per-entity spec now (canvas size, anchor, frame names and counts), stay on placeholders inside it, reskin in one pass later. Never change a spec after content depends on it.
 
 ## Open decisions (do not build as if decided)
 Companion call key, protagonist look, big story and ending, first companion and recruiting, squad-operation weight, keeping per-run cards, night length target, the cat's role, rental market, weapon B, final map style.
 
 ## Decisions to respect
+Read these through the 2026-11-10 direction above: where they disagree (light management, day income capped under night income, paper UI as fixed, Gate 2 scope), the new direction wins.
 - Art: chunky Soul Knight–style pixels, 2-head chibi; Gemini sheet v1 is the style master; frames are edited from one master; right-facing only, left mirrored; blade and smear rotate to the aim; only upward attacks use the back view. Judge art in the game screen. The user does not draw: never hand them an editing task; give them a comparison image.
 - Damage order: any normal hit < plain 발도 < counter = focus strike (tested). 발도 outcome is judged on the press; damage after the stance. Attacks show the strike pose first.
 - Hub is the office interior. Spots: front door (board), director's desk (training + skills), sofa (rest), bookkeeper after 1 solve (ledger + facilities), talisman bench once built (supplies).

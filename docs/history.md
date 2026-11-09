@@ -2,7 +2,8 @@
 
 Long-form log moved out of HANDOFF.md on 2026-10-28 so a new session reads less. Newest status first; read only when you need the story behind something.
 
-## Status log (to 2026-10-28)
+## Status log (to 2026-11-10)
+- **2026-11-10 (owner review of the stalled project):** the owner corrected the docs — they had played all along. Verdict: combat is fun and "one more run" holds; the content simply runs out after one round. Diagnosis agreed: meta is thick (55 skills, 33 training lines / 201 ranks, 12 modifiers, 7 objectives) while the screen is thin (4 ghosts + 1 boss, 5 floor looks that are colour swaps, generated rooms only), and nothing can be allocated because the office has one unit and one job a night. Decisions: real management game (roster, nightly assignment, payroll, lending) and overturn "light management" / "day income below night income"; recommend-then-confirm working mode; ghosts by role before regions; text room templates; sorties short 3–4 floors up to large expeditions with steep rewards; regions decoupled from story chapters; story built from person + enemy pairs with the through-line last; placeholder art inside a fixed spec, reskin later; feedback and screen-state tables; UI style (paper) may change. Owner's doubts recorded as open: is contamination needed at all (a living-wage exorcist, not a district authority), and ghosts must stay classical without place- or tech-fused gimmicks ("인쇄소 귀신" is out). Story ideas discussed in chats after 2026-10-29 are NOT confirmed; only the rejections are firm.
 - **2026-10-29 (user "투잡도 우선 빼자"):** the two-job premise (office worker by day) removed from docs and the intro line; the director works the night, two-job vs full-time is open.
 - **2026-10-29 (user "현 1,2장 스토리 관련 문서에서 다 삭제해"):** ch.1 「불 꺼지는 동네」 (월하) and ch.2 「막차가 끊기지 않는 역」 (막차 기관사) stories dropped from the design docs and rules; only the chapter frames remain in code. Big story will be rewritten from ch.1.
 - **Gate 1** (night combat): feature-complete, waits on the user's playtest. Main story contract 「불 꺼지는 동네」 = 4 floors (alley → basement → arcade ☎ → rooftop) + gumiho (3 심연 파편).
@@ -23,7 +24,7 @@ Long-form log moved out of HANDOFF.md on 2026-10-28 so a new session reads less.
 
 ## Known issues
 - Headless Chromium runs the game slow, so screenshot scripts must wait longer than game-time numbers suggest (chatter first bubble took ~9 s real time).
-- No human playtest: parry window, stance, speeds, run length, objective numbers, training prices, fees are bot-tuned or guessed.
+- The owner has played (stated 2026-11-10), but no play session was ever written down as a verdict or as numbers: parry window, stance, speeds, run length, objective numbers, training prices, fees are still bot-tuned or guessed.
 - Chase has no footprint trail (an edge arrow points at the quarry); ward does not pull strong ghosts to the circle. Squad operations not built. The sedative item does not exist yet (its sofa row is disabled).
 - Lair doors seal by turning doorway tiles into walls and redrawing the whole map (fine at this size).
 - Bookkeeper / Wolha portraits are silhouettes; the chatter bubble has no tail. Unlocks still use "solved ≥ N".
