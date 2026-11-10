@@ -1,3 +1,4 @@
+import type { SortieLength } from '../../data/office.data';
 import type { ChapterId, ContractId, ContractKind, GhostId, ModifierId, NodeId, ObjectiveKind, RequestId } from '../../types/ids';
 
 // The named ghost of a 현상수배 or 추격 contract.
@@ -14,6 +15,7 @@ export interface ContractOffer {
   node: NodeId;
   story: ContractId | null; // 메인 스토리 only
   objective: ObjectiveKind | null; // 일반 의뢰: its one main objective (null for main story)
+  length?: SortieLength; // 단타 / 보통 / 원정 (offerLength reads older saves)
   request: RequestId | null; // 일반 의뢰: the client's story frame
   mods: ModifierId[]; // 현장 변형
   target: OfferTarget | null; // 현상수배 / 추격

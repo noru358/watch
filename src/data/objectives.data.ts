@@ -75,6 +75,7 @@ export interface ObjectiveRule {
   weight: number;
   floors: readonly [number, number];
   goal: 'last' | 'random' | 'any' | number;
+  lengths: readonly ('short' | 'normal' | 'long')[]; // which 의뢰 길이 it can come in (office.data.ts lengths)
   feeMult: number;
   shards: number;
   cleanse: number;
@@ -82,13 +83,13 @@ export interface ObjectiveRule {
 }
 
 export const GENERAL_OBJECTIVES: Record<ObjectiveKind, ObjectiveRule> = {
-  clear: { rank: 0, weight: 3, floors: [2, 4], goal: 'last', feeMult: 1, shards: 0, cleanse: 2, difficulty: 0 },
-  rescue: { rank: 0, weight: 2, floors: [2, 4], goal: 1, feeMult: 1.1, shards: 0, cleanse: 2, difficulty: 2 },
-  bounty: { rank: 1, weight: 2, floors: [2, 4], goal: 'random', feeMult: 1.5, shards: 1, cleanse: 3, difficulty: 8 },
-  chase: { rank: 2, weight: 1.5, floors: [3, 4], goal: 'any', feeMult: 1.4, shards: 1, cleanse: 2, difficulty: 8 },
-  ward: { rank: 0, weight: 1.5, floors: [2, 3], goal: 'random', feeMult: 0.8, shards: 0, cleanse: 4, difficulty: 4 },
-  firsttrain: { rank: 1, weight: 1.5, floors: [1, 2], goal: 'last', feeMult: 1.2, shards: 0, cleanse: 2, difficulty: 6 },
-  timeattack: { rank: 0, weight: 2, floors: [1, 3], goal: 'random', feeMult: 1.2, shards: 0, cleanse: 3, difficulty: 5 },
+  clear: { rank: 0, weight: 3, floors: [2, 4], goal: 'last', feeMult: 1, shards: 0, cleanse: 2, difficulty: 0, lengths: ['short', 'normal', 'long'] },
+  rescue: { rank: 0, weight: 2, floors: [2, 4], goal: 1, feeMult: 1.1, shards: 0, cleanse: 2, difficulty: 2, lengths: ['short', 'normal'] },
+  bounty: { rank: 1, weight: 2, floors: [2, 4], goal: 'random', feeMult: 1.5, shards: 1, cleanse: 3, difficulty: 8, lengths: ['short', 'normal', 'long'] },
+  chase: { rank: 2, weight: 1.5, floors: [3, 4], goal: 'any', feeMult: 1.4, shards: 1, cleanse: 2, difficulty: 8, lengths: ['short', 'normal'] },
+  ward: { rank: 0, weight: 1.5, floors: [2, 3], goal: 'random', feeMult: 0.8, shards: 0, cleanse: 4, difficulty: 4, lengths: ['short', 'normal', 'long'] },
+  firsttrain: { rank: 1, weight: 1.5, floors: [1, 2], goal: 'last', feeMult: 1.2, shards: 0, cleanse: 2, difficulty: 6, lengths: ['short', 'normal'] },
+  timeattack: { rank: 0, weight: 2, floors: [1, 3], goal: 'random', feeMult: 1.2, shards: 0, cleanse: 3, difficulty: 5, lengths: ['short', 'normal'] },
 };
 
 // "계속" after the goal: floors past the goal floor are richer and harder; the last one hides a shard.

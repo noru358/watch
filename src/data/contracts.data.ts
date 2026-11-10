@@ -1,3 +1,4 @@
+import type { DropSource } from './gear.data';
 import type { TKey } from '../i18n';
 import type { BossId, ContractId, FloorTheme, GhostId, ModifierId, NodeId, ObjectiveKind } from '../types/ids';
 
@@ -15,9 +16,10 @@ export interface SwarmPlan {
 // What a floor's objective needs beyond its kind: the named target (현상수배 / 추격), the 심연 파편
 // it pays, the time to hold out (첫차까지).
 export interface ObjectiveBrief {
-  target: { ghost: GhostId; level: number; affix?: number } | null; // affix: wanted.pre index (affixes.data.ts)
+  target: { ghost: GhostId; level: number; affix?: number; extraAffix?: number } | null; // affixes: wanted.pre indices (affixes.data.ts)
   shards: number;
   time: number;
+  drop?: DropSource; // what the named target leaves (default 'bounty')
 }
 
 // normal: random rooms; the stairs stay shut until the floor's objective is met (null = open from the start).
@@ -37,6 +39,10 @@ export type FloorPlan =
       mods?: readonly ModifierId[];
       deep?: number;
       brief?: ObjectiveBrief;
+      affixChance?: number; // chance an ordinary strong ghost carries an affix (deep 원정 floors)
+      depth?: number; // floor index in a long contract: from the 5th on, richer, and ordinary strong ghosts may carry an affix
+      checkpoint?: boolean; // its payphone is a 귀환 지점: going on saves what the night has so far
+      bonusShards?: number; // 심연 파편 in the treasure room (end of a 보통 / 원정)
     }
   | { kind: 'boss'; boss: BossId; swarm: SwarmPlan | null; theme: FloorTheme; shards?: number };
 

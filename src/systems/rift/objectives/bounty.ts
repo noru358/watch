@@ -1,6 +1,6 @@
-import { affixOf } from '../../../data/affixes.data';
 import { OBJECTIVES } from '../../../data/objectives.data';
 import type { ObjectiveBrief } from '../../../data/contracts.data';
+import { applyAffix } from '../affix';
 import { makeEnemy } from '../enemyFactory';
 import type { Enemy, Floor, Pos } from '../types';
 import type { ObjectiveState } from './types';
@@ -18,16 +18,8 @@ export function makeNamed(f: Floor, brief: ObjectiveBrief, at: Pos, rule: { hpMu
   e.speedMult *= rule.speedMult;
   e.windupMult *= rule.windupMult;
   // Its first word's effect (붉은 hits harder, 타는 blows up when it falls…).
-  const a = affixOf(brief.target?.affix);
-  if (a) {
-    e.maxHp = Math.round(e.maxHp * a.hpMult);
-    e.hp = e.maxHp;
-    e.damageAdd += a.damageAdd;
-    e.speedMult *= a.speedMult;
-    e.windupMult *= a.windupMult;
-    e.reachMult *= a.reachMult;
-    if (a.trait) e.traits = [...e.traits, a.trait];
-  }
+  applyAffix(e, brief.target?.affix);
+  applyAffix(e, brief.target?.extraAffix); // a 원정 mid-boss carries two
   e.warpTimer = 999; // a named ghost holds its ground (no blinking behind the director)
   e.role = role;
   return e;
@@ -36,7 +28,7 @@ export function makeNamed(f: Floor, brief: ObjectiveBrief, at: Pos, rule: { hpMu
 export function setupBounty(f: Floor, brief: ObjectiveBrief, at: Pos): Bounty {
   const B = OBJECTIVES.bounty;
   const e = makeNamed(f, brief, at, B, 'bounty', B.hpPerLevel * (brief.target?.level ?? 0));
-  return { kind: 'bounty', done: false, targetId: e.id, shards: brief.shards };
+  return { kind: 'bounty', done: false, targetId: e.id, shards: brief.shards, drop: brief.drop ?? 'bounty' };
 }
 
 // Done the moment the named ghost falls; its 심연 파편 are banked on the floor.
@@ -45,7 +37,7 @@ export function updateBounty(f: Floor, o: Bounty): void {
   const e = f.enemies.find((x) => x.id === o.targetId);
   if (e && e.hp > 0) return;
   o.done = true;
-  f.drops.push('bounty'); // the named ghost leaves something behind (장신구, gear.data.ts DROPS)
+  f.drops.push(o.drop); // the named ghost leaves something behind (장신구, gear.data.ts DROPS)
   f.shards += o.shards;
   const at = e ?? f.player;
   f.events.push({ type: 'objectiveDone', x: at.x, y: at.y });

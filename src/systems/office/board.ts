@@ -5,10 +5,10 @@ import { FACILITY_EFFECTS } from '../../data/facilities.data';
 import { MODIFIER_COUNT, MODIFIERS } from '../../data/modifiers.data';
 import { NODES } from '../../data/nodes.data';
 import { GENERAL_OBJECTIVES, OBJECTIVES } from '../../data/objectives.data';
-import { OFFICE } from '../../data/office.data';
+import { OFFICE, type SortieLength } from '../../data/office.data';
 import { REQUESTS } from '../../data/requests.data';
 import type { SeededRNG } from '../../core/SeededRNG';
-import type { ContractId, GhostId, ModifierId, NodeId, RequestId } from '../../types/ids';
+import type { ContractId, GhostId, ModifierId, NodeId, ObjectiveKind, RequestId } from '../../types/ids';
 import { goalFloorFor, offerFee } from './contracts';
 import { chapterAfterNight, mainContractsDue, startChapters } from './chapters';
 import { addReputation } from '../reputation';
@@ -81,6 +81,14 @@ const newTarget = (pool: readonly GhostId[], rng: SeededRNG): OfferTarget => ({
 // One 일반 의뢰 (docs/rules/office.md "의뢰 한 장 만드는 법"): roll the objective, then one of its story
 // frames, the node (contaminated ones post more), length, goal floor, modifiers; the fee comes last.
 // A 현상수배 target that got away before comes back first (`wanted`).
+// 단타 / 보통 / 원정 for a new offer: the objective's allowed lengths, open at this 평판 등급, at most one
+// 원정 on the board. A re-posted target or an urgent offer is always short.
+function rollLength(s: OfficeState, objective: ObjectiveKind, rng: SeededRNG, short: boolean): SortieLength {
+  if (short) return 'short';
+  const allowed = GENERAL_OBJECTIVES[objective].lengths.filter((id) => OFFICE.lengths[id].rank <= s.rankReached && (id !== 'long' || !s.board.some((o) => o.length === 'long')));
+  return allowed.length > 1 ? weighted(allowed, (id) => OFFICE.lengths[id].weight, rng) : (allowed[0] ?? 'short');
+}
+
 function generalOffer(s: OfficeState, rng: SeededRNG, wanted: WantedTarget | null, at: NodeId | null = null): ContractOffer {
   const objective = wanted ? 'bounty' : weighted(OBJECTIVE_IDS.filter((id) => GENERAL_OBJECTIVES[id].rank <= s.rankReached), (id) => GENERAL_OBJECTIVES[id].weight, rng);
   const frames = (Object.keys(REQUESTS) as RequestId[]).filter((id) => REQUESTS[id].objective === objective);
@@ -91,7 +99,9 @@ function generalOffer(s: OfficeState, rng: SeededRNG, wanted: WantedTarget | nul
   const framed = (frame.nodes ?? NODE_IDS).filter((id) => open.includes(id));
   const node = at ?? wanted?.node ?? weightedNode(framed.length > 0 ? framed : open, s.contamination, rng);
   const rule = GENERAL_OBJECTIVES[objective];
-  const floors = rng.int(rule.floors[0], rule.floors[1]);
+  const length = rollLength(s, objective, rng, !!wanted || at !== null);
+  const range = OFFICE.lengths[length].floors ?? rule.floors;
+  const floors = rng.int(range[0], range[1]);
   const pool = wanted ? [wanted.ghost] : [...(frame.pool ?? NODES[node].pool)];
   const target = wanted ? { ghost: wanted.ghost, name: wanted.name, level: wanted.level } : objective === 'bounty' || objective === 'chase' ? newTarget(pool, rng) : null;
   const offer: ContractOffer = {
@@ -100,13 +110,15 @@ function generalOffer(s: OfficeState, rng: SeededRNG, wanted: WantedTarget | nul
     node,
     story: null,
     objective,
+    length,
     request,
     mods: rollMods(rng, s.rankReached),
     target,
     pool,
     risk: s.contamination[node],
     floors,
-    goalFloor: goalFloorFor(objective, floors, () => rng.range(0, 1)),
+    // Longer contracts end on their last floor (추격: wherever the quarry is caught).
+    goalFloor: length === 'short' ? goalFloorFor(objective, floors, () => rng.range(0, 1)) : floors - 1,
     fee: 0,
     shards: rule.shards + (objective === 'bounty' ? (target?.level ?? 0) : 0),
     deadline: s.day + rng.int(OFFICE.deadline.min, OFFICE.deadline.max) + deskBonus(s).deadline,

@@ -2,7 +2,9 @@ import { CONTRACTS, wisps, type FloorPlan, type SwarmPlan } from '../../data/con
 import { MODIFIERS } from '../../data/modifiers.data';
 import { NODES } from '../../data/nodes.data';
 import { DEEP, GENERAL_OBJECTIVES, OBJECTIVES } from '../../data/objectives.data';
-import { OFFICE } from '../../data/office.data';
+import { AFFIXES } from '../../data/affixes.data';
+import { GHOSTS } from '../../data/ghosts.data';
+import { OFFICE, type SortieLength } from '../../data/office.data';
 import type { ObjectiveKind } from '../../types/ids';
 import type { ContractOffer } from './types';
 
@@ -30,6 +32,40 @@ export function goalFloorFor(objective: ObjectiveKind, floors: number, roll: () 
   return Math.min(goal, last);
 }
 
+// 단타 / 보통 / 원정. Offers saved before lengths existed were all short.
+export function offerLength(offer: ContractOffer): SortieLength {
+  return offer.length ?? 'short';
+}
+
+// Strong ghosts on floor i: as always for the first four floors, then one more every two floors.
+function enemiesAt(i: number): number {
+  const d = OFFICE.depth;
+  return Math.min(i, d.from) + Math.floor(Math.max(0, i - d.from) / d.enemiesEvery);
+}
+
+// Chance that an ordinary strong ghost carries an affix, on floor i (0 before affixFrom).
+function affixChanceAt(i: number): number {
+  const d = OFFICE.depth;
+  return i < d.affixFrom ? 0 : Math.min(d.affixChanceMax, d.affixChance + d.affixChancePerFloor * (i - d.affixFrom));
+}
+
+const AFFIX_WORDS = Object.keys(AFFIXES).map(Number);
+
+// A 원정 mid-boss: picked from the offer's id and floor (no dice, so offerFloors stays pure).
+function midBoss(offer: ContractOffer, i: number) {
+  const named = offer.pool.filter((g) => GHOSTS[g].named);
+  const pool = named.length > 0 ? named : offer.pool;
+  const L = OFFICE.lengths[offerLength(offer)];
+  const a = AFFIX_WORDS[(offer.id * 7 + i) % AFFIX_WORDS.length]!;
+  const b = AFFIX_WORDS[(offer.id * 11 + i * 3 + 1) % AFFIX_WORDS.length]!;
+  return {
+    target: { ghost: pool[(offer.id + i) % pool.length]!, level: Math.floor(i / L.midBossEvery), affix: a, extraAffix: b === a ? undefined : b },
+    shards: L.midBossShards,
+    time: 0,
+    drop: L.rareGearFrom > 0 && i + 1 >= L.rareGearFrom ? ('midboss' as const) : ('bounty' as const),
+  };
+}
+
 // The floors a night on this offer is played through.
 // 일반 의뢰: the objective sits on its goal floor (추격: on every floor until it is caught), every other
 // floor is 섬멸. Floors past the goal are "deep": +strong ghosts, richer, the last hides a shard.
@@ -37,28 +73,41 @@ export function offerFloors(offer: ContractOffer): readonly FloorPlan[] {
   if (offer.kind === 'main' && offer.story) return CONTRACTS[offer.story].floors;
   const objective = offer.objective ?? 'clear';
   const themes = NODES[offer.node].themes;
-  const payphoneAt = offer.floors >= OFFICE.general.payphoneFrom ? Math.floor(offer.floors / 2) : -1;
+  const L = OFFICE.lengths[offerLength(offer)];
+  const last = offer.floors - 1;
+  const middle = Math.floor(offer.floors / 2);
+  const payphoneAt = offer.floors >= OFFICE.general.payphoneFrom ? middle : -1;
+  const isMidBoss = (i: number) => L.midBossEvery > 0 && (i + 1) % L.midBossEvery === 0 && i < last;
+  const isCheckpoint = (i: number) => (L.checkpoint === 'middle' && i === middle) || (L.checkpoint === 'afterBoss' && i > 0 && isMidBoss(i - 1));
   const chase = objective === 'chase';
   const plans: FloorPlan[] = [];
   for (let i = 0; i < offer.floors; i++) {
+    const boss = !chase && isMidBoss(i) && i !== offer.goalFloor;
     const here = chase || i === offer.goalFloor;
     const deep = chase ? 0 : Math.max(0, i - offer.goalFloor);
     const train = here && objective === 'firsttrain';
     const T = OBJECTIVES.firsttrain;
+    const checkpoint = L.checkpoint !== 'none' && isCheckpoint(i) && i < last;
     plans.push({
       kind: 'normal',
-      enemies: train ? T.startEnemies + offer.risk : OFFICE.general.enemiesBase + offer.risk + i + deep * DEEP.enemiesPerFloor,
+      enemies: train ? T.startEnemies + offer.risk : OFFICE.general.enemiesBase + offer.risk + enemiesAt(i) + deep * DEEP.enemiesPerFloor,
       pool: offer.mods.map((m) => MODIFIERS[m].pool).find((p) => p) ?? offer.pool,
-      payphone: i === payphoneAt && i < offer.floors - 1 && i !== offer.goalFloor,
+      payphone: checkpoint || (L.checkpoint === 'none' && i === payphoneAt && i < last && i !== offer.goalFloor),
       swarm: swarmFor(offer, i),
-      objective: here ? objective : 'clear',
+      objective: here ? objective : boss ? 'bounty' : 'clear',
       goal: here && i < offer.floors - 1,
       theme: themes[i % themes.length]!,
       mods: offer.mods,
       deep,
       brief: here
         ? { target: offer.target ? { ghost: offer.target.ghost, level: offer.target.level, affix: offer.target.name[0] } : null, shards: offer.shards, time: T.time + T.timePerRisk * offer.risk }
-        : undefined,
+        : boss
+          ? midBoss(offer, i)
+          : undefined,
+      ...(i > OFFICE.depth.from ? { depth: i } : {}),
+      ...(affixChanceAt(i) > 0 ? { affixChance: affixChanceAt(i) } : {}),
+      ...(checkpoint ? { checkpoint: true } : {}),
+      ...(i === last && L.endShards > 0 ? { bonusShards: L.endShards } : {}),
     });
   }
   return plans;
@@ -97,7 +146,7 @@ export function offerFee(offer: ContractOffer): number {
   const rule = GENERAL_OBJECTIVES[offer.objective ?? 'clear'];
   const bonus = offer.mods.reduce((sum, m) => sum + MODIFIERS[m].feeBonus, 0);
   const level = (offer.target?.level ?? 0) * g.feePerTargetLevel;
-  const raw = (g.feeBase + offerDifficulty(offer) * g.feePerDifficulty + offer.floors * g.feePerFloor) * rule.feeMult * (1 + bonus + level);
+  const raw = (g.feeBase + offerDifficulty(offer) * g.feePerDifficulty + offer.floors * g.feePerFloor) * rule.feeMult * (1 + bonus + level) * OFFICE.lengths[offerLength(offer)].feeMult;
   return Math.round(raw / 10) * 10;
 }
 
@@ -134,7 +183,7 @@ export interface NightPlanned {
   goals: readonly NightGoal[];
 }
 
-const soloOnly = (o: ContractOffer) => o.kind !== 'general' || o.objective === 'chase';
+const soloOnly = (o: ContractOffer) => o.kind !== 'general' || o.objective === 'chase' || offerLength(o) === 'long';
 
 // The offer whose length (and modifiers) the whole night takes: the longest, then the oldest.
 export function jointLead(offers: readonly ContractOffer[]): ContractOffer {

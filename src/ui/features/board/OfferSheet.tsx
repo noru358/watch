@@ -1,7 +1,7 @@
 import type { JoinState } from './BoardPanel';
 import { NODES } from '../../../data/nodes.data';
 import { t, type TKey } from '../../../i18n';
-import { offerDifficulty, offerGoal, offerHeat, type ContractOffer, type GoalKind } from '../../../systems/office';
+import { offerDifficulty, offerGoal, offerHeat, offerLength, type ContractOffer, type GoalKind } from '../../../systems/office';
 import { MODIFIERS } from '../../../data/modifiers.data';
 import { offerBody, offerTitle, targetName, targetTrait } from './offerText';
 import { BOARD_LOOK as L } from './look';
@@ -107,6 +107,9 @@ export function OfferSheet({ offer, day, known, index, count, join, onJoin, link
   // 현상수배 says only which floor; 추격 cannot say (it ends wherever the quarry is caught).
   const lengthLabel =
     offer.objective === 'chase' ? t('board.whereAny') : offer.objective === 'bounty' ? t('board.where', { floor: goal.floor + 1 }) : early ? t('board.length', { floor: goal.floor + 1 }) : t('board.lengthAll', { floors: offer.floors });
+  // 보통 / 원정 say so up front; 단타 reads as before.
+  const tier = offer.kind === 'general' ? offerLength(offer) : 'short';
+  const lengthText = tier === 'short' ? lengthLabel : t('board.lengthTier', { tier: t(`length.${tier}` as TKey), floors: offer.floors });
   return (
     <div style={{ position: 'relative', paddingTop: 10 }}>
       {count > 1 && <div aria-hidden="true" style={{ position: 'absolute', left: 16, right: -4, top: 22, bottom: 0, background: L.paperBack[0], borderRadius: 4, transform: 'rotate(2.5deg)' }} />}
@@ -160,7 +163,7 @@ export function OfferSheet({ offer, day, known, index, count, join, onJoin, link
             {heat.dots > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: L.paperInk }}><span style={{ display: 'inline-block', width: 8, height: 8, marginRight: 4, background: heatColor(heat.risk), outline: `1px solid ${L.paperInk}` }} />{t('board.heatDots', { dots: heat.dots })}</span>}
           </div>
           <div style={cell}>
-            <span style={small}>{lengthLabel}</span>
+            <span style={small}>{lengthText}</span>
             <span style={{ display: 'flex', gap: 3 }} aria-hidden="true">
               {Array.from({ length: offer.floors }, (_, i) => (
                 <span key={i} style={{ flex: 1, height: 12, boxSizing: 'border-box', background: i <= goal.floor ? L.paperInk : 'transparent', border: i <= goal.floor ? 'none' : `1px dashed ${L.paperDim}`, outline: i === goal.floor && early ? `2px solid ${L.stamp}` : 'none', outlineOffset: 1 }} />

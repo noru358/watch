@@ -1,3 +1,4 @@
+import type { DropSource } from '../../../data/gear.data';
 import type { GhostId } from '../../../types/ids';
 import type { Body, Pos } from '../types';
 
@@ -27,7 +28,7 @@ export interface QuarryCarry {
 export type ObjectiveState =
   | { kind: 'clear'; done: boolean } // every strong ghost down
   | { kind: 'rescue'; done: boolean; survivor: Survivor; fear: number; cryT: number; sinceCry: number }
-  | { kind: 'bounty'; done: boolean; targetId: number; shards: number }
+  | { kind: 'bounty'; done: boolean; targetId: number; shards: number; drop: DropSource }
   | { kind: 'chase'; done: boolean; targetId: number | null; fled: boolean; quarry: QuarryCarry; shards: number; last: boolean }
   | { kind: 'ward'; done: boolean; sites: WardSite[]; charging: boolean }
   | { kind: 'firsttrain'; done: boolean; left: number; total: number; spawnT: number; growT: number; pool: readonly GhostId[] }

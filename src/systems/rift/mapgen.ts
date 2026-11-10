@@ -2,11 +2,14 @@ import { BOSSES } from '../../data/ghosts.data';
 import { DUNGEON } from '../../data/dungeon.data';
 import { MODIFIERS } from '../../data/modifiers.data';
 import { DEEP } from '../../data/objectives.data';
+import { OFFICE } from '../../data/office.data';
+import { AFFIXES } from '../../data/affixes.data';
 import { EXORCISTS } from '../../data/protagonist.data';
 import type { FloorPlan } from '../../data/contracts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import type { ActiveId, UpgradeId, CardId, PerkId, WeaponId } from '../../types/ids';
 import { runHooks } from './hooks';
+import { applyAffix } from './affix';
 import { makeEnemy } from './enemyFactory';
 import { setupLair } from './lair';
 import { foldMods, NO_MODS, type FloorMods } from './modifiers';
@@ -171,6 +174,11 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
   f.stairs = spot([exit], 's');
   if (plan.payphone) f.payphone = free(spread);
   for (let i = 0; i < plan.enemies; i++) makeEnemy(f, rng.pick(plan.pool), i < DUNGEON.exitGuards ? spot([exit], 'e', f.stairs) : spot(spread, 'e'));
+  // Deep 원정 floors: some ordinary strong ghosts carry a word too (no dice drawn on other floors).
+  if (plan.affixChance) {
+    const words = Object.keys(AFFIXES).map(Number);
+    for (const e of f.enemies) if (rng.chance(plan.affixChance)) applyAffix(e, rng.pick(words));
+  }
   if (plan.objective) {
     const pool = quiet.length > 0 ? quiet : spread;
     const dist = distances(tiles, start);
@@ -212,13 +220,16 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
     };
     f.objective = setupObjective(f, plan, { quiet: () => free(pool), nest: () => free([nest]), apart, quarry: carry.quarry ?? null, last: carry.last ?? false, rng });
   }
-  const value = (v: number) => Math.round(v * (1 + DEEP.lootPerFloor * deep) * f.mods.pickupMult);
+  const depth = Math.max(0, (plan.depth ?? 0) - OFFICE.depth.from); // floors past the 4th of a long contract
+  const value = (v: number) => Math.round(v * (1 + DEEP.lootPerFloor * deep) * (1 + OFFICE.depth.lootPerFloor * depth) * f.mods.pickupMult);
   for (let i = 0; i < DUNGEON.spiritPickupsPerFloor; i++) f.pickups.push({ ...free(rooms), value: value(DUNGEON.spiritPickupValue) });
   if (treasure) for (let i = 0; i < DUNGEON.treasurePickups; i++) f.pickups.push({ ...spot([treasure], 't'), value: value(DUNGEON.treasureValue) });
   if (treasure && deep > 0 && carry.last) {
     for (let i = 0; i < DEEP.shardOnLast; i++) f.pickups.push({ ...free([treasure]), value: 0, shard: true });
     f.drops.push('deep'); // the deep treasure room (rolled at settlement; may come up empty)
   }
+  // The end of a 보통 / 원정: shards in the treasure room (or anywhere, if the floor has none).
+  for (let i = 0; i < (plan.bonusShards ?? 0); i++) f.pickups.push({ ...(treasure ? spot([treasure], 't') : free(rooms)), value: 0, shard: true });
   if (lairRoom) f.lair = setupLair(f, lairRoom, plan.pool, rng);
   const vision = mods.map((m) => MODIFIERS[m].vision).find((v) => v !== undefined);
   if (vision !== undefined) f.vision = vision;

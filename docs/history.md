@@ -3,6 +3,7 @@
 Long-form log moved out of HANDOFF.md on 2026-10-28 so a new session reads less. Newest status first; read only when you need the story behind something.
 
 ## Status log (to 2026-11-11)
+- **2026-11-11 morning (owner: rooms "가안 통과, 나중에 검수"):** affixes on named targets, then sortie lengths 단타 / 보통 / 원정 with mid-bosses, save-point checkpoints, deeper floors richer and with affixes. Bot check on a 16-floor 원정: 2/6, 16–25 min bot time.
 - **2026-11-11 later:** hand-made text rooms in the floor generator (spots for stairs, guards, treasure; plain floors draw the same numbers), the room preview page, a fairer 결계 spacing fallback. The 막차 bot check now uses 40 seeds: over 8 it swung with map luck (25/40 with rooms vs 24/40 without).
 - **2026-11-11 (owner switched to Opus, "핸드오프 오푸스 작업"):** seven role ghosts built on the trait parts, with telegraph effects, ghost bullets, floor hazards and a night-long theft; district pools assigned; the bot learned remote marks, hazards, bullets and to path round walls; a `moveBody` rounding bug that stuck bodies to corners fixed. Skin list parked for later by the owner.
 - **2026-11-11 (owner "ㅇㅋ 그렇게 가자"):** skin × role split, the four sockets for rule-changing ghosts, and labour-market lending (no rival offices) confirmed. Skin list draft (17) and a second set of six person + enemy cards written for the owner to pick from.

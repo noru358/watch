@@ -10,6 +10,7 @@ export {
   runStats,
   totalFloors,
   goalReached,
+  saveAtCheckpoint,
   finishAtGoal,
   goalsLeft,
   feeSoFar,
@@ -18,6 +19,7 @@ export {
   type RunResult,
   type RunOutcome,
   type RunSetup,
+  type RunSave,
 } from './run';
 export { computeExorcistStats, type TrainingLevels } from './stats';
 export { settleRun, type Settlement } from './settle';

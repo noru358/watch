@@ -145,6 +145,7 @@ export function playNight(seed: number, bot: (f: Floor) => RiftInput, setup: Run
     seconds += t;
     const out = leaveFloor(run, f);
     if (out) return { outcome: out, floor: run.floorIndex, seconds: Math.round(seconds) };
-    pickCard(run, offerCards(run, rng)[0]!);
+    const card = offerCards(run, rng)[0];
+    if (card) pickCard(run, card); // a long night can use up the deck (the game then skips the pick)
   }
 }

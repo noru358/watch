@@ -64,12 +64,13 @@ export const GRADE_WEIGHTS: readonly (readonly [number, number, number, number])
   [25, 35, 28, 12],
 ];
 
-export type DropSource = 'bounty' | 'lair' | 'deep' | 'boss';
+export type DropSource = 'bounty' | 'lair' | 'deep' | 'boss' | 'midboss';
 export const DROPS: Record<DropSource, { nameKey: TKey; chance: number; shift: number; minGrade?: Grade }> = {
   bounty: { nameKey: 'gear.drop.bounty', chance: 1, shift: 1 },
   lair: { nameKey: 'gear.drop.lair', chance: 0.35, shift: 0 },
   deep: { nameKey: 'gear.drop.deep', chance: 0.5, shift: 0 },
   boss: { nameKey: 'gear.drop.boss', chance: 1, shift: 2, minGrade: 'epic' },
+  midboss: { nameKey: 'gear.drop.midboss', chance: 1, shift: 1, minGrade: 'rare' }, // 원정 mid-bosses from floor 10
 };
 
 export interface SubOption {

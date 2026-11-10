@@ -18,10 +18,18 @@ export interface RunResult {
   loot: number;
   fee: number;
   shards: number; // 심연 파편 earned tonight (the settlement decides what is kept)
-  drops: DropSource[]; // 장신구 that fell (none if the director fell)
+  drops: DropSource[]; // 장신구 that fell (if the director fell: only those saved at a 귀환 지점)
+  saved?: RunSave | null; // what a 귀환 지점 saved (kept even if the director fell later)
   offers: number[]; // every offer taken tonight
   completed: number[]; // offers whose objective was finished (paid unless the director fell)
   reached: number[]; // offers whose objective floor was entered
+}
+
+// What a 귀환 지점 saved: the night's spirit, shards and 장신구 up to there.
+export interface RunSave {
+  loot: number;
+  shards: number;
+  drops: DropSource[];
 }
 
 // One objective of the night (office planNight): which offer, which floor (-1: any, 추격), its fee.
@@ -57,6 +65,7 @@ export interface RunState {
   used: PerkId[]; // once-a-night perks spent
   quarry: QuarryCarry | null; // 추격: the quarry between floors
   stolen: boolean; // a thief got away with the active tonight: no L for the rest of the night
+  saved: RunSave | null; // the last 귀환 지점 passed with "계속"
   shards: number;
   floorIndex: number;
   hp: number;
@@ -96,6 +105,7 @@ export function startRun(setup: RunSetup): RunState {
     used: [],
     quarry: null,
     stolen: false,
+    saved: null,
     shards: 0,
     floorIndex: 0,
     hp: 0,
@@ -192,6 +202,11 @@ export function feeSoFar(run: RunState): number {
   return run.goals.filter((g) => run.completed.includes(g.offerId)).reduce((sum, g) => sum + g.fee, 0);
 }
 
+// "계속" at a 귀환 지점 (a checkpoint payphone): what the night holds now is saved.
+export function saveAtCheckpoint(run: RunState, f: Floor): void {
+  run.saved = { loot: f.loot, shards: run.shards + f.shards, drops: [...run.drops, ...f.drops] };
+}
+
 // Go home after the goal: a success, fee included.
 export function finishAtGoal(run: RunState, f: Floor): RunOutcome {
   bank(run, f);
@@ -227,7 +242,8 @@ export function runResult(run: RunState): RunResult {
     loot: run.loot,
     fee: run.outcome === 'died' ? 0 : feeSoFar(run),
     shards: run.shards,
-    drops: run.outcome === 'died' ? [] : [...run.drops],
+    drops: run.outcome === 'died' ? [...(run.saved?.drops ?? [])] : [...run.drops],
+    saved: run.saved,
     offers: run.goals.map((g) => g.offerId),
     completed: run.outcome === 'died' ? [] : [...run.completed],
     // A named target already caught does not count as one that got away, even if the night is lost later.

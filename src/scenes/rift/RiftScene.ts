@@ -9,7 +9,7 @@ import { CONTRACTS } from '../../data/contracts.data';
 import type { GameEvent } from '../../types/events';
 import type { CardId } from '../../types/ids';
 import { answerPayphone, giveUp, stepFloor, type Floor, type RiftInput } from '../../systems/rift';
-import { enterFloor, feeSoFar, finishAtGoal, goalReached, goalsLeft, leaveFloor, offerCards, pickCard, runResult, startRun, totalFloors, type RunOutcome, type RunState } from '../../systems/run';
+import { enterFloor, feeSoFar, finishAtGoal, goalReached, goalsLeft, leaveFloor, offerCards, pickCard, runResult, saveAtCheckpoint, startRun, totalFloors, type RunOutcome, type RunState } from '../../systems/run';
 import { settings, volumePercent } from '../../app/settings';
 import { Overlay } from '../shared/Overlay';
 import { RiftHud } from './RiftHud';
@@ -250,9 +250,10 @@ export class RiftScene extends Phaser.Scene {
       this.mode = 'payphone';
       this.selected = 0;
       input.push('modal');
-      this.overlay.showCards(t('rift.payphoneTitle'), [
-        { name: t('rift.payphoneHome'), desc: t('rift.payphoneHomeDesc') },
-        { name: t('rift.payphoneStay'), desc: t('rift.payphoneStayDesc') },
+      const cp = this.checkpointHere();
+      this.overlay.showCards(t(cp ? 'rift.checkpointTitle' : 'rift.payphoneTitle'), [
+        { name: t('rift.payphoneHome'), desc: t(cp ? 'rift.checkpointHomeDesc' : 'rift.payphoneHomeDesc') },
+        { name: t('rift.payphoneStay'), desc: t(cp ? 'rift.checkpointStayDesc' : 'rift.payphoneStayDesc') },
       ]);
       return;
     }
@@ -385,7 +386,14 @@ export class RiftScene extends Phaser.Scene {
     input.pop();
     this.mode = 'play';
     answerPayphone(this.floor, pick === 0);
+    if (pick === 1 && this.checkpointHere()) saveAtCheckpoint(this.run, this.floor);
     if (this.floor.status !== 'playing') this.afterFloorChange();
+  }
+
+  // This floor's payphone is a 귀환 지점 (보통 / 원정 contracts).
+  private checkpointHere(): boolean {
+    const plan = this.run.floors[this.run.floorIndex];
+    return plan?.kind === 'normal' && plan.checkpoint === true;
   }
 
 }

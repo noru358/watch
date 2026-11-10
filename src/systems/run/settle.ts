@@ -25,13 +25,15 @@ export function settleRun(result: RunResult, wallet: number): Settlement {
     traumaDelta = RUN_PENALTIES.deathTrauma;
     walletLoss = Math.floor(wallet * RUN_PENALTIES.deathWalletLossRatio);
   }
-  const lootKept = Math.floor(result.loot * keepRatio);
+  // A 귀환 지점 kept what it saved whole; the loss applies to what came after.
+  const safe = result.outcome === 'died' ? Math.min(result.loot, result.saved?.loot ?? 0) : 0;
+  const lootKept = safe + Math.floor((result.loot - safe) * keepRatio);
   return {
     moneyDelta: lootKept + result.fee - walletLoss,
     lootKept,
     lootLost: result.loot - lootKept,
     fee: result.fee,
     traumaDelta,
-    shards: result.outcome === 'died' ? 0 : result.shards,
+    shards: result.outcome === 'died' ? (result.saved?.shards ?? 0) : result.shards,
   };
 }
