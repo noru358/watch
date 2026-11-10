@@ -16,4 +16,4 @@ export function offerBody(o: ContractOffer): string {
   return '';
 }
 
-export { targetName } from '../../../app/names';
+export { targetName, targetTrait } from '../../../app/names';

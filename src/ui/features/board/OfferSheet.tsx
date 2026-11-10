@@ -3,7 +3,7 @@ import { NODES } from '../../../data/nodes.data';
 import { t, type TKey } from '../../../i18n';
 import { offerDifficulty, offerGoal, offerHeat, type ContractOffer, type GoalKind } from '../../../systems/office';
 import { MODIFIERS } from '../../../data/modifiers.data';
-import { offerBody, offerTitle, targetName } from './offerText';
+import { offerBody, offerTitle, targetName, targetTrait } from './offerText';
 import { BOARD_LOOK as L } from './look';
 
 const MAX_DIFFICULTY = 5;
@@ -103,6 +103,7 @@ export function OfferSheet({ offer, day, known, index, count, join, onJoin, link
   const early = goal.floor < offer.floors - 1;
   const ghosts = offer.kind === 'main' ? ['—'] : known ? offer.pool.map((g) => t(`enemy.${g}` as TKey)) : [t('board.unknown')];
   const name = targetName(offer.target);
+  const trait = targetTrait(offer.target);
   // 현상수배 says only which floor; 추격 cannot say (it ends wherever the quarry is caught).
   const lengthLabel =
     offer.objective === 'chase' ? t('board.whereAny') : offer.objective === 'bounty' ? t('board.where', { floor: goal.floor + 1 }) : early ? t('board.length', { floor: goal.floor + 1 }) : t('board.lengthAll', { floors: offer.floors });
@@ -137,6 +138,7 @@ export function OfferSheet({ offer, day, known, index, count, join, onJoin, link
               <span style={{ color: L.stamp, fontWeight: 700, fontSize: 16 }}>{t('board.target', { name })}</span>
               <span style={small}>{t(`enemy.${offer.target!.ghost}` as TKey)}</span>
               {offer.target!.level > 0 && <span style={{ ...small, color: L.stamp }}>{t('board.level', { level: offer.target!.level })}</span>}
+              {trait && <span title={trait} style={{ ...small, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>· {trait}</span>}
             </>
           )}
           {linked && <span style={{ fontSize: 11, fontWeight: 700, color: L.stamp }}>{t('board.caseLinked')}</span>}

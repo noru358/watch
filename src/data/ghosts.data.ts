@@ -35,6 +35,9 @@ export type GhostTrait =
   // on L (no skill: `loot` of tonight's spirit) and runs (`flee` tiles/s). Killed: the skill comes back
   // ready with cooldowns × `boost` for the floor (spirit: × `lootDrop` dropped). After `escape` s it is
   // gone, and the skill with it for the rest of the night. One theft a floor.
+  // Only when it falls: blows up `fuse` s later where it fell, hurting ghosts too (× `ghostDamage`).
+  // For named targets (affixes.data.ts); a ghost that runs in to blow up is `burst`.
+  | { part: 'deathBurst'; radius: number; fuse: number; ghostDamage: number }
   | { part: 'thief'; reach: number; windup: number; radius: number; flee: number; escape: number; boost: number; loot: number; lootDrop: number };
 
 export interface GhostData {

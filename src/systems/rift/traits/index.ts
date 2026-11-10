@@ -2,6 +2,7 @@ import type { SeededRNG } from '../../../core/SeededRNG';
 import type { GhostTrait } from '../../../data/ghosts.data';
 import type { Enemy, Floor } from '../types';
 import { burst } from './burst';
+import { deathBurst } from './deathBurst';
 import { grab } from './grab';
 import { guard } from './guard';
 import { leap } from './leap';
@@ -20,6 +21,7 @@ const PARTS: { [K in GhostTrait['part']]: TraitPart<Extract<GhostTrait, { part: 
   grab,
   leap,
   burst,
+  deathBurst,
   shoot,
   rally,
   swell,

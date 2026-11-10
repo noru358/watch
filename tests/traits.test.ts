@@ -272,3 +272,27 @@ describe('thief', () => {
     expect(d.f.active).toBe('talisman');
   });
 });
+
+describe('named targets carry their first word (affixes.data.ts)', () => {
+  it('타는 (12) leaves a blast; 굽은 (3) guards; 붉은 (0) hits harder; a plain word does nothing', async () => {
+    const { makeNamed } = await import('../src/systems/rift/objectives/bounty');
+    const { OBJECTIVES } = await import('../src/data/objectives.data');
+    const named = (affix: number) => {
+      const d = duel('dalgyal', 6);
+      const e = makeNamed(d.f, { target: { ghost: 'dalgyal', level: 0, affix }, shards: 0, time: 0 }, { x: d.f.player.x + 1.2, y: d.f.player.y }, OBJECTIVES.bounty, 'bounty');
+      e.aim = Math.PI;
+      return { ...d, e };
+    };
+    const burn = named(12);
+    hitEnemy(burn.f, burn.e, 'slash', 999, false, FRONT, burn.rng);
+    expect(burn.f.hazards).toHaveLength(1);
+    const bent = named(3);
+    const hp = bent.e.hp;
+    hitEnemy(bent.f, bent.e, 'slash', 5, false, FRONT, bent.rng);
+    expect(bent.e.hp).toBe(hp);
+    const red = named(0);
+    const plain = named(7);
+    expect(red.e.damageAdd).toBe(plain.e.damageAdd + 1);
+    expect(plain.e.traits).toEqual(GHOSTS.dalgyal.traits);
+  });
+});

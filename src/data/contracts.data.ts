@@ -15,7 +15,7 @@ export interface SwarmPlan {
 // What a floor's objective needs beyond its kind: the named target (현상수배 / 추격), the 심연 파편
 // it pays, the time to hold out (첫차까지).
 export interface ObjectiveBrief {
-  target: { ghost: GhostId; level: number } | null;
+  target: { ghost: GhostId; level: number; affix?: number } | null; // affix: wanted.pre index (affixes.data.ts)
   shards: number;
   time: number;
 }

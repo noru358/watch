@@ -57,7 +57,7 @@ export function offerFloors(offer: ContractOffer): readonly FloorPlan[] {
       mods: offer.mods,
       deep,
       brief: here
-        ? { target: offer.target ? { ghost: offer.target.ghost, level: offer.target.level } : null, shards: offer.shards, time: T.time + T.timePerRisk * offer.risk }
+        ? { target: offer.target ? { ghost: offer.target.ghost, level: offer.target.level, affix: offer.target.name[0] } : null, shards: offer.shards, time: T.time + T.timePerRisk * offer.risk }
         : undefined,
     });
   }

@@ -1,3 +1,4 @@
+import { affixOf } from '../../../data/affixes.data';
 import { OBJECTIVES } from '../../../data/objectives.data';
 import type { ObjectiveBrief } from '../../../data/contracts.data';
 import { makeEnemy } from '../enemyFactory';
@@ -16,6 +17,17 @@ export function makeNamed(f: Floor, brief: ObjectiveBrief, at: Pos, rule: { hpMu
   e.damageAdd += rule.damageAdd;
   e.speedMult *= rule.speedMult;
   e.windupMult *= rule.windupMult;
+  // Its first word's effect (붉은 hits harder, 타는 blows up when it falls…).
+  const a = affixOf(brief.target?.affix);
+  if (a) {
+    e.maxHp = Math.round(e.maxHp * a.hpMult);
+    e.hp = e.maxHp;
+    e.damageAdd += a.damageAdd;
+    e.speedMult *= a.speedMult;
+    e.windupMult *= a.windupMult;
+    e.reachMult *= a.reachMult;
+    if (a.trait) e.traits = [...e.traits, a.trait];
+  }
   e.warpTimer = 999; // a named ghost holds its ground (no blinking behind the director)
   e.role = role;
   return e;
