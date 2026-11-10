@@ -83,12 +83,12 @@
 
 | 동네 | id | 등급 | 시작 오염 | 괴이 | 층 모습 | 이웃 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 노포 골목 | alley | 0 | 2 | 처녀귀신, 달걀귀신 | alley, basement | 인쇄소 골목, 을지로 지하상가 |
-| 인쇄소 골목 | printshop | 0 | 1 | 달걀귀신, 처녀귀신 | alley, basement | 노포 골목, 을지로3가역, 폐모텔, 옥탑 달동네 |
-| 을지로 지하상가 | arcade | 0 | 1 | 처녀귀신, 지하철 망령 | arcade, basement | 노포 골목, 을지로3가역 |
-| 을지로3가역 | station | 0 | 0 | 지하철 망령, 달걀귀신 | arcade, basement | 을지로 지하상가, 인쇄소 골목, 폐모텔 |
-| 폐모텔 | motel | 1 | 0 | 처녀귀신, 달걀귀신, 지하철 망령, 도깨비 | basement, alley | 인쇄소 골목, 을지로3가역, 옥탑 달동네 |
-| 옥탑 달동네 | rooftop | 2 | 0 | 달걀귀신, 처녀귀신, 도깨비 | rooftop, alley | 인쇄소 골목, 폐모텔 |
+| 노포 골목 | alley | 0 | 2 | 처녀귀신, 달걀귀신, 뛰어드는 것 | alley, basement | 인쇄소 골목, 을지로 지하상가 |
+| 인쇄소 골목 | printshop | 0 | 1 | 달걀귀신, 쏘는 것, 터지는 것 | alley, basement | 노포 골목, 을지로3가역, 폐모텔, 옥탑 달동네 |
+| 을지로 지하상가 | arcade | 0 | 1 | 처녀귀신, 지하철 망령, 붙잡는 것 | arcade, basement | 노포 골목, 을지로3가역 |
+| 을지로3가역 | station | 0 | 0 | 지하철 망령, 달걀귀신, 부르는 것 | arcade, basement | 을지로 지하상가, 인쇄소 골목, 폐모텔 |
+| 폐모텔 | motel | 1 | 0 | 처녀귀신, 도깨비, 훔치는 것, 커지는 것 | basement, alley | 인쇄소 골목, 을지로3가역, 옥탑 달동네 |
+| 옥탑 달동네 | rooftop | 2 | 0 | 도깨비, 뛰어드는 것, 쏘는 것, 커지는 것 | rooftop, alley | 인쇄소 골목, 폐모텔 |
 
 ## 괴이
 고치는 곳: `src/data/ghosts.data.ts`
@@ -99,6 +99,13 @@
 | 달걀귀신 | dalgyal | 18 | 2 | 1.3 | circle | 0.9 | 5 | 어둠 4초 |
 | 지하철 망령 | subway | 11 | 3 | 1.8 | line | 0.7 | 4 |  |
 | 도깨비불 | dokkaebibul | 2 | 닿으면 1 | 3.1 | none | 0 | 1 | 무리 |
+| 붙잡는 것 | grabber | 14 | 2 | 0 | circle | 0.7 | 6 | 붙잡기 (밑에 숨었다 발밑을 잡음, 받아치기 가능) |
+| 뛰어드는 것 | leaper | 12 | 3 | 2.6 | cone | 0.6 | 6 | 뛰어들기 (서 있는 자리에 착지) |
+| 터지는 것 | burster | 4 | 3 | 2.6 | circle | 0.8 | 2 | 터지기 (죽어도 터짐, 괴이도 다침) |
+| 쏘는 것 | shooter | 8 | 2 | 1.6 | cone | 0.6 | 4 | 쏘기 (거리 유지, 베면 탄이 잘림) |
+| 부르는 것 | rallier | 9 | 2 | 1.5 | cone | 0.7 | 5 | 부르기 (치면 끊김) |
+| 커지는 것 | sweller | 20 | 2 | 1.4 | circle | 0.9 | 6 | 볼수록 커짐 |
+| 훔치는 것 | thief | 7 | 1 | 2.8 | cone | 0.5 | 5 | 액티브 기술을 훔쳐 달아남 |
 | 도깨비 | dokkaebi | 16 | 2 | 1.7 | cone | 0.75 | 6 | 정면 방어 (뒤·받아치기·헛스윙 뒤에만 맞음) |
 
 - 보스 구미호: hp 120 · damage 3 · speed 1.1 · radius 0.9 · drop 40 · slamRange 1.9 · slamTrigger 1.3 · slamWindup 0.8 · sweepEvery 4.5 · sweepWindup 1 · sweepWidth 1.3 · sweepDamage 3 · summonEvery 8 · summon dokkaebibul · summonCount 3 · summonSpread 2 · recover 0.9 · phase2Ratio 0.5 · phase2Mult 0.7

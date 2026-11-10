@@ -88,6 +88,8 @@ export class RiftView {
     drawFloorMarks(g, f, this.clock);
     this.tele.clear();
     for (const e of f.enemies) for (const t of e.teles) drawTelegraph(this.tele, t, f);
+    for (const t of f.hazards) drawTelegraph(this.tele, t, f);
+    for (const s of f.enemyShots) this.tele.fillStyle(PALETTE.enemyShot, 1).fillRect(s.x * T - 2, s.y * T - 2, 4, 4);
 
     // y-sort: whoever stands lower on screen is drawn in front.
     const draws: { y: number; fn: () => void }[] = f.enemies.map((e) => ({

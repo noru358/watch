@@ -93,6 +93,16 @@ export const PALETTE = {
   subway: 0x7fb7ff,
   dokkaebibul: 0x6ad8ff,
   dokkaebi: 0xd9774a,
+  grabber: 0x6fa0b8,
+  leaper: 0xc9b07a,
+  burster: 0xff9a5c,
+  shooter: 0xdcdce8,
+  rallier: 0xf2d16b,
+  sweller: 0x2a2436,
+  thief: 0x8fd18a,
+  puddle: 0x203a52, // grabber's water
+  cue: 0x9fe8ff, // warnings that do not hit (a bullet's line, a call)
+  enemyShot: 0xfff6e0,
   gumiho: 0xf4f1ff, // white fur
   gumihoFire: 0x6fe3ff, // tail-tip fox fire (phase 2 uses neonPhase2)
   neonPhase2: 0xff3cac,

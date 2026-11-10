@@ -12,7 +12,7 @@ export function useActive(f: Floor, rng: SeededRNG): void {
   const id = f.active;
   if (!id || f.skillCd > 0) return;
   const u = f.upgrade && UPGRADES[f.upgrade].of === id ? UPGRADES[f.upgrade] : null;
-  f.skillCd = ACTIVES[id].cooldown * (u?.patch.cooldownMult ?? 1);
+  f.skillCd = ACTIVES[id].cooldown * (u?.patch.cooldownMult ?? 1) * f.skillBoost;
   f.events.push({ type: 'skillUsed', x: f.player.x, y: f.player.y, skill: id });
   castActive(f, activeSource(id, f.upgrade), rng);
 }

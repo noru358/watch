@@ -93,23 +93,24 @@ export function hitEnemy(
   }
 }
 
-export function hurtPlayer(f: Floor, amount: number, darkness: number): void {
+// True when the blow connected (not dodged by i-frames, not blocked by salt), even if armour took it to 0.
+export function hurtPlayer(f: Floor, amount: number, darkness: number): boolean {
   const p = f.player;
-  if (p.hp <= 0) return;
+  if (p.hp <= 0) return false;
   if (p.iframes > 0) {
     // A hit that passed through a dash (스치기).
     if (p.dashT > 0 && !p.dodged && amount > 0) {
       p.dodged = true;
       runHooks(f, 'onDodge', {});
     }
-    return;
+    return false;
   }
   // 소금 (the salt-ward card, the salt pack supply): one charge blocks one hit.
   if (p.shield > 0 && amount > 0) {
     p.shield -= 1;
     p.iframes = f.stats.hurtIframes;
     f.events.push({ type: 'shieldBlocked', x: p.x, y: p.y });
-    return;
+    return false;
   }
   const dmg = { amount };
   runHooks(f, 'onTakeDamage', dmg);
@@ -118,7 +119,7 @@ export function hurtPlayer(f: Floor, amount: number, darkness: number): void {
   const scaled = dmg.amount * (1 + f.stats.damageTaken) + p.hurtCarry;
   dmg.amount = Math.max(0, Math.floor(scaled + 1e-9));
   p.hurtCarry = dmg.amount > 0 || amount > 0 ? scaled - dmg.amount : p.hurtCarry;
-  if (dmg.amount <= 0) return;
+  if (dmg.amount <= 0) return true;
   if (p.hp - dmg.amount <= 0) {
     const lethal = { prevent: false };
     runHooks(f, 'onLethal', lethal);
@@ -137,6 +138,7 @@ export function hurtPlayer(f: Floor, amount: number, darkness: number): void {
     f.events.push({ type: 'darkness', duration: dark });
   }
   if (p.hp <= 0) f.status = 'dead';
+  return true;
 }
 
 // Every live ghost within `reach` and inside the arc around `aim` takes `damage` (skills, ripples).

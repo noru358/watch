@@ -1,11 +1,18 @@
 import { FEEL, PALETTE } from '../../../data/feel.data';
 import { WEAPONS } from '../../../data/weapons.data';
-import type { Floor, Telegraph } from '../../../systems/rift';
+import { harmless, type Floor, type Telegraph } from '../../../systems/rift';
 import { T, type G } from '../../shared/draw/common';
 
 // Floor warnings: yellow = counter with 발도, red = dodge. The fill grows until the strike.
 export function drawTelegraph(g: G, t: Telegraph, f: Floor): void {
   const progress = 1 - Math.max(0, t.t) / t.total;
+  if (harmless(t)) {
+    // A cue, not a danger: a thin outline that brightens toward the moment.
+    g.lineStyle(1, PALETTE.cue, 0.35 + 0.55 * progress);
+    if (t.shape === 'line') g.lineBetween(t.x * T, t.y * T, (t.x + Math.cos(t.angle) * t.range) * T, (t.y + Math.sin(t.angle) * t.range) * T);
+    else g.strokeCircle(t.x * T, t.y * T, t.range * T * (0.6 + 0.4 * progress));
+    return;
+  }
   const [a0, a1] = FEEL.telegraphFill;
   const col = t.parriable ? PALETTE.parriable : PALETTE.unparriable;
   // In the parry window the edge turns white: that is the cue to press 발도.

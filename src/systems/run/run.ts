@@ -56,6 +56,7 @@ export interface RunState {
   cardOffer: number;
   used: PerkId[]; // once-a-night perks spent
   quarry: QuarryCarry | null; // 추격: the quarry between floors
+  stolen: boolean; // a thief got away with the active tonight: no L for the rest of the night
   shards: number;
   floorIndex: number;
   hp: number;
@@ -94,6 +95,7 @@ export function startRun(setup: RunSetup): RunState {
     cardOffer: l.cardOffer,
     used: [],
     quarry: null,
+    stolen: false,
     shards: 0,
     floorIndex: 0,
     hp: 0,
@@ -124,7 +126,8 @@ export function enterFloor(run: RunState, rng: SeededRNG): Floor {
     cards: run.cards,
     perks: run.perks,
     used: run.used,
-    active: run.active,
+    active: run.stolen ? null : run.active,
+    stolen: run.stolen,
     upgrade: run.upgrade,
     gearRows: run.gearRows,
     quarry: run.quarry,
@@ -161,6 +164,7 @@ function bank(run: RunState, f: Floor): void {
   run.drops.push(...f.drops);
   f.drops = [];
   if (f.objective?.kind === 'chase') run.quarry = f.objective.quarry;
+  if (f.stolen?.active && f.stolen.state !== 'recovered') run.stolen = true; // carried off the floor = gone
 }
 
 export function leaveFloor(run: RunState, f: Floor): RunOutcome | null {

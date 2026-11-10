@@ -5,6 +5,7 @@ import { OBJECTIVES } from '../../data/objectives.data';
 import { hitEnemy } from './combat';
 import { runHooks } from './hooks';
 import { useActive } from './skills';
+import { cutShots } from './strike';
 import { survivorOf } from './objectives';
 import { angleDiff, dist, inTelegraph, moveBody } from './physics';
 import type { Enemy, Floor, RiftInput } from './types';
@@ -28,6 +29,8 @@ function swing(f: Floor, rng: SeededRNG): void {
     landed = true;
   }
   if (landed) p.focus = Math.min(s.focusMax, p.focus + 1 + s.focusGain);
+  cutShots(f, s.reach, w.arc, p.aim);
+  if (p.rooted > 0) p.rooted = Math.max(0, p.rooted - p.rootBreak); // a caught director hacks free
   runHooks(f, 'onSwing', { heavy, damage, rng });
   p.swingT = heavy ? s.finisherRecovery : s.swingTime;
   p.comboT = p.swingT + w.comboWindow;
@@ -44,8 +47,7 @@ export function counterable(f: Floor): Enemy[] {
   return f.enemies.filter(
     (e) =>
       e.hp > 0 &&
-      dist(e, p) - e.r <= w.drawReach &&
-      e.teles.some((t) => t.parriable && t.t <= window && inTelegraph(t, p, p.r)),
+      e.teles.some((t) => t.parriable && t.t <= window && inTelegraph(t, p, p.r) && (t.remote || dist(e, p) - e.r <= w.drawReach)),
   );
 }
 
@@ -102,6 +104,7 @@ function releaseDraw(f: Floor, rng: SeededRNG): void {
   if (p.drawKind === 'slash') {
     f.events.push({ type: 'drawCut', x: p.x, y: p.y });
     hitAll(w.drawReach, (a) => angleDiff(a, p.drawAim) <= w.drawArc / 2, s.drawSlash, false);
+    cutShots(f, w.drawReach, w.drawArc, p.drawAim);
     return;
   }
   f.events.push({ type: 'parry', x: p.x, y: p.y });
@@ -136,6 +139,7 @@ export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: Seeded
   p.drawFx += dt;
   p.bare = Math.max(0, p.bare - dt);
   p.darkness = Math.max(0, p.darkness - dt);
+  p.rooted = Math.max(0, p.rooted - dt);
   f.skillCd = Math.max(0, f.skillCd - dt);
   p.aim = input.aim;
 
@@ -150,7 +154,7 @@ export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: Seeded
     return;
   }
 
-  if (input.dash && p.dashCharges > 0 && p.dashT <= 0) {
+  if (input.dash && p.dashCharges > 0 && p.dashT <= 0 && p.rooted <= 0) {
     const len = Math.hypot(input.moveX, input.moveY);
     const dir = len > 0 ? { x: input.moveX / len, y: input.moveY / len } : dirOf(p.aim);
     p.dashX = dir.x;
@@ -175,7 +179,7 @@ export function updatePlayer(f: Floor, input: RiftInput, dt: number, rng: Seeded
     const move = { mult: 1, moving: p.moving, attacking: input.attack || input.draw, dt };
     p.calmT = p.moving && !move.attacking ? p.calmT + dt : 0; // 질주 (calm condition)
     runHooks(f, 'onMove', move);
-    if (len > 0) {
+    if (len > 0 && p.rooted <= 0) {
       const slowed = p.swingFx < d.swingSlowTime;
       const carrying = survivorOf(f)?.state === 'following';
       const speed = s.moveSpeed * move.mult * (slowed ? Math.min(1, d.swingMoveMult * (1 + s.attackMove)) : 1) * (carrying ? OBJECTIVES.rescue.carryMoveMult : 1);

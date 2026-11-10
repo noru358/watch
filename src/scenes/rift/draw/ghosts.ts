@@ -42,6 +42,42 @@ export function drawGhost(g: G, e: Enemy, alpha: number, clock: number, flashing
       g.fillStyle(col, fade).fillRect(x - r, fy - r, r * 2, r * 1.6);
       g.fillStyle(0xfff3b0, fade * 0.8).fillRect(x - r * 0.7, fy - r * 0.6, r * 0.5, r * 0.4).fillRect(x + r * 0.2, fy - r * 0.6, r * 0.5, r * 0.4);
       break;
+    case 'grabber': {
+      // Placeholder: a dark puddle that is always there; a hand rises out of it when it is up.
+      g.fillStyle(PALETTE.puddle, 0.9).fillEllipse(x, y, r * 3, r * 1.3);
+      if (e.state !== 'warp') {
+        g.fillStyle(col, fade).fillRect(x - r * 0.3, fy - r * 0.4, r * 0.6, r * 1.2);
+        g.fillStyle(col, fade).fillCircle(x, fy - r * 0.5, r * 0.45);
+      }
+      break;
+    }
+    case 'leaper':
+      g.fillStyle(col, fade).fillTriangle(x - r * 1.1, fy + r * 0.8, x + r * 1.1, fy + r * 0.8, x, fy - r * 0.9); // crouched
+      g.fillStyle(0x0b0a14, fade).fillCircle(x - r * 0.3, fy, r * 0.15).fillCircle(x + r * 0.3, fy, r * 0.15);
+      break;
+    case 'burster': {
+      const fuse = e.teles[0];
+      const swell = fuse ? 1 + 0.6 * (1 - Math.max(0, fuse.t) / fuse.total) : 1;
+      g.fillStyle(col, fade).fillCircle(x, fy, r * swell);
+      g.fillStyle(0xffffff, 0.6 * fade).fillCircle(x - r * 0.3 * swell, fy - r * 0.3 * swell, r * 0.25 * swell);
+      break;
+    }
+    case 'shooter':
+      g.fillStyle(col, fade).fillRect(x - r * 0.45, fy - r, r * 0.9, r * 2);
+      g.fillStyle(col, fade).fillRect(x + (e.face > 0 ? r * 0.45 : -r * 1.2), fy - r * 0.3, r * 0.75, r * 0.3); // the throwing hand
+      break;
+    case 'rallier':
+      g.fillStyle(col, fade).fillTriangle(x - r * 0.4, fy - r * 0.4, x - r * 0.4, fy + r * 0.4, x + r, fy); // a horn
+      g.fillStyle(col, fade).fillRect(x - r, fy - r * 0.3, r * 0.6, r * 0.6);
+      break;
+    case 'sweller':
+      g.fillStyle(col, 0.9).fillCircle(x, fy, r);
+      g.fillStyle(0xffffff, 0.8).fillCircle(x - r * 0.3, fy - r * 0.2, Math.max(1, r * 0.12)).fillCircle(x + r * 0.3, fy - r * 0.2, Math.max(1, r * 0.12));
+      break;
+    case 'thief':
+      g.fillStyle(col, fade).fillEllipse(x, fy, r * 1.6, r * 1.4);
+      if (e.vars.carry) g.fillStyle(PALETTE.accent, 1).fillRect(x - r * 0.3, fy - r * 1.4, r * 0.6, r * 0.6); // what it took
+      break;
     case 'dokkaebi': {
       // Placeholder: a squat body with one horn; the club points where it guards.
       g.fillStyle(col, fade).fillRect(x - r * 0.8, fy - r * 0.7, r * 1.6, r * 1.7);

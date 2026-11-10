@@ -41,3 +41,5 @@ export function bindPhaseSwitch(fn: (phase: Phase) => void): void {
 export function requestPhase(phase: Phase): void {
   phaseSwitch(phase);
 }
+// Dev-only: jump between phases from automated play-tests (window.__phase('night')).
+if (import.meta.env.DEV) (window as unknown as { __phase?: unknown }).__phase = requestPhase;

@@ -1,3 +1,4 @@
+import { GHOSTS } from '../../data/ghosts.data';
 import { keysWith } from '../../i18n';
 import { CONTRACTS } from '../../data/contracts.data';
 import { FACILITY_EFFECTS } from '../../data/facilities.data';
@@ -72,7 +73,7 @@ function rollMods(rng: SeededRNG, rank: number): ModifierId[] {
 const WANTED_PRE = keysWith('wanted.pre.').length;
 const WANTED_SUF = keysWith('wanted.suf.').length;
 const newTarget = (pool: readonly GhostId[], rng: SeededRNG): OfferTarget => ({
-  ghost: rng.pick(pool),
+  ghost: rng.pick(pool.some((g) => GHOSTS[g].named) ? pool.filter((g) => GHOSTS[g].named) : pool),
   name: [rng.int(0, WANTED_PRE - 1), rng.int(0, WANTED_SUF - 1)],
   level: 0,
 });

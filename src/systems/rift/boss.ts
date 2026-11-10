@@ -25,7 +25,7 @@ export function updateBoss(f: Floor, e: Enemy, dt: number, rng: SeededRNG, data:
       if (e.timer <= 0) e.state = 'chase';
       return;
     case 'windup':
-      if (resolveTelegraphs(f, e, dt)) {
+      if (resolveTelegraphs(f, e, dt, rng)) {
         e.state = 'recover';
         e.timer = data.recover * mult;
       }

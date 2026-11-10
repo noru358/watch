@@ -3,34 +3,23 @@ import { BOSSES, GHOSTS } from '../../data/ghosts.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import { updateBoss } from './boss';
 import { hurtPlayer } from './combat';
+import { strike, updateEnemyShots, updateHazards } from './strike';
+import { ghostSpeed, windupOf } from './traits/move';
 import { REGEN_DELAY } from './modifiers';
 import { hurtObjective, survivorOf } from './objectives';
-import { dist, inTelegraph, isFloor, lineOfSight, moveBody, steer } from './physics';
+import { dist, isFloor, lineOfSight, moveBody, steer } from './physics';
 import { traitChase, traitTick } from './traits';
 import type { Enemy, Floor, Telegraph } from './types';
 
 
-// A line dash: slide along the telegraph until a wall or its end.
-function dashAlong(f: Floor, e: Enemy, t: Telegraph): void {
-  const step = DUNGEON.dashStep;
-  for (let d = 0; d < t.range; d += step) {
-    if (moveBody(f, e, Math.cos(t.angle) * step, Math.sin(t.angle) * step)) break;
-  }
-}
-
-// Counts telegraphs down; when one runs out it strikes. Returns true when the last one struck.
-export function resolveTelegraphs(f: Floor, e: Enemy, dt: number): boolean {
+// Counts telegraphs down; when one runs out it strikes (strike.ts). Returns true when the last one struck.
+export function resolveTelegraphs(f: Floor, e: Enemy, dt: number, rng: SeededRNG): boolean {
   if (e.teles.length === 0) return false;
   for (const t of e.teles) t.t -= dt;
   const due = e.teles.filter((t) => t.t <= 0);
   if (due.length === 0) return false;
   e.teles = e.teles.filter((t) => t.t > 0);
-  for (const t of due) {
-    if (inTelegraph(t, f.player, f.player.r)) hurtPlayer(f, t.damage, t.darkness);
-    const s = survivorOf(f);
-    if (s && inTelegraph(t, s, s.r)) hurtObjective(f, t.damage);
-    if (t.shape === 'line') dashAlong(f, e, t);
-  }
+  for (const t of due) strike(f, t, e, rng);
   return e.teles.length === 0;
 }
 
@@ -47,7 +36,7 @@ function updateGhost(f: Floor, e: Enemy, dt: number, rng: SeededRNG): void {
   // A sleeping lair pack or a quarry resting in its nest does nothing until woken (lair.ts, chase.ts).
   if (e.asleep) return;
   const damage = data.damage + e.damageAdd;
-  const windup = data.windup * e.windupMult;
+  const windup = windupOf(e, data.windup);
   switch (e.state) {
     case 'idle':
       if (d <= data.sight && lineOfSight(f, e, p)) e.state = 'chase';
@@ -68,7 +57,7 @@ function updateGhost(f: Floor, e: Enemy, dt: number, rng: SeededRNG): void {
       }
       return;
     case 'windup':
-      if (resolveTelegraphs(f, e, dt)) {
+      if (resolveTelegraphs(f, e, dt, rng)) {
         e.state = 'recover';
         e.timer = data.recover * e.windupMult;
       }
@@ -95,18 +84,19 @@ function updateGhost(f: Floor, e: Enemy, dt: number, rng: SeededRNG): void {
     const s = survivorOf(f);
     if (s && dist(e, s) <= e.r + s.r) hurtObjective(f, data.contactDamage);
   } else if (data.attack === 'line') {
-    if (d <= data.attackRange && lineOfSight(f, e, p)) {
-      e.teles = [tele('line', e, toP, data.attackRange, data.attackSize, windup, damage, false, data.darkness)];
+    if (d <= data.attackRange * e.reachMult && lineOfSight(f, e, p)) {
+      e.teles = [tele('line', e, toP, data.attackRange * e.reachMult, data.attackSize * e.reachMult, windup, damage, false, data.darkness)];
       e.state = 'windup';
       return;
     }
-  } else if (d - e.r - p.r <= data.attackRange) {
-    e.teles = [tele(data.attack, e, toP, data.attackSize, data.attackArc, windup, damage, true, data.darkness)];
+  } else if (d - e.r - p.r <= data.attackRange * e.reachMult) {
+    e.teles = [tele(data.attack, e, toP, data.attackSize * e.reachMult, data.attackArc, windup, damage, e.parryable, data.darkness)];
     e.state = 'windup';
     return;
   }
   const dir = steer(f, e);
-  moveBody(f, e, dir.x * data.speed * e.speedMult * dt, dir.y * data.speed * e.speedMult * dt);
+  const speed = ghostSpeed(e);
+  moveBody(f, e, dir.x * speed * dt, dir.y * speed * dt, DUNGEON.ghostNudge);
   if (dir.x !== 0) e.face = dir.x > 0 ? 1 : -1;
 }
 
@@ -129,6 +119,8 @@ function separate(f: Floor): void {
 }
 
 export function updateEnemies(f: Floor, dt: number, rng: SeededRNG): void {
+  updateHazards(f, dt, rng);
+  updateEnemyShots(f, dt);
   for (const e of [...f.enemies]) {
     if (e.hp <= 0 || f.status !== 'playing') continue;
     if (e.knockX || e.knockY) {
@@ -139,6 +131,7 @@ export function updateEnemies(f: Floor, dt: number, rng: SeededRNG): void {
     }
     // 사무치는 원한: left alone for a while, a ghost heals.
     e.sinceHit += dt;
+    e.buffT = Math.max(0, e.buffT - dt);
     if (e.regen > 0 && e.sinceHit >= REGEN_DELAY && e.hp < e.maxHp) e.hp = Math.min(e.maxHp, e.hp + e.regen * e.maxHp * dt);
     if (e.kind === 'gumiho') updateBoss(f, e, dt, rng, BOSSES.gumiho);
     else {

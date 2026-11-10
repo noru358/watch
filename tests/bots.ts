@@ -2,7 +2,7 @@
 import { SeededRNG } from '../src/core/SeededRNG';
 import { WEAPONS } from '../src/data/weapons.data';
 import { GHOSTS } from '../src/data/ghosts.data';
-import { answerPayphone, stairsOpen, dist, inTelegraph, isFloor, NO_INPUT, stepFloor, type Enemy, type Floor, type Pos, type RiftInput } from '../src/systems/rift';
+import { answerPayphone, harmless, stairsOpen, dist, inTelegraph, isFloor, NO_INPUT, stepFloor, type Enemy, type Floor, type Pos, type RiftInput, type Telegraph } from '../src/systems/rift';
 import { storySetup } from './helpers';
 import { enterFloor, leaveFloor, offerCards, pickCard, startRun, type RunOutcome, type RunSetup } from '../src/systems/run';
 
@@ -82,7 +82,8 @@ export function naive(f: Floor): RiftInput {
   if (e && dist(e, p) < 7) {
     const aim = Math.atan2(e.y - p.y, e.x - p.x);
     const close = dist(e, p) - e.r <= W.reach * 0.8;
-    return { ...NO_INPUT, aim, attack: true, moveX: close ? 0 : Math.cos(aim), moveY: close ? 0 : Math.sin(aim) };
+    const d = pathDir(f, e); // around walls, not straight into them
+    return { ...NO_INPUT, aim, attack: true, moveX: close ? 0 : d.x, moveY: close ? 0 : d.y };
   }
   // Sealed stairs: hunt the nearest strong ghost still standing (awake or not).
   const hunt = f.enemies
@@ -97,27 +98,31 @@ export function naive(f: Floor): RiftInput {
 export function skilled(f: Floor): RiftInput {
   const p = f.player;
   const base = naive(f);
-  for (const e of f.enemies) {
-    for (const t of e.teles) {
-      if (!inTelegraph(t, p, p.r + 0.25)) continue;
-      const canCounter = t.parriable && dist(e, p) - e.r <= W.drawReach;
-      if (canCounter && t.t <= W.parryWindow * 0.7) return { ...base, attack: false, draw: true, aim: Math.atan2(e.y - p.y, e.x - p.x) };
-      if (canCounter) return { ...base, attack: false, moveX: 0, moveY: 0 };
-      let ax: number;
-      let ay: number;
-      if (t.shape === 'band') {
-        ax = t.axis === 'col' ? Math.sign(p.x - t.x) || 1 : 0;
-        ay = t.axis === 'row' ? Math.sign(p.y - t.y) || 1 : 0;
-      } else if (t.shape === 'line') {
-        ax = -Math.sin(t.angle);
-        ay = Math.cos(t.angle);
-      } else {
-        ax = p.x - t.x;
-        ay = p.y - t.y;
-      }
-      return { ...base, attack: false, moveX: ax, moveY: ay, dash: t.t < 0.3 };
+  const marks: { t: Telegraph; e: Enemy | null }[] = [...f.enemies.flatMap((e) => e.teles.map((t) => ({ t, e }))), ...f.hazards.map((t) => ({ t, e: null }))];
+  for (const { t, e } of marks) {
+    if (harmless(t) || !inTelegraph(t, p, p.r + 0.25)) continue;
+    const canCounter = !!e && t.parriable && (t.remote || dist(e, p) - e.r <= W.drawReach);
+    if (canCounter && t.t <= W.parryWindow * 0.7) return { ...base, attack: false, draw: true, aim: Math.atan2(e.y - p.y, e.x - p.x) };
+    if (canCounter) return { ...base, attack: false, moveX: 0, moveY: 0 };
+    let ax: number;
+    let ay: number;
+    if (t.shape === 'band') {
+      ax = t.axis === 'col' ? Math.sign(p.x - t.x) || 1 : 0;
+      ay = t.axis === 'row' ? Math.sign(p.y - t.y) || 1 : 0;
+    } else if (t.shape === 'line') {
+      ax = -Math.sin(t.angle);
+      ay = Math.cos(t.angle);
+    } else {
+      ax = p.x - t.x;
+      ay = p.y - t.y;
+      // A mark centred on the director: step away from whoever made it, or anywhere.
+      if (Math.hypot(ax, ay) < 0.2) [ax, ay] = e ? [p.x - e.x, p.y - e.y] : [1, 0];
     }
+    return { ...base, attack: false, moveX: ax, moveY: ay, dash: t.t < 0.3 };
   }
+  // A bullet coming in: turn and cut it.
+  const shot = f.enemyShots.find((s) => dist(s, p) < 2.2 && (s.x - p.x) * s.vx + (s.y - p.y) * s.vy < 0);
+  if (shot) return { ...base, aim: Math.atan2(shot.y - p.y, shot.x - p.x), attack: true };
   const e = nearest(f);
   if (e && p.focus >= f.stats.focusMax && dist(e, p) - e.r <= W.burstReach) return { ...base, draw: true };
   return base;

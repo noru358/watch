@@ -8,6 +8,13 @@ export interface GameEventMap {
   enemyKilled: { x: number; y: number; kind: EnemyId; entityId: number };
   enemyTeleport: { x: number; y: number };
   enemyBlocked: { x: number; y: number; entityId: number }; // a ghost trait turned the blow away (도깨비 guard)
+  enemyBurst: { x: number; y: number }; // a burster's blast
+  playerGrabbed: { x: number; y: number }; // grab trait: rooted
+  shotCut: { x: number; y: number }; // a swing cut a ghost's bullet
+  ghostRally: { x: number; y: number }; // rally trait: the call went out
+  skillStolen: { x: number; y: number };
+  skillRecovered: { x: number; y: number };
+  thiefEscaped: { x: number; y: number };
   playerHurt: { x: number; y: number; amount: number };
   playerHealed: { x: number; y: number; amount: number };
   shieldBlocked: { x: number; y: number };

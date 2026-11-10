@@ -74,6 +74,22 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
       ring(scene, e.x, e.y, 12, PALETTE.shield);
       playSfx('block');
     }),
+    bus.on('enemyBurst', (e) => {
+      ring(scene, e.x, e.y, 26, PALETTE.unparriable);
+      playSfx('hurt');
+    }),
+    bus.on('playerGrabbed', (e) => ring(scene, e.x, e.y, 14, PALETTE.puddle)),
+    bus.on('shotCut', (e) => {
+      ring(scene, e.x, e.y, 6, PALETTE.enemyShot);
+      playSfx('block');
+    }),
+    bus.on('ghostRally', (e) => ring(scene, e.x, e.y, 30, PALETTE.cue)),
+    bus.on('skillStolen', (e) => popup(scene, e.x, e.y - 16, t('hud.slot.skillStolen'), PALETTE.hurtText, FEEL.popupSizeBig)),
+    bus.on('skillRecovered', (e) => {
+      ring(scene, e.x, e.y, 16, PALETTE.accent);
+      playSfx('clear');
+    }),
+    bus.on('thiefEscaped', (e) => ring(scene, e.x, e.y, 12, PALETTE.textDimHex)),
     bus.on('enemyBlocked', (e) => {
       ring(scene, e.x, e.y, 10, PALETTE.shield);
       playSfx('block');

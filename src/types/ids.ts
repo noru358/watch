@@ -2,7 +2,7 @@
 
 export type ExorcistId = 'director';
 export type WeaponId = 'newspaper_sword'; // weapon B 'label_gun' arrives in Gate 2
-export type GhostId = 'cheonyeo' | 'dalgyal' | 'subway' | 'dokkaebibul' | 'dokkaebi';
+export type GhostId = 'cheonyeo' | 'dalgyal' | 'subway' | 'dokkaebibul' | 'dokkaebi' | 'grabber' | 'leaper' | 'burster' | 'shooter' | 'rallier' | 'sweller' | 'thief'; // role ids: names and looks are placeholders (docs/design/2-night/enemies.md)
 export type BossId = 'gumiho';
 export type EnemyId = GhostId | BossId;
 export type BaseCardId = 'tough' | 'medicine' | 'salt_ward' | 'grudge_drain' | 'spirit_nose';

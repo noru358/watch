@@ -1,7 +1,14 @@
 import type { SeededRNG } from '../../../core/SeededRNG';
 import type { GhostTrait } from '../../../data/ghosts.data';
 import type { Enemy, Floor } from '../types';
+import { burst } from './burst';
+import { grab } from './grab';
 import { guard } from './guard';
+import { leap } from './leap';
+import { rally } from './rally';
+import { shoot } from './shoot';
+import { swell } from './swell';
+import { thief } from './thief';
 import type { Blow, TraitPart } from './types';
 
 export type { Blow, TraitPart } from './types';
@@ -10,6 +17,13 @@ export type { Blow, TraitPart } from './types';
 // One part per file in this folder, registered here by the row's `part` name.
 const PARTS: { [K in GhostTrait['part']]: TraitPart<Extract<GhostTrait, { part: K }>> } = {
   guard,
+  grab,
+  leap,
+  burst,
+  shoot,
+  rally,
+  swell,
+  thief,
 };
 
 const part = (t: GhostTrait): TraitPart<GhostTrait> => PARTS[t.part] as TraitPart<GhostTrait>;

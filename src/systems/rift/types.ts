@@ -1,6 +1,6 @@
 import type { SwarmPlan } from '../../data/contracts.data';
 import type { AttackShape, GhostTrait } from '../../data/ghosts.data';
-import type { ActiveId, CardId, EnemyId, FloorTheme, PerkId, UpgradeId, WeaponId } from '../../types/ids';
+import type { ActiveId, CardId, EnemyId, FloorTheme, GhostId, PerkId, UpgradeId, WeaponId } from '../../types/ids';
 import type { EffectRow } from '../../registry/effects';
 import type { DropSource } from '../../data/gear.data';
 import type { GameEvent } from '../../types/events';
@@ -49,6 +49,33 @@ export interface Telegraph {
   damage: number;
   parriable: boolean;
   darkness: number;
+  remote?: boolean; // marked on the director, not around the ghost: a 받아치기 counts at any distance
+  effect?: TeleEffect; // what else happens when it runs out (strike.ts)
+}
+
+// Extra outcomes of a telegraph (ghost traits). 'fire' and 'rally' never hit the director themselves.
+export type TeleEffect =
+  | { kind: 'grab'; hold: number; pull: number; swingFree: number } // caught: rooted and pulled to the ghost
+  | { kind: 'land' } // the ghost jumps to the mark before it strikes
+  | { kind: 'burst'; ghostDamage: number } // hurts ghosts in it too; the ghost that made it is gone
+  | { kind: 'fire'; speed: number; life: number } // a bullet leaves along the line
+  | { kind: 'rally'; radius: number; time: number; speed: number; windupMult: number; summon: GhostId; count: number }
+  | { kind: 'steal'; loot: number }; // caught: the active skill (or some spirit) is taken
+
+// A ghost's bullet (shoot trait). Walls stop it, a swing cuts it.
+export interface EnemyShot extends Pos {
+  vx: number;
+  vy: number;
+  left: number; // tiles it may still fly
+  damage: number;
+}
+
+// The floor's one theft (thief trait).
+export interface Theft {
+  by: number; // the thief's enemy id
+  active: ActiveId | null; // what was taken (null: spirit)
+  loot: number;
+  state: 'carried' | 'escaped' | 'recovered';
 }
 
 export type EnemyState = 'idle' | 'chase' | 'windup' | 'recover' | 'stun' | 'warp';
@@ -69,6 +96,11 @@ export interface Enemy extends Body {
   aim: number; // radians it faces (ghost traits that care about direction turn it; others leave it)
   vars: Record<string, number>; // scratch numbers owned by its traits (traits/), keyed by the trait
   traits: readonly GhostTrait[]; // its kind's rows (ghosts.data.ts); a named target may carry more
+  buffT: number; // seconds left of a rally (rally trait)
+  buffSpeed: number; // walking × this while buffT > 0
+  buffWindup: number; // warnings × this while buffT > 0
+  reachMult: number; // attack reach and size × this (swell trait)
+  parryable: boolean; // false: its melee warnings cannot be countered (swell trait, fully grown)
   // Per-enemy multipliers: 1 / 0 for ordinary ghosts; the 현상수배 elite and the chase quarry change them.
   speedMult: number;
   damageAdd: number;
@@ -125,6 +157,8 @@ export interface Player extends Body {
   calmT: number; // seconds moving without attacking (질주)
   hurtCarry: number; // fraction of a point of damage carried over (damageTaken)
   dodged: boolean; // the current dash already slipped past a hit (스치기)
+  rooted: number; // seconds unable to walk or dash (grab trait)
+  rootBreak: number; // seconds each swing takes off `rooted`
 }
 
 // Derived from exorcist + training + weapon + cards + passive skills (Rule 7); never saved.
@@ -211,6 +245,11 @@ export interface Floor {
   skillCd: number; // seconds until L works again
   zones: Zone[];
   shots: Shot[];
+  hazards: Telegraph[]; // telegraphs with no ghost behind them (a dead burster's blast)
+  enemyShots: EnemyShot[];
+  stolen: Theft | null; // this floor's theft (thief trait)
+  activeStolen: boolean; // the active was stolen on an earlier floor tonight (HUD)
+  skillBoost: number; // active cooldowns × this (a recovered skill comes back sharper)
   vision: number | null; // tiles visible on the whole floor (정전); null = normal
   mods: FloorMods; // 현장 변형 folded into numbers (modifiers.ts)
   time: number;

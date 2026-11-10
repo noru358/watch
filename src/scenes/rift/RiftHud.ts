@@ -237,7 +237,8 @@ export class RiftHud {
         continue;
       }
       if (id === 'skill') {
-        this.slotLabels.skill.setText(t('hud.slot.skillNone'));
+        const stolen = f.activeStolen || (f.stolen?.active != null && f.stolen.state !== 'recovered');
+        this.slotLabels.skill.setText(t(stolen ? 'hud.slot.skillStolen' : 'hud.slot.skillNone'));
         g.lineStyle(2, PALETTE.hudLine, 1);
         for (let k = 0; k < s; k += 8) {
           g.lineBetween(x + k, top, x + Math.min(s, k + 4), top).lineBetween(x + k, top + s, x + Math.min(s, k + 4), top + s);

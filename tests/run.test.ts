@@ -90,3 +90,22 @@ describe('settlement', () => {
     expect(store.takeRunSeed()).not.toBe(store.takeRunSeed());
   });
 });
+
+describe('a thief that got away', () => {
+  it('leaves the rest of the night without the active', async () => {
+    const { startRun, enterFloor, leaveFloor } = await import('../src/systems/run');
+    const { SeededRNG } = await import('../src/core/SeededRNG');
+    const { storySetup } = await import('./helpers');
+    const rng = new SeededRNG(5);
+    const r = startRun({ ...storySetup, loadout: { ...(await import('../src/systems/growth')).EMPTY_LOADOUT, active: 'talisman' } });
+    const f = enterFloor(r, rng);
+    expect(f.active).toBe('talisman');
+    f.stolen = { by: 1, active: 'talisman', loot: 0, state: 'escaped' };
+    f.active = null;
+    f.status = 'stairs';
+    leaveFloor(r, f);
+    const next = enterFloor(r, rng);
+    expect(next.active).toBe(null);
+    expect(next.activeStolen).toBe(true);
+  });
+});

@@ -33,6 +33,7 @@ export interface FloorCarry {
   gearRows?: readonly EffectRow[]; // 장신구 specials (효과 부품 rows)
   quarry?: QuarryCarry | null; // 추격: the quarry as it left the previous floor
   last?: boolean; // this is the contract's last floor
+  stolen?: boolean; // the active was stolen earlier tonight (`active` is then null)
 }
 
 // 현장 변형 that act on the director for this floor only (the run's stats stay as they are).
@@ -87,6 +88,8 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
       calmT: 0,
       hurtCarry: 0,
       dodged: false,
+      rooted: 0,
+      rootBreak: 0,
     },
     enemies: [],
     pickups: [],
@@ -104,6 +107,11 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
     skillCd: 0,
     zones: [],
     shots: [],
+    hazards: [],
+    enemyShots: [],
+    stolen: null,
+    activeStolen: carry.stolen ?? false,
+    skillBoost: 1,
     vision: null,
     mods: plan.kind === 'normal' ? foldMods(plan.mods ?? []) : NO_MODS,
     time: 0,

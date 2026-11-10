@@ -12,7 +12,7 @@ export function isFloor(f: Pick<Floor, 'cols' | 'rows' | 'tiles'>, x: number, y:
   return x >= 0 && y >= 0 && x < f.cols && y < f.rows && f.tiles[y * f.cols + x] === 'floor';
 }
 
-function blockedBox(f: Floor, x: number, y: number, r: number): boolean {
+export function blockedBox(f: Floor, x: number, y: number, r: number): boolean {
   for (let ty = Math.floor(y - r); ty <= Math.floor(y + r); ty++) {
     for (let tx = Math.floor(x - r); tx <= Math.floor(x + r); tx++) if (!isFloor(f, tx, ty)) return true;
   }
@@ -24,6 +24,9 @@ function blockedBox(f: Floor, x: number, y: number, r: number): boolean {
 // (up to `nudge` tiles) toward the open lane instead of stopping dead.
 // Returns true if any axis was blocked.
 export function moveBody(f: Floor, b: Body, dx: number, dy: number, nudge = 0): boolean {
+  // Rounding leftovers (a 1e-14 sideways part of a straight-down move) must not switch off the corner slide.
+  if (Math.abs(dx) < 1e-6) dx = 0;
+  if (Math.abs(dy) < 1e-6) dy = 0;
   let hit = false;
   if (dx !== 0) {
     if (!blockedBox(f, b.x + dx, b.y, b.r)) b.x += dx;
