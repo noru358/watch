@@ -1,5 +1,5 @@
 import type { SeededRNG } from '../../../core/SeededRNG';
-import { GHOSTS, type GhostTrait } from '../../../data/ghosts.data';
+import type { GhostTrait } from '../../../data/ghosts.data';
 import type { Enemy, Floor } from '../types';
 import { guard } from './guard';
 import type { Blow, TraitPart } from './types';
@@ -12,28 +12,24 @@ const PARTS: { [K in GhostTrait['part']]: TraitPart<Extract<GhostTrait, { part: 
   guard,
 };
 
-function rows(e: Enemy): readonly GhostTrait[] {
-  return e.kind === 'gumiho' ? [] : GHOSTS[e.kind].traits;
-}
-
 const part = (t: GhostTrait): TraitPart<GhostTrait> => PARTS[t.part] as TraitPart<GhostTrait>;
 
 export function traitTick(f: Floor, e: Enemy, dt: number, rng: SeededRNG): void {
-  for (const t of rows(e)) part(t).tick?.(f, e, t, dt, rng);
+  for (const t of e.traits) part(t).tick?.(f, e, t, dt, rng);
 }
 
 // True when a trait used up this tick of the chase (the ordinary attack and walk are skipped).
 export function traitChase(f: Floor, e: Enemy, dt: number, rng: SeededRNG): boolean {
-  for (const t of rows(e)) if (part(t).chase?.(f, e, t, dt, rng)) return true;
+  for (const t of e.traits) if (part(t).chase?.(f, e, t, dt, rng)) return true;
   return false;
 }
 
 // True when a trait turned the blow away.
 export function traitHit(f: Floor, e: Enemy, blow: Blow): boolean {
-  for (const t of rows(e)) if (part(t).hit?.(f, e, t, blow)) return true;
+  for (const t of e.traits) if (part(t).hit?.(f, e, t, blow)) return true;
   return false;
 }
 
 export function traitDied(f: Floor, e: Enemy, rng: SeededRNG): void {
-  for (const t of rows(e)) part(t).died?.(f, e, t, rng);
+  for (const t of e.traits) part(t).died?.(f, e, t, rng);
 }

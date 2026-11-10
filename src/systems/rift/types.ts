@@ -1,5 +1,5 @@
 import type { SwarmPlan } from '../../data/contracts.data';
-import type { AttackShape } from '../../data/ghosts.data';
+import type { AttackShape, GhostTrait } from '../../data/ghosts.data';
 import type { ActiveId, CardId, EnemyId, FloorTheme, PerkId, UpgradeId, WeaponId } from '../../types/ids';
 import type { EffectRow } from '../../registry/effects';
 import type { DropSource } from '../../data/gear.data';
@@ -68,6 +68,7 @@ export interface Enemy extends Body {
   face: number; // -1 left, 1 right (render hint)
   aim: number; // radians it faces (ghost traits that care about direction turn it; others leave it)
   vars: Record<string, number>; // scratch numbers owned by its traits (traits/), keyed by the trait
+  traits: readonly GhostTrait[]; // its kind's rows (ghosts.data.ts); a named target may carry more
   // Per-enemy multipliers: 1 / 0 for ordinary ghosts; the 현상수배 elite and the chase quarry change them.
   speedMult: number;
   damageAdd: number;

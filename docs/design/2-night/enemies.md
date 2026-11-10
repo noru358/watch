@@ -14,7 +14,39 @@
 **이름 붙은 표적**(현상수배·추격)은 강적 하나를 색과 강함만 바꾼 엘리트다. 이름은 앞말 + 뒷말 무작위(`ko.ts` `wanted.*`), 놓칠 때마다 세진다. 앞말에 특성을 붙이는 건 장기 과제.
 
 ## 새 괴이 추가하는 법
-강적은 `ghosts.data.ts`에 한 줄을 넣고 `attack`을 `'cone' | 'circle' | 'line'` 중 하나로. 잡몹은 `attack: 'none'`, `fodder: true`, `contactDamage`. 이름은 `src/i18n/ko.ts`·`en.ts`의 `enemy.<id>`, ID는 `src/types/ids.ts`. 그림은 `draw/ghosts.ts`에 한 칸. 특별한 행동(괴담 규칙: "머리카락을 자르면 약해진다" 같은 것)이 필요하면 `enemies.ts`에 분기. [이야기 바이블](../1-foundation/bible.md)의 "서울 어디서 튀어나오나" 체크 필수. 동네마다 나오는 괴이는 `nodes.data.ts`의 `pool`.
+`ghosts.data.ts`에 한 줄. 걸어와서 때리기만 하면 `attack`(`'cone' | 'circle' | 'line'`, 잡몹은 `'none'` + `fodder: true`)만 고르고 `traits: []`. 그 밖의 행동은 **특성 줄**(`traits`)로 붙인다. 이름은 `ko.ts`·`en.ts`의 `enemy.<id>`, 특성 이름은 `trait.<part>`, ID는 `src/types/ids.ts`, 색은 `feel.data.ts` `PALETTE`, 임시 그림은 `draw/ghosts.ts`의 `case` 하나, 동네 배정은 `nodes.data.ts` `pool`.
+
+## 괴이 특성 (2026-11-11, ✅ 틀 + 정면 방어)
+특성 하나 = `GhostTrait` 합집합의 한 갈래(숫자만 든 데이터 줄) + `src/systems/rift/traits/<part>.ts` 파일 하나. `traits/index.ts`의 `PARTS`에 등록한다. 부품이 끼어드는 자리는 넷뿐이다(`traits/types.ts` `TraitPart`).
+- `tick`: 살아 있는 동안 매 틱(돌아보기, 커지기, 타이머).
+- `chase`: 쫓는 중, 평소 공격·걷기 앞에서. `true`를 돌려주면 그 틱을 가져간다(쏘기, 달아나기, 뛰어들기).
+- `hit`: 맞기 직전. `true`면 그 타격을 흘린다(피해 없음, 적중 효과도 안 돎). `enemyBlocked` 사건이 나간다.
+- `died`: 막 죽었을 때(터지기).
+부품은 자기 숫자를 `e.vars`에 두고, 난수는 넘겨받은 `rng`만 쓴다. 괴이가 가진 특성은 `e.traits`(종류의 줄에서 복사)라서 이름 붙은 표적에 특성을 더 얹을 수 있다. 처녀귀신의 순간이동과 달걀귀신의 어둠은 옛 칸(`teleport*`, `darkness`) 그대로 둔다(옮길 이유가 생기면 그때).
+
+## 역할 8종 (사용자 확정 2026-11-10: 역할부터, 동네 배정은 나중)
+이름은 추천안이다. 규칙(컨펌 대기): 괴이는 설화 그대로, 한 괴이 안에 미래·장소를 섞지 않는다. 숫자는 첫 값이고 플레이로 고친다. 걷는 괴이는 2프레임 통통 걸음, 나머지는 한 장 + 코드 흔들림.
+
+**1. 정면 방어 — 도깨비 `dokkaebi` ✅.** 앞에서 오는 타격은 방망이에 튕긴다(`arc` 2.4rad). 쫓는 동안 초당 `turn` 2.2rad로만 돌아서 돌진으로 등 뒤를 잡을 수 있고, 제 공격의 예고·경직 동안은 방향이 굳는다. 받아치기·진심 발도는 가드를 깨고 `breakStun` 1.2초 기절. 기절·경직 중엔 어디서 쳐도 맞는다. 테스트 `tests/traits.test.ts`.
+
+**2. 원거리 — 몽달귀신 `mongdal` 📝.** `{ part: 'shoot', keep: 4.5, range: 7, every: 2.4, windup: 0.6, speed: 7, life: 9 }`. 시야가 트이고 `range` 안이면 가는 선 예고(`windup`) 뒤 탄 하나. `keep`보다 가까우면 뒷걸음. 탄은 벽에 막히고, 소장의 베기 호 안에 들어오면 잘려 사라진다(`shotCut`). 맞으면 `damage`. 필요한 것: 때리지 않는 예고 모양 `'ray'`(그리기만), `f.enemyShots`(위치·속도·남은 거리·피해)와 그 갱신(`traits/shots.ts`, `step.ts`에서 한 번), `player.ts` 베기에서 탄 지우기. 체력 8, 속도 1.6, 영력 4. 설화에 쏘는 귀신은 없다 — 이름은 바꿔도 된다.
+
+**3. 붙잡기 — 물귀신 `mulgwi` 📝.** `{ part: 'grab', reach: 2.2, windup: 0.7, radius: 1.4, hold: 1.2, pull: 1, under: 1.5, open: 2.5 }`. 웅덩이에서 안 움직인다(속도 0). 소장이 `reach` 안에 오면 **소장 발밑**에 원 예고(받아칠 수 있음). 맞으면 `hold`초 동안 이동·돌진 불가(공격은 됨, 베기 한 번마다 0.3초 줄어듦), 웅덩이 쪽으로 `pull`칸 끌림. 그 뒤 `open`초 떠 있다가(이때만 맞음) `under`초 잠긴다(`warp` 상태 재사용). 필요한 것: `Player.rooted`와 `player.ts`의 이동·돌진 문. 체력 14, 영력 6. 다른 괴이와 섞였을 때 값을 한다.
+
+**4. 도둑 — 야광귀 `yagwang` 📝 (훔치는 것은 컨펌 대기: 액티브 기술).** `{ part: 'thief', reach: 1, windup: 0.5, flee: 3.6, escape: 9, boost: 0.5, loot: 0.3 }`. 다가와 짧은 원 예고(받아치면 못 훔침). 맞으면 L 기술을 들고(`f.active = null`, `f.stolen = { active, upgrade, by }`) 소장에게서 먼 쪽으로 달아난다(흐름장 값이 커지는 이웃 칸으로). 잡으면 되찾고 재사용 0, 그 층 동안 재사용 ×`boost`. `escape`초 안에 못 잡으면 사라지고 그 밤 내내 기술이 없다(`RunState.stolen`, 다음 층 `generateFloor`에 `active: null`, HUD L 칸에 "도둑맞음"). 기술이 없으면 주운 영력의 `loot`만큼을 들고 튀고, 잡으면 1.5배로 떨어뜨린다. 한 층에 하나만 훔친다. 체력 7, 속도 2.8, 영력 5. 설화: 섣달그믐 밤 신발을 훔치고, 체를 걸어 두면 구멍을 세다 날이 샌다 — 보급품 "체"(야광귀가 멈춰서 구멍을 셈)를 나중에 붙일 자리.
+
+**5. 부르고 북돋기 — 창귀 `changgwi` 📝.** `{ part: 'rally', keep: 5, every: 7, windup: 1, radius: 5, time: 5, speed: 1.25, windupMult: 0.85, summon: 'dokkaebibul', count: 2 }`. 거리를 두고 있다가 `windup` 동안 부른다. 그 사이 한 대라도 맞으면 끊기고 0.6초 기절. 끝나면 `radius` 안 괴이가 `time`초 동안 빨라지고 예고가 짧아지며, 잠든 괴이는 깨고, 도깨비불 `count`마리가 온다. 필요한 것: `Enemy.buffT`와 그 동안의 배율(빠르기·예고), `updateEnemies`에서 줄이기. 체력 9, 속도 1.5, 영력 5. 먼저 잡아야 하는 놈.
+
+**6. 터지기 — 혼불 `honbul` 📝.** `{ part: 'burst', trigger: 1, fuse: 0.8, radius: 1.6, hurtGhosts: 3 }`. 빠르게 다가와 `trigger` 안에서 멈추고 `fuse` 뒤 터진다(받아칠 수 없음). 죽어도 그 자리에 0.5초 예고를 남기고 터지며, 폭발은 다른 괴이도 다친다(피해 × `hurtGhosts`) — 무리 한가운데서 잡으면 이득. 필요한 것: 주인 없는 예고 `f.hazards: Telegraph[]`와 그 처리(`enemies.ts` `resolveTelegraphs`의 타격 부분을 함수로 빼서 같이 씀). 체력 4, 속도 2.6, 영력 2, 강적으로 치지 않는다(`fodder: true`는 아님 — 물결 상한에 안 넣음).
+
+**7. 볼수록 커짐 — 어둑시니 `eoduksini` 📝.** `{ part: 'swell', look: 1.2, range: 8, grow: 0.5, shrink: 0.35, max: 3, sizePer: 0.25, damagePer: 1 }`. 소장의 조준이 `look` 호 안에서 이놈을 향하고 시야가 트여 있으면 초당 `grow`씩 커지고(`e.vars.size`, 0~`max`), 아니면 `shrink`씩 줄어든다. 크기 1마다 반지름·공격 범위 +25%, 피해 +1, 끝까지 크면 받아칠 수 없다. 쳐다보지 않고 싸우거나, 짧게 몰아쳐 끝낸다. 설화 그대로다(올려다볼수록 커지고 시선을 내리면 작아진다). 체력 20, 속도 1.4, 영력 6.
+
+**8. 뛰어들기 — 장산범 `jangsan` 📝.** `{ part: 'leap', min: 3, max: 7, every: 3.5, windup: 0.55, radius: 1.3, recover: 0.9 }`. 평소엔 `min`~`max` 거리에서 옆으로 돈다. 재사용이 차면 **소장이 지금 있는 자리**에 원 예고, 끝나면 그 자리로 뛰어들어 친다(착지는 받아칠 수 있음). 착지 뒤 `recover`초 무방비. 필요한 것: 예고에 `land: true`(끝날 때 주인을 그 자리로 옮김). 체력 12, 속도 2.6, 영력 6.
+
+**짓는 순서:** 3 → 8 → 6 → 2 → 5 → 7 → 4(도둑은 밤 전체에 걸친 상태가 있어 마지막). 하나마다: 데이터 줄 + 부품 파일 + `traits.test.ts`에 묶음 + 임시 그림 + 이름 두 줄 + `npm run catalog`. 봇(`tests/bots.ts`)이 새 괴이를 못 다루면 그 괴이를 동네에 넣기 전에 봇부터 고친다. 여덟이 다 들어온 뒤 동네 배정을 한 번에 한다(동네마다 3~4종, 겹치되 조합이 다르게; 괴이를 동네 테마에 묶지 않는다).
+
+## 수식어에 효과 붙이기 (📝, 역할이 들어온 뒤)
+지금 표적 이름의 앞말(`wanted.pre.N`)은 글자뿐이다. 앞말을 표로 만든다: `AFFIXES: Record<AffixId, { nameKey, rank, weight, hpMult, speedMult, windupMult, damageAdd, regen, trait: GhostTrait | null }>`. 표적을 세울 때(`objectives/bounty.ts`, `chase.ts`) 배율을 곱하고 `trait`이 있으면 `e.traits`에 더한다 — "타는 ○○"는 죽을 때 터지고, "쉰 목소리 ○○"는 부르고, "젖은 ○○"는 붙잡는다. 뒷말은 지금처럼 글자. 원정 깊은 층에서는 보통 강적에도 앞말이 붙는다.
 
 ## 🤔 남은 것
 잡몹 종류 늘리기(쥐귀신, 종이 인형 등), 괴담 규칙 기믹(Ghostlore식, [역설계](../../reference/topdown-action.md)).

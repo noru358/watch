@@ -25,6 +25,7 @@ export function makeEnemy(f: Floor, kind: EnemyId, at: Pos): Enemy {
     face: 1,
     aim: 0,
     vars: {},
+    traits: boss ? [] : GHOSTS[kind].traits,
     speedMult: 1,
     damageAdd: 0,
     windupMult: 1,
