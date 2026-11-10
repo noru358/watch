@@ -23,6 +23,8 @@ export function makeEnemy(f: Floor, kind: EnemyId, at: Pos): Enemy {
     knockX: 0,
     knockY: 0,
     face: 1,
+    aim: 0,
+    vars: {},
     speedMult: 1,
     damageAdd: 0,
     windupMult: 1,

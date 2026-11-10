@@ -7,6 +7,7 @@ export interface GameEventMap {
   enemyHit: { x: number; y: number; amount: number; entityId: number; empowered: boolean; kind: EnemyId };
   enemyKilled: { x: number; y: number; kind: EnemyId; entityId: number };
   enemyTeleport: { x: number; y: number };
+  enemyBlocked: { x: number; y: number; entityId: number }; // a ghost trait turned the blow away (도깨비 guard)
   playerHurt: { x: number; y: number; amount: number };
   playerHealed: { x: number; y: number; amount: number };
   shieldBlocked: { x: number; y: number };

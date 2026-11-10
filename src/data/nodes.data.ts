@@ -19,6 +19,6 @@ export const NODES: Record<NodeId, NodeData> = {
   printshop: { rank: 0, nameKey: 'node.printshop', x: 46, y: 18, links: ['alley', 'station', 'motel', 'rooftop'], pool: ['dalgyal', 'cheonyeo'], themes: ['alley', 'basement'], startContamination: 1 },
   arcade: { rank: 0, nameKey: 'node.arcade', x: 24, y: 70, links: ['alley', 'station'], pool: ['cheonyeo', 'subway'], themes: ['arcade', 'basement'], startContamination: 1 },
   station: { rank: 0, nameKey: 'node.station', x: 56, y: 76, links: ['arcade', 'printshop', 'motel'], pool: ['subway', 'dalgyal'], themes: ['arcade', 'basement'], startContamination: 0 },
-  motel: { rank: 1, nameKey: 'node.motel', x: 84, y: 52, links: ['printshop', 'station', 'rooftop'], pool: ['cheonyeo', 'dalgyal', 'subway'], themes: ['basement', 'alley'], startContamination: 0 },
-  rooftop: { rank: 2, nameKey: 'node.rooftop', x: 80, y: 14, links: ['printshop', 'motel'], pool: ['dalgyal', 'cheonyeo'], themes: ['rooftop', 'alley'], startContamination: 0 },
+  motel: { rank: 1, nameKey: 'node.motel', x: 84, y: 52, links: ['printshop', 'station', 'rooftop'], pool: ['cheonyeo', 'dalgyal', 'subway', 'dokkaebi'], themes: ['basement', 'alley'], startContamination: 0 },
+  rooftop: { rank: 2, nameKey: 'node.rooftop', x: 80, y: 14, links: ['printshop', 'motel'], pool: ['dalgyal', 'cheonyeo', 'dokkaebi'], themes: ['rooftop', 'alley'], startContamination: 0 },
 };

@@ -1,6 +1,6 @@
 # 나이트워치 총괄 장부 (자동 생성)
 
-`npm run catalog`가 코드에서 뽑은 것 (2026-10-29). 손으로 고치지 말 것 — 표의 원본을 고치고 다시 뽑는다. 글자는 전부 `src/i18n/ko.ts`.
+`npm run catalog`가 코드에서 뽑은 것 (2026-11-10). 손으로 고치지 말 것 — 표의 원본을 고치고 다시 뽑는다. 글자는 전부 `src/i18n/ko.ts`.
 
 ## 의뢰 목표
 고치는 곳: `src/data/objectives.data.ts`
@@ -87,8 +87,8 @@
 | 인쇄소 골목 | printshop | 0 | 1 | 달걀귀신, 처녀귀신 | alley, basement | 노포 골목, 을지로3가역, 폐모텔, 옥탑 달동네 |
 | 을지로 지하상가 | arcade | 0 | 1 | 처녀귀신, 지하철 망령 | arcade, basement | 노포 골목, 을지로3가역 |
 | 을지로3가역 | station | 0 | 0 | 지하철 망령, 달걀귀신 | arcade, basement | 을지로 지하상가, 인쇄소 골목, 폐모텔 |
-| 폐모텔 | motel | 1 | 0 | 처녀귀신, 달걀귀신, 지하철 망령 | basement, alley | 인쇄소 골목, 을지로3가역, 옥탑 달동네 |
-| 옥탑 달동네 | rooftop | 2 | 0 | 달걀귀신, 처녀귀신 | rooftop, alley | 인쇄소 골목, 폐모텔 |
+| 폐모텔 | motel | 1 | 0 | 처녀귀신, 달걀귀신, 지하철 망령, 도깨비 | basement, alley | 인쇄소 골목, 을지로3가역, 옥탑 달동네 |
+| 옥탑 달동네 | rooftop | 2 | 0 | 달걀귀신, 처녀귀신, 도깨비 | rooftop, alley | 인쇄소 골목, 폐모텔 |
 
 ## 괴이
 고치는 곳: `src/data/ghosts.data.ts`
@@ -98,7 +98,8 @@
 | 처녀귀신 | cheonyeo | 9 | 2 | 2.4 | cone | 0.6 | 3 | 순간이동 6초 |
 | 달걀귀신 | dalgyal | 18 | 2 | 1.3 | circle | 0.9 | 5 | 어둠 4초 |
 | 지하철 망령 | subway | 11 | 3 | 1.8 | line | 0.7 | 4 |  |
-| enemy.dokkaebibul | dokkaebibul | 2 | 닿으면 1 | 3.1 | none | 0 | 1 | 무리 |
+| 도깨비불 | dokkaebibul | 2 | 닿으면 1 | 3.1 | none | 0 | 1 | 무리 |
+| 도깨비 | dokkaebi | 16 | 2 | 1.7 | cone | 0.75 | 6 | 정면 방어 (뒤·받아치기·헛스윙 뒤에만 맞음) |
 
 - 보스 구미호: hp 120 · damage 3 · speed 1.1 · radius 0.9 · drop 40 · slamRange 1.9 · slamTrigger 1.3 · slamWindup 0.8 · sweepEvery 4.5 · sweepWindup 1 · sweepWidth 1.3 · sweepDamage 3 · summonEvery 8 · summon dokkaebibul · summonCount 3 · summonSpread 2 · recover 0.9 · phase2Ratio 0.5 · phase2Mult 0.7
 

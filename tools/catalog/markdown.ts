@@ -49,7 +49,7 @@ export function catalogMarkdown(c: Catalog): string {
 
   h('괴이', 'src/data/ghosts.data.ts');
   out.push(table(['괴이', 'id', '체력', '피해', '속도', '공격', '예고', '영력', '그 밖'],
-    Object.entries(c.ghosts).map(([id, g]) => [ghost(id), id, g.hp, g.fodder ? `닿으면 ${g.contactDamage}` : g.damage, g.speed, g.attack, g.windup, g.drop, [g.teleportEvery ? `순간이동 ${g.teleportEvery}초` : '', g.darkness ? `어둠 ${g.darkness}초` : '', g.fodder ? '무리' : ''].filter(Boolean).join(' · ')])));
+    Object.entries(c.ghosts).map(([id, g]) => [ghost(id), id, g.hp, g.fodder ? `닿으면 ${g.contactDamage}` : g.damage, g.speed, g.attack, g.windup, g.drop, [g.teleportEvery ? `순간이동 ${g.teleportEvery}초` : '', g.darkness ? `어둠 ${g.darkness}초` : '', g.fodder ? '무리' : '', ...g.traits.map((t) => T(`trait.${t.part}`))].filter(Boolean).join(' · ')])));
   out.push('', ...Object.entries(c.bosses).map(([id, b]) => `- 보스 ${ghost(id)}: ${kv(b)}`));
 
   h('메인 스토리 장', 'src/data/chapters.data.ts · contracts.data.ts');

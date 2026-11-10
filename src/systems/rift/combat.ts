@@ -4,6 +4,7 @@ import { WEAPONS } from '../../data/weapons.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import { runHooks } from './hooks';
 import { angleDiff, dist } from './physics';
+import { traitDied, traitHit } from './traits';
 import type { Enemy, Floor } from './types';
 
 export type HitKind = 'slash' | 'draw' | 'skill';
@@ -43,6 +44,12 @@ export function hitEnemy(
   rng: SeededRNG,
 ): void {
   if (e.hp <= 0 || e.state === 'warp') return;
+  // Ghost traits see the blow first (a guard turns it away before any on-hit effect runs).
+  if (traitHit(f, e, { kind, empowered, dir })) {
+    e.asleep = false;
+    f.events.push({ type: 'enemyBlocked', x: e.x, y: e.y, entityId: e.id });
+    return;
+  }
   const atk = { damage: base, kind };
   runHooks(f, 'onBeforeAttack', atk);
   // Training / gear: damage by what is hit, then a critical hit (one place for both — Rule 7 stats).
@@ -70,6 +77,7 @@ export function hitEnemy(
   f.pickups.push({ x: e.x, y: e.y, value: drop });
   f.events.push({ type: 'enemyKilled', x: e.x, y: e.y, kind: e.kind, entityId: e.id });
   runHooks(f, 'onKill', { enemy: e, rng });
+  traitDied(f, e, rng);
   if (kindId === 'gumiho') {
     // The source is purified: everything else in the room goes with it.
     for (const k of f.pickups) f.loot += k.value;

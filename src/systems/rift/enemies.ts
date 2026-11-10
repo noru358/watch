@@ -6,6 +6,7 @@ import { hurtPlayer } from './combat';
 import { REGEN_DELAY } from './modifiers';
 import { hurtObjective, survivorOf } from './objectives';
 import { dist, inTelegraph, isFloor, lineOfSight, moveBody, steer } from './physics';
+import { traitChase, traitTick } from './traits';
 import type { Enemy, Floor, Telegraph } from './types';
 
 
@@ -87,6 +88,7 @@ function updateGhost(f: Floor, e: Enemy, dt: number, rng: SeededRNG): void {
       return;
     }
   }
+  if (traitChase(f, e, dt, rng)) return;
   if (data.attack === 'none') {
     // Swarm fodder: just rushes in; touching the director burns.
     if (d <= e.r + p.r) hurtPlayer(f, data.contactDamage + e.damageAdd, 0);
@@ -139,7 +141,10 @@ export function updateEnemies(f: Floor, dt: number, rng: SeededRNG): void {
     e.sinceHit += dt;
     if (e.regen > 0 && e.sinceHit >= REGEN_DELAY && e.hp < e.maxHp) e.hp = Math.min(e.maxHp, e.hp + e.regen * e.maxHp * dt);
     if (e.kind === 'gumiho') updateBoss(f, e, dt, rng, BOSSES.gumiho);
-    else updateGhost(f, e, dt, rng);
+    else {
+      traitTick(f, e, dt, rng);
+      updateGhost(f, e, dt, rng);
+    }
   }
   f.enemies = f.enemies.filter((e) => e.hp > 0);
   separate(f);

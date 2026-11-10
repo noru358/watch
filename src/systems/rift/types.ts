@@ -66,6 +66,8 @@ export interface Enemy extends Body {
   knockX: number; // knockback velocity, tiles/s
   knockY: number;
   face: number; // -1 left, 1 right (render hint)
+  aim: number; // radians it faces (ghost traits that care about direction turn it; others leave it)
+  vars: Record<string, number>; // scratch numbers owned by its traits (traits/), keyed by the trait
   // Per-enemy multipliers: 1 / 0 for ordinary ghosts; the 현상수배 elite and the chase quarry change them.
   speedMult: number;
   damageAdd: number;

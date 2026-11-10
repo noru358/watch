@@ -42,6 +42,13 @@ export function drawGhost(g: G, e: Enemy, alpha: number, clock: number, flashing
       g.fillStyle(col, fade).fillRect(x - r, fy - r, r * 2, r * 1.6);
       g.fillStyle(0xfff3b0, fade * 0.8).fillRect(x - r * 0.7, fy - r * 0.6, r * 0.5, r * 0.4).fillRect(x + r * 0.2, fy - r * 0.6, r * 0.5, r * 0.4);
       break;
+    case 'dokkaebi': {
+      // Placeholder: a squat body with one horn; the club points where it guards.
+      g.fillStyle(col, fade).fillRect(x - r * 0.8, fy - r * 0.7, r * 1.6, r * 1.7);
+      g.fillStyle(col, fade).fillTriangle(x - r * 0.25, fy - r * 0.7, x + r * 0.25, fy - r * 0.7, x, fy - r * 1.4);
+      g.lineStyle(3, 0x5a3a22, fade).lineBetween(x, fy + r * 0.2, x + Math.cos(e.aim) * r * 1.6, fy + r * 0.2 + Math.sin(e.aim) * r * 1.6);
+      break;
+    }
     case 'dokkaebibul': {
       // A will-o'-wisp: flickering blue flame, no body.
       const flick = 0.75 + 0.25 * Math.sin(clock * 18 + e.id);

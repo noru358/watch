@@ -92,6 +92,7 @@ export const PALETTE = {
   dalgyal: 0xf4f0d8,
   subway: 0x7fb7ff,
   dokkaebibul: 0x6ad8ff,
+  dokkaebi: 0xd9774a,
   gumiho: 0xf4f1ff, // white fur
   gumihoFire: 0x6fe3ff, // tail-tip fox fire (phase 2 uses neonPhase2)
   neonPhase2: 0xff3cac,

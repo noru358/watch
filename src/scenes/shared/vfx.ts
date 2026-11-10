@@ -74,6 +74,10 @@ export function attachVfx(scene: Phaser.Scene, bus: EventBus, hooks: VfxHooks): 
       ring(scene, e.x, e.y, 12, PALETTE.shield);
       playSfx('block');
     }),
+    bus.on('enemyBlocked', (e) => {
+      ring(scene, e.x, e.y, 10, PALETTE.shield);
+      playSfx('block');
+    }),
     bus.on('pickupCollected', () => playSfx('pickup')),
     bus.on('shardCollected', (e) => {
       ring(scene, e.x, e.y, 14, PALETTE.shard);
