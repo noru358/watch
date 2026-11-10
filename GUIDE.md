@@ -21,7 +21,7 @@ Gate 1(밤 전투)과 Gate 2(사무소·성장)의 기능은 들어가 있고, �
 
 님: AI가 추천한 것에 컨펌하거나 뒤집기. 지금 컨펌을 기다리는 것 — 오염을 지울지, 괴이 규칙(괴이는 설화 그대로, 미래는 도시와 사람 쪽에만), 도둑 괴이가 액티브 기술을 훔치는 안, 길이 숫자(보통 6~8층, 원정 15층 이상). 플레이하고 느낀 점은 한 줄이라도 말해 주면 기록으로 남깁니다.
 
-AI: `HANDOFF.md`의 "Next tasks" 순서대로. 설계가 끝나 그대로 지으면 되는 일은 [Opus], 판단이 필요한 일은 [Fable]로 표시해 뒀습니다. 지금 들어간 것: 괴이 특성 틀과 역할 괴이 8종(이름·그림은 임시), 동네 배정. 설계만 끝난 것: 글자 틀 방, 길이 세 단계, 경영 뼈대, 인물 + 적 카드 여섯 쌍(이야기 바이블 맨 아래 — 넷을 골라 주세요).
+AI: `HANDOFF.md`의 "Next tasks" 순서대로. 설계가 끝나 그대로 지으면 되는 일은 [Opus], 판단이 필요한 일은 [Fable]로 표시해 뒀습니다. 지금 들어간 것: 괴이 특성 틀과 역할 괴이 8종(이름·그림은 임시), 동네 배정. 들어간 것 2: 글자 틀 방 16개(미리보기 페이지에서 번호로 골라 주세요). 설계만 끝난 것: 길이 세 단계, 경영 뼈대, 인물 + 적 카드 여섯 쌍(이야기 바이블 맨 아래 — 넷을 골라 주세요).
 
 ---
 
@@ -72,7 +72,7 @@ npm run dev
 src/
 ├── app/          🔌 연결부: 공용 물건(입력·금고) 만들기, 타이틀↔낮↔밤 전환 연결, 지금 열린 창(features.ts), 대화창 진행(dialogue.ts), 음량 설정(settings.ts)
 ├── core/         🧱 기반: 키 입력 담당, 확성기(EventBus), 고정 랜덤, 낮/밤 스위치, 저장(SaveManager)
-├── data/         🔢 숫자·설정표 (밸런스는 전부 여기)
+├── data/         🔢 숫자·설정표 (밸런스는 전부 여기; 손으로 만든 방은 rooms.data.ts에 글자로)
 ├── i18n/         🔤 화면 글자 (ko.ts 한국어, en.ts 영어)
 ├── registry/     🧩 부품 상자: 강화 카드 효과(cardEffects.ts), 효과 부품(effects/ — 기술·장신구 특수·보급품이 전부 이 부품을 조합한 데이터 줄), 끼우는 타이밍 목록(hookPoints.ts)
 ├── systems/      🧮 계산기 (화면 코드 없음, 테스트 있음)
@@ -98,6 +98,7 @@ tests/            ✅ 자동 테스트
 tools/artlab/     🎨 그림체 견본 작업대 (게임 밖, 그림을 글자 격자로 적어서 뽑음; 구미호 생성기 gumiho_grid.py)
 tools/spritekit/  🧹 AI가 만든 픽셀 시트를 진짜 픽셀로 정리하는 도구 (+ 얼굴 손보기 face_edit.py)
 tools/catalog/    📒 총괄 장부: 게임의 모든 숫자·글을 코드에서 뽑아 웹 페이지 하나로 (npm run catalog). 줄마다 메모 → "장부 메모 반영해". 글 버전은 docs/catalog.md (AI가 읽는 용)
+tools/rooms/      🧱 방 틀 미리보기: src/data/rooms.data.ts의 글자 방을 평면도로 그린 페이지 (npm run rooms → dist-rooms/index.html, Claude가 게시)
 assets/source/    🗃️ 받은 그림 원본 보관 (제미나이 시트 등, 지우지 않음)
 assets/sprites/   🖼️ 원본을 정리한 게임용 그림 (지금: 주인공 제미나이 1차·3차) → assets/README.md
 docs/design/      📐 기획(무엇을 왜): 1-foundation 기준 · 2-night 밤 · 3-growth 성장 · 4-day 낮 · 5-business 사업·제작

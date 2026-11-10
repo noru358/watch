@@ -1,0 +1,87 @@
+<title>나이트워치 방 틀</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one sheet of floor-plan cards, grouped by floor look, each room numbered for a pass/fail answer. */
+:root {
+  --bg: #efede6; --paper: #fbfaf6; --ink: #22202b; --dim: #6c6878; --line: #d6d2c7;
+  --wall: #3a3546; --prop: #8a6f5a; --floor: #f3efe4; --door: #2a9d8f;
+  --ghost: #d1495b; --treasure: #d9a520; --stairs: #5aa83c; --goal: #6a5acd; --water: #4a86b8; --maybe: #b9b2a2;
+  --display: "Black Han Sans", "IBM Plex Sans KR", system-ui, sans-serif;
+  --body: "IBM Plex Sans KR", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15131c; --paper: #1d1a26; --ink: #ece8f4; --dim: #9d97ad; --line: #322d40;
+  --wall: #0b0a10; --prop: #7a6150; --floor: #2a2636; --maybe: #4a4458; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #15131c; --paper: #1d1a26; --ink: #ece8f4; --dim: #9d97ad; --line: #322d40;
+  --wall: #0b0a10; --prop: #7a6150; --floor: #2a2636; --maybe: #4a4458; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+main { max-width: 1100px; margin: 0 auto; display: grid; gap: 28px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: 2rem; margin: 0; letter-spacing: 0.01em; }
+.lead { margin: 6px 0 0; color: var(--dim); max-width: 62ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 0.85rem; color: var(--dim); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 14px; height: 14px; border-radius: 2px; display: inline-block; }
+h2 { font-family: var(--display); font-weight: 400; font-size: 1.3rem; margin: 0 0 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 12px; display: grid; gap: 8px; min-width: 0; }
+.head { display: flex; align-items: baseline; gap: 8px; }
+.num { font-family: var(--display); font-size: 1.4rem; line-height: 1; }
+.id { font-family: var(--mono); font-size: 0.85rem; color: var(--dim); overflow-wrap: anywhere; }
+.meta { font-size: 0.8rem; color: var(--dim); font-variant-numeric: tabular-nums; }
+svg { width: 100%; height: auto; display: block; }
+</style>
+<main>
+  <header>
+    <h1>방 틀 미리보기</h1>
+    <p class="lead">맵툴 없이 글자로 만든 방입니다. 층을 만들 때 시작 방을 뺀 방의 절반쯤이 이 중에서 나옵니다. 번호로 합격·불합격만 말해 주세요. 빼거나 고치고 싶은 방도 번호로요.</p>
+  </header>
+  <div class="legend" id="legend"></div>
+  <div id="groups"></div>
+</main>
+<script>
+const ROOMS = /*__DATA__*/null;
+const THEME = { alley: '골목', basement: '지하', arcade: '지하상가', rooftop: '옥상' };
+const CELL = {
+  '#': ['--wall', '벽'], 'p': ['--prop', '소품(기둥·매대, 못 지나감)'], '.': ['--floor', '바닥'], '+': ['--door', '문(복도가 붙는 곳)'],
+  'e': ['--ghost', '강적 자리'], 't': ['--treasure', '보물·영력'], 's': ['--stairs', '계단'], 'o': ['--goal', '목표 자리'],
+  '~': ['--water', '물(붙잡는 것 자리)'], '?': ['--maybe', '반반: 벽이거나 바닥'],
+};
+const legend = document.getElementById('legend');
+for (const [ch, [token, label]] of Object.entries(CELL)) {
+  const s = document.createElement('span');
+  s.innerHTML = `<i class="sw" style="background:var(${token})"></i>${label}`;
+  legend.append(s);
+}
+function draw(rows) {
+  const h = rows.length, w = rows[0].length, u = 10;
+  let cells = '';
+  rows.forEach((r, y) => [...r].forEach((ch, x) => {
+    const base = ch === 'e' || ch === 't' || ch === 's' || ch === 'o' ? '--floor' : (CELL[ch] || CELL['#'])[0];
+    cells += `<rect x="${x * u}" y="${y * u}" width="${u}" height="${u}" fill="var(${base})"/>`;
+    if (base !== (CELL[ch] || CELL['#'])[0]) cells += `<circle cx="${x * u + u / 2}" cy="${y * u + u / 2}" r="${u * 0.34}" fill="var(${CELL[ch][0]})"/>`;
+  }));
+  return `<svg viewBox="0 0 ${w * u} ${h * u}" role="img" aria-label="방 평면도 ${w}×${h}">${cells}</svg>`;
+}
+const groups = document.getElementById('groups');
+groups.style.display = 'grid';
+groups.style.gap = '28px';
+for (const theme of Object.keys(THEME)) {
+  const list = ROOMS.filter((r) => r.themes.includes(theme));
+  if (!list.length) continue;
+  const sec = document.createElement('section');
+  sec.innerHTML = `<h2>${THEME[theme]}</h2><div class="grid"></div>`;
+  for (const r of list) {
+    const c = document.createElement('article');
+    c.className = 'card';
+    const also = r.themes.filter((t) => t !== theme).map((t) => THEME[t]).join(', ');
+    c.innerHTML = `<div class="head"><span class="num">${r.n}</span><span class="id">${r.id}</span></div>${draw(r.rows)}
+      <div class="meta">${r.rows[0].length}×${r.rows.length} · ${r.mirror ? '좌우 뒤집어서도 씀' : '뒤집지 않음'}${also ? ' · ' + also + '에도 나옴' : ''}</div>`;
+    sec.querySelector('.grid').append(c);
+  }
+  groups.append(sec);
+}
+</script>

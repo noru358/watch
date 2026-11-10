@@ -11,7 +11,7 @@ import { makeEnemy } from './enemyFactory';
 import { setupLair } from './lair';
 import { foldMods, NO_MODS, type FloorMods } from './modifiers';
 import { setupObjective, type QuarryCarry } from './objectives';
-import { assignRoles, bigRoom, centre, distances, randomRooms, roomTile, type Room } from './layout';
+import { assignRoles, bigRoom, centre, distances, randomRooms, roomMid, roomTile, type Room, type SpotMark } from './layout';
 import { isFloor } from './physics';
 import type { Floor, Pos, Stats, Tile } from './types';
 import type { EffectRow } from '../../registry/effects';
@@ -132,7 +132,7 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
 // heap in the treasure room. Modifiers and "deep" floors (past the goal) add on top; a plain clear
 // floor draws exactly the same RNG as before, so main-story maps stay the same for a given seed.
 function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>, rng: SeededRNG, carry: FloorCarry): Floor {
-  const { tiles, rooms } = randomRooms(rng);
+  const { tiles, rooms } = randomRooms(rng, plan.theme);
   const rooms_ = rooms;
   const { start, exit, treasure, side } = assignRoles(tiles, rooms, rng);
   const mods = plan.mods ?? [];
@@ -148,35 +148,62 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
     }
     return roomTile(rng.pick(from), rng);
   };
+  // A hand-made room's own spot for this thing (its letter). Rooms are picked as before (so things stay
+  // spread over rooms); in a hand-made room the free spot nearest `near` (else any) is used. When no room
+  // here is hand-made this is exactly `free`, so plain floors keep their maps.
+  const spot = (from: Room[], mark: SpotMark, near?: Pos): Pos => {
+    if (!from.some((r) => r.tpl)) return free(from);
+    const room = rng.pick(from);
+    const open = (room.tpl?.spots[mark] ?? []).filter((p) => !used.has(`${p.x},${p.y}`));
+    if (open.length === 0) return free([room]);
+    const p = near ? open.reduce((a, q) => (Math.hypot(q.x - near.x, q.y - near.y) < Math.hypot(a.x - near.x, a.y - near.y) ? q : a)) : rng.pick(open);
+    used.add(`${p.x},${p.y}`);
+    return p;
+  };
   let quiet = side.filter((r) => r !== treasure);
   // 괴이 소굴 takes one quiet side room for itself (decided first so nothing else is put there).
-  const lairRoom = mods.includes('lair') && quiet.length > 1 ? rng.pick(quiet) : null;
+  // (A hand-made room cannot be the lair: the lair seals the gaps in a plain room's outline.)
+  const lairable = quiet.filter((r) => !r.tpl);
+  const lairRoom = mods.includes('lair') && quiet.length > 1 && lairable.length > 0 ? rng.pick(lairable) : null;
   if (lairRoom) quiet = quiet.filter((r) => r !== lairRoom);
   const spread = side.filter((r) => r !== lairRoom);
   const f = baseFloor(index, tiles, start, carry, plan);
-  f.stairs = free([exit]);
+  f.stairs = spot([exit], 's');
   if (plan.payphone) f.payphone = free(spread);
-  for (let i = 0; i < plan.enemies; i++) makeEnemy(f, rng.pick(plan.pool), free(i < DUNGEON.exitGuards ? [exit] : spread));
+  for (let i = 0; i < plan.enemies; i++) makeEnemy(f, rng.pick(plan.pool), i < DUNGEON.exitGuards ? spot([exit], 'e', f.stairs) : spot(spread, 'e'));
   if (plan.objective) {
     const pool = quiet.length > 0 ? quiet : spread;
     const dist = distances(tiles, start);
-    const walk = (r: Room) => dist[Math.floor(r.y + r.h / 2) * f.cols + Math.floor(r.x + r.w / 2)] ?? -1;
+    const walk = (r: Room) => {
+      const m = roomMid(r);
+      return dist[Math.floor(m.y) * f.cols + Math.floor(m.x)] ?? -1;
+    };
     const nest = pool.reduce((best, r) => (walk(r) > walk(best) ? r : best), pool[0]!);
     // n spots in different rooms, at least `gap` tiles from each other where the map allows (결계 sites).
     const apart = (n: number, gap: number): Pos[] => {
       const rooms = [...pool, ...rooms_.filter((r) => !pool.includes(r) && r !== exit && r !== lairRoom && r !== rooms_[0])];
       const out: Pos[] = [];
       const left = [...rooms];
+      const room0 = (p: Pos) => out.reduce((m, q) => Math.min(m, Math.hypot(q.x - p.x, q.y - p.y)), Infinity);
       for (let k = 0; k < n; k++) {
+        // Try rooms not used yet; if none is far enough, keep the farthest try (not just the last one).
         let best: Pos | null = null;
+        let bestRoom: Room | null = null;
         for (let tries = 0; tries < 30 && left.length > 0; tries++) {
           const room = left[rng.int(0, left.length - 1)]!;
           const p = roomTile(room, rng);
-          const far = out.every((q) => Math.hypot(q.x - p.x, q.y - p.y) >= gap);
-          if (far || tries === 29) {
+          if (!best || room0(p) > room0(best)) {
             best = p;
-            left.splice(left.indexOf(room), 1);
-            break;
+            bestRoom = room;
+          }
+          if (room0(p) >= gap) break;
+        }
+        if (bestRoom) left.splice(left.indexOf(bestRoom), 1);
+        if (!best) {
+          // Every room is taken: the farthest of a few tiles anywhere in them.
+          for (let tries = 0; tries < 30; tries++) {
+            const p = roomTile(rng.pick(rooms.length > 0 ? rooms : pool), rng);
+            if (!best || room0(p) > room0(best)) best = p;
           }
         }
         out.push(best ?? free(pool));
@@ -187,7 +214,7 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
   }
   const value = (v: number) => Math.round(v * (1 + DEEP.lootPerFloor * deep) * f.mods.pickupMult);
   for (let i = 0; i < DUNGEON.spiritPickupsPerFloor; i++) f.pickups.push({ ...free(rooms), value: value(DUNGEON.spiritPickupValue) });
-  if (treasure) for (let i = 0; i < DUNGEON.treasurePickups; i++) f.pickups.push({ ...free([treasure]), value: value(DUNGEON.treasureValue) });
+  if (treasure) for (let i = 0; i < DUNGEON.treasurePickups; i++) f.pickups.push({ ...spot([treasure], 't'), value: value(DUNGEON.treasureValue) });
   if (treasure && deep > 0 && carry.last) {
     for (let i = 0; i < DEEP.shardOnLast; i++) f.pickups.push({ ...free([treasure]), value: 0, shard: true });
     f.drops.push('deep'); // the deep treasure room (rolled at settlement; may come up empty)

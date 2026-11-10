@@ -21,6 +21,8 @@ export const DUNGEON = {
   knockDecay: 12, // knockback velocity decay per second
   dashStep: 0.2, // tiles per collision check during an enemy line dash
   losStep: 0.25, // tiles per sample when checking line of sight
+  templateChance: 0.5, // chance a room (not the start) is one of the theme's hand-made rooms (rooms.data.ts)
+  templateHalf: 0.5, // a '?' cell is floor this often
   ghostNudge: 0.5, // ghosts slide around a wall corner this far instead of sticking to it (tiles)
   enemyShotRadius: 0.2, // a ghost's bullet (tiles)
   shotCutPad: 0.3, // a swing cuts bullets this much past its reach

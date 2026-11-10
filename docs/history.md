@@ -3,6 +3,7 @@
 Long-form log moved out of HANDOFF.md on 2026-10-28 so a new session reads less. Newest status first; read only when you need the story behind something.
 
 ## Status log (to 2026-11-11)
+- **2026-11-11 later:** hand-made text rooms in the floor generator (spots for stairs, guards, treasure; plain floors draw the same numbers), the room preview page, a fairer 결계 spacing fallback. The 막차 bot check now uses 40 seeds: over 8 it swung with map luck (25/40 with rooms vs 24/40 without).
 - **2026-11-11 (owner switched to Opus, "핸드오프 오푸스 작업"):** seven role ghosts built on the trait parts, with telegraph effects, ghost bullets, floor hazards and a night-long theft; district pools assigned; the bot learned remote marks, hazards, bullets and to path round walls; a `moveBody` rounding bug that stuck bodies to corners fixed. Skin list parked for later by the owner.
 - **2026-11-11 (owner "ㅇㅋ 그렇게 가자"):** skin × role split, the four sockets for rule-changing ghosts, and labour-market lending (no rival offices) confirmed. Skin list draft (17) and a second set of six person + enemy cards written for the owner to pick from.
 - **2026-11-11 (owner on the story cards: "전통 귀신에만 한정함"):** all six cards and the "folklore as is" ghost rule rejected. 괴이 is wider than ghosts — a fully creative space that can draw on Napolitan rule-horror — and must feel like retro-future Seoul; the earlier "인쇄소 귀신" complaint was about gluing two labels together, not about invention. Ghost role ids become role names; folklore names are placeholders.

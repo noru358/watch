@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "check": "tsc --noEmit && vitest run",
-    "catalog": "vite-node tools/catalog/build.ts"
+    "catalog": "vite-node tools/catalog/build.ts",
+    "rooms": "vite-node tools/rooms/build.ts"
   },
   "dependencies": {
     "phaser": "^3.90.0",
