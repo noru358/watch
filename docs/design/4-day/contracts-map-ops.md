@@ -19,7 +19,7 @@
 - 오염 높은 동네에 의뢰가 자주 뜸 → 열린 동네에 고르게.
 - 5에서 긴급 의뢰, 놓치면 이웃으로 번짐 → 긴급 의뢰는 등급 1부터 하루 10% 확률로 뜨는 의뢰 종류(하룻밤 마감, 보수·평판 ×1.5)로 남기고, 번짐은 없앤다.
 - 메인 스토리 장을 앞당김(`startHeat`), 4 이상에서 해결 시 평판 +5 → 지운다. 장은 날짜와 평판으로만 열린다.
-놓친 의뢰의 대가는 평판 하락(이미 있음)이고, 대여가 들어오면 경쟁 사무소가 그 의뢰를 가져간다. 지도는 오염 색 대신 의뢰 위치와 직원 배정을 보여 준다.
+놓친 의뢰의 대가는 평판 하락(이미 있음)뿐이다(경쟁 사무소가 가져가는 안은 2026-11-11 접음 → [경제·경영](economy.md) "대여"). 지도는 오염 색 대신 의뢰 위치와 직원 배정을 보여 준다.
 지울 곳: `office.data.ts` `contamination`, `nodes.data.ts` `startContamination`, `office/board.ts`(`expireRise`·`failRise`·`overflow`·`overflowTargets`), `office/contracts.ts`(`offerHeat`, 오염 몫 계산), `office/chapters.ts`(`startHeat`), 평판의 오염 보너스, `ui/features/board/`(`OpsMap` 색·화살표·범례, 의뢰서의 오염 몫), 글자 키, `tests/overflow.test.ts`와 office·chapters·reputation 테스트의 오염 부분, 총괄 장부 칸. 저장은 `contamination`을 버리는 이사(경영 뼈대의 v8과 한 번에).
 
 ## 분대 작전 📝 (2026-11-11: [경제·경영](economy.md) "경영 뼈대 설계"가 이 절을 대신한다. 아래는 옛 안)
