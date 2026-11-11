@@ -43,7 +43,8 @@ export const OFFICE = {
   swarm: { every: 6.5, everyPerRisk: -0.4, group: 4, cap: 12, capPerRisk: 2 },
   // 의뢰판 난이도 1..5 (docs/rules/office.md): strong ghosts the player must get through up to the
   // goal floor + the objective's and modifiers' points (+ bossWeight for a boss), against these steps.
-  difficulty: { steps: [20, 30, 42, 55], bossWeight: 20, bountyPerLevel: 4 },
+  // affixWeight: a strong ghost with a word counts 1 + this (the floor's affixChance gives how many).
+  difficulty: { steps: [20, 30, 42, 55], bossWeight: 20, bountyPerLevel: 4, affixWeight: 1 },
   // 합동 출동 (docs/rules/office.md): same-district general offers taken in one night. The night is as
   // long as the longest; objectives on the same floor push the later one down, at most `extraFloors`
   // past that length. Not with main story or 추격 (it uses every floor).

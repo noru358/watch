@@ -85,7 +85,7 @@ src/
 │   ├── gear/         장신구 초안: 뽑기·강화·다시 굴리기·녹이기 (아직 게임에 안 붙음)
 │   ├── hub/          사무소: 걷기·충돌, 누구 앞에 서 있나, 무엇이 해금됐나
 │   └── story/        이야기: 사무소에 들어왔을 때 다음에 볼 장면
-├── store/        🗄️ 금고 (gameStore.ts)
+├── store/        🗄️ 금고 (gameStore.ts = 행동, state.ts = 금고 모양·새 판·저장 사본, staffDesk.ts = 직원)
 ├── scenes/       🎬 Phaser 화면
 │   ├── rift/         밤 화면 (RiftScene 진행 · RiftView 그리는 순서 · RiftHud 목표·체력·층수)
 │   │   └── draw/         밤에 그리는 대상별 파일: 바닥·벽, 사무소장 몸(director), 칼·휘두름 잔상·발도 효과(sword), 괴이(art/ = 귀신·구미호 도트), 소품, 바닥 예고

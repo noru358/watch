@@ -26,7 +26,7 @@ src/data/       every table: ghosts, objectives, modifiers, requests, nodes, off
 src/registry/   hookPoints, cardEffects, effects/ (conditions, runner, parts/)
 src/systems/    pure rules, one folder per module: rift (one floor), run (one night), office (board,
                 days, contamination, chapters), growth, gear, reputation, hub, story
-src/store/      GameStore and its actions
+src/store/      GameStore and its actions; state.ts (the state shape, fresh state, save copy)
 src/scenes/     Phaser screens: rift (night), hub (office), title, shared (overlay, vfx, sfx, sprite kit)
 src/ui/         React: FeatureHost + features/<panel>/
 tests/          Vitest, plus bots.ts (scripted players) and helpers.ts

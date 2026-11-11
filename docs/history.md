@@ -3,6 +3,7 @@
 Long-form log moved out of HANDOFF.md on 2026-10-28 so a new session reads less. Newest status first; read only when you need the story behind something.
 
 ## Status log (to 2026-11-11)
+- **2026-11-11 (owner "핸드오프 보고 작업 하자"):** the store split (`src/store/state.ts` holds the state shape, a fresh state, the save copy and the office / growth / night-plan views; `gameStore.ts` 483 → 272 lines, actions only). 난이도 counts affixed strong ghosts: each expected one weighs 1 + `difficulty.affixWeight` (1). Over 2,100 sampled board offers 13% read one dot harder (grade 1: 10%, 2: 10%, 3: 25%; grade 0 none); fees +1% on average.
 - **2026-11-11:** feedback table generated from the code (`npm run feel`): 38 events, 6 with no feedback; findings and five recommendations in `combat.md`, not applied yet.
 - **2026-11-11 small fixes:** rim light round the director; last night and the morning report saved (v10), so a reload still shows the morning; the empty sedative row hidden; ghost traits shown in the catalog page.
 - **2026-11-11 later:** management core in: hired staff with grade, power, speciality and trauma; R on the board puts one on an offer with the odds shown; after the night they roll, succeed like a finished job (fee, 평판, clues, no spirit or 파편) or fail with trauma; idle ones rest; wages with the rent; training and weekly hiring in the ledger; the board grows by one offer per 평판 rank. Wages raised from the spec's 120 to 200 per grade. Save v9.

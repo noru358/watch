@@ -15,17 +15,16 @@ Branch: `main` only. Docs: `docs/design/` (what and why, map in its README), `do
 - 2026-11-11: district contamination removed (owner confirmed): offers roll a grade 0..3 (`OFFICE.gradeWeights`, held in `risk`), a rare urgent offer (`OFFICE.urgent`), the map shows offer pins only, chapters open by days or 평판. Save v8 drops contamination.
 - Save is v10 (staff in v9; the last night and morning report kept in v10). Canvas of screen drafts: https://claude.ai/artifact/SZksbAdYMtCzoup7wyBzEE. 총괄 장부: https://claude.ai/artifact/YFeE4XiaLTBUWSPg1Hrm8X (republish after `npm run catalog`; its 괴이 "특징" column in `tools/catalog/template.html` does not show traits yet).
 
-- 2026-11-11: graded offers mix affixed strong ghosts in from the first floor (`OFFICE.affixByGrade`); the 난이도 dots do not count words yet.
+- 2026-11-11: graded offers mix affixed strong ghosts in from the first floor (`OFFICE.affixByGrade`); the 난이도 dots count them (`difficulty.affixWeight`). The store is split: `src/store/state.ts` (shape, fresh state, save copy, views) + `gameStore.ts` (actions).
 
 ## Next tasks
 The full list (everything ahead, by who and size) lives in `docs/design/roadmap.md` "할 일 전체" — that list is the source; strike items there when done, add new ones there. The next few, in order:
 1. Owner: pick 4 of the 6 story cards (`bible.md` "작업 중") and which of the 5 feel fixes to do (`combat.md` "연출 점검").
-2. `[Opus]` Split `src/store/gameStore.ts` under ~400 lines; make the 난이도 dots count affixed ghosts.
-3. `[Opus]` Fix a per-entity art spec (canvas size, anchor, frame names and counts) before content depends on it.
-4. `[Opus]` Day panels, screen × state check (empty, full, cannot afford, first visit) — report before changing.
-5. `[Opus]` Lending as a labour market (`4-day/economy.md` "대여"), following the multiplayer principles there.
-6. `[Opus]` Second region, decoupled from story chapters.
-7. `[Fable]` Once the cards are picked: the story (four acts, through-line, five scenes a chapter), then staff members and chapter bosses.
+2. `[Opus]` Fix a per-entity art spec (canvas size, anchor, frame names and counts) before content depends on it.
+3. `[Opus]` Day panels, screen × state check (empty, full, cannot afford, first visit) — report before changing.
+4. `[Opus]` Lending as a labour market (`4-day/economy.md` "대여"), following the multiplayer principles there.
+5. `[Opus]` Second region, decoupled from story chapters.
+6. `[Fable]` Once the cards are picked: the story (four acts, through-line, five scenes a chapter), then staff members and chapter bosses.
 
 ## Open decisions (do not build as if decided)
 Companion call key, protagonist look, big story and ending, keeping per-run cards, night length target, the cat's role, weapon B, final map style. (Settled 2026-11-11: squad operations → staff assignment; rental market → labour market without rival offices; first companion and recruiting → staff come with the story cards.)

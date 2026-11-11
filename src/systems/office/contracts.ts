@@ -124,7 +124,8 @@ export function offerGoal(offer: ContractOffer): { kind: GoalKind; floor: number
 }
 
 // 난이도 1..5 from what the night really holds up to its goal:
-// strong ghosts up to the goal floor + the objective's points (+ the target's level) + modifiers.
+// strong ghosts up to the goal floor (the expected share with an affix counts affixWeight more each)
+// + the objective's points (+ the target's level) + modifiers.
 export function offerDifficulty(offer: ContractOffer): number {
   const d = OFFICE.difficulty;
   const goal = offerGoal(offer);
@@ -132,7 +133,7 @@ export function offerDifficulty(offer: ContractOffer): number {
   offerFloors(offer).forEach((p, i) => {
     if (i > goal.floor) return;
     if (p.kind === 'boss') score += d.bossWeight;
-    else score += p.enemies;
+    else score += p.enemies * (1 + (p.affixChance ?? 0) * d.affixWeight);
   });
   if (offer.kind === 'general' && offer.objective) {
     score += GENERAL_OBJECTIVES[offer.objective].difficulty + (offer.target?.level ?? 0) * d.bountyPerLevel;

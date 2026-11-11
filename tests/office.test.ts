@@ -333,6 +333,29 @@ describe('office: objectives on the board', () => {
       expect(offerDifficulty(o)).toBeLessThanOrEqual(5);
     }
   });
+
+  it('difficulty counts strong ghosts with an affix: a graded offer never reads easier, some read harder', () => {
+    const s = fresh();
+    const d = OFFICE.difficulty as { affixWeight: number };
+    const kept = d.affixWeight;
+    const offers = [1, 2, 3].flatMap((risk) => [2, 3, 4, 5].map((floors) => general(s, 'alley', risk, 'clear', floors)));
+    try {
+      d.affixWeight = 0;
+      const plain = offers.map(offerDifficulty);
+      d.affixWeight = kept;
+      const weighted = offers.map(offerDifficulty);
+      weighted.forEach((w, i) => expect(w).toBeGreaterThanOrEqual(plain[i]!));
+      expect(weighted.some((w, i) => w > plain[i]!)).toBe(true);
+      // grade 0 has no affixed ghosts on short floors: the weight changes nothing there
+      const calm = general(s, 'alley', 0, 'clear', 3);
+      d.affixWeight = 0;
+      const calmPlain = offerDifficulty(calm);
+      d.affixWeight = kept;
+      expect(offerDifficulty(calm)).toBe(calmPlain);
+    } finally {
+      d.affixWeight = kept;
+    }
+  });
 });
 
 describe('office: generated nights are playable', () => {

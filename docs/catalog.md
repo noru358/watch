@@ -7,12 +7,12 @@
 
 | 목표 | id | 등급 | 가중치 | 길이 | 끝나는 층 | 보수× | 파편 | 난이도+ | 보수 예(3층, 등급0→3) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 섬멸 | clear | 0 | 3 | 2~4 | last | 1 | 0 | 0 | 150→180 |
-| 구조 | rescue | 0 | 2 | 2~4 | 1 | 1.1 | 0 | 2 | 200→200 |
+| 섬멸 | clear | 0 | 3 | 2~4 | last | 1 | 0 | 0 | 150→210 |
+| 구조 | rescue | 0 | 2 | 2~4 | 1 | 1.1 | 0 | 2 | 200→230 |
 | 현상수배 | bounty | 1 | 2 | 2~4 | random | 1.5 | 1 | 8 | 270→320 |
 | 추격 | chase | 2 | 1.5 | 3~4 | any | 1.4 | 1 | 8 | 250→290 |
 | 결계 | ward | 0 | 1.5 | 2~3 | random | 0.8 | 0 | 4 | 140→170 |
-| 첫차까지 | firsttrain | 1 | 1.5 | 1~2 | last | 1.2 | 0 | 6 | 220→220 |
+| 첫차까지 | firsttrain | 1 | 1.5 | 1~2 | last | 1.2 | 0 | 6 | 220→250 |
 | 속전속결 | timeattack | 0 | 2 | 1~3 | random | 1.2 | 0 | 5 | 220→250 |
 
 - 구조: hp 6 · radius 0.3 · hurtIframes 0.7 · findRange 1.4 · fearPerSecond 0.013333333333333334 · fearNearMult 2.5 · nearRange 4.5 · fearRelief 0.04 · cryEvery 5 · followSpeed 5.6 · followGap 0.9 · carryMoveMult 0.85
