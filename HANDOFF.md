@@ -20,7 +20,7 @@ Branch: `main` only. Docs: `docs/design/` (what and why, map in its README), `do
 ## Next tasks
 The full list (everything ahead, by who and size) lives in `docs/design/roadmap.md` "할 일 전체" — that list is the source; strike items there when done, add new ones there. The next few, in order:
 1. Owner: pick 4 of the 6 story cards (`bible.md` "작업 중") and which of the 5 feel fixes to do (`combat.md` "연출 점검").
-2. `[Opus]` Day panels, screen × state check (empty, full, cannot afford, first visit) — report before changing.
+2. `[Opus]` Day panels, screen × state check — looked at 2026-11-11 (headless, 960×540 and 1280×720, new / broke / rich+full staff+full bag); findings in `docs/history.md`, waiting for the owner's go before changing.
 3. `[Opus]` Lending as a labour market (`4-day/economy.md` "대여"), following the multiplayer principles there.
 4. `[Opus]` Second region, decoupled from story chapters.
 5. `[Fable]` Once the cards are picked: the story (four acts, through-line, five scenes a chapter), then staff members and chapter bosses.
