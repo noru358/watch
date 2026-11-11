@@ -38,6 +38,8 @@ const game = new Phaser.Game({
   input: { keyboard: false },
   scene: [],
 });
+// Dev-only: automated screenshots reach the camera (window.__game).
+if (import.meta.env.DEV) (window as unknown as { __game?: unknown }).__game = game;
 game.scene.add('rift', RiftScene, false);
 game.scene.add('hub', HubScene, false);
 game.scene.add('title', TitleScene, false);

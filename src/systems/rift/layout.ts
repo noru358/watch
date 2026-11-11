@@ -2,7 +2,9 @@ import { DUNGEON } from '../../data/dungeon.data';
 import type { SeededRNG } from '../../core/SeededRNG';
 import { ROOMS, type RoomId } from '../../data/rooms.data';
 import type { FloorTheme } from '../../types/ids';
-import type { Pos, Tile } from './types';
+import { DISTRICTS, type RoomKindId } from '../../data/districts.data';
+import { addLoops, furnish, hangSigns } from './district';
+import type { Pos, PropState, SignState, Tile } from './types';
 
 // Floor layout only: which tiles are floor, where the rooms are and what each room is for.
 // What stands in the rooms (ghosts, stairs, pickups) is placed by mapgen.ts.
@@ -18,11 +20,12 @@ export interface Room {
 // Where things can stand in a hand-made room, by its letters.
 export type SpotMark = 'e' | 't' | 's' | 'o' | '~';
 export interface RoomCells {
-  id: RoomId;
+  id: RoomId | RoomKindId; // a hand-made room, or a plain room furnished as a room kind (district.ts)
   mirrored: boolean;
   floor: Pos[]; // every walkable cell (tile centres)
   doors: Pos[]; // '+' cells: corridors join here
   spots: Partial<Record<SpotMark, Pos[]>>;
+  props: Pos[]; // 'p' cells (solid; a district may draw them as props)
 }
 
 // Start = where the director arrives; exit = farthest walk from the start (stairs + guards);
@@ -76,11 +79,12 @@ export function templateRows(id: RoomId, mirrored: boolean): string[] {
 
 // Carves a hand-made room at (x, y) and lists its cells.
 function carveTemplate(tiles: Tile[], room: Room, id: RoomId, mirrored: boolean, rng: SeededRNG): RoomCells {
-  const cells: RoomCells = { id, mirrored, floor: [], doors: [], spots: {} };
+  const cells: RoomCells = { id, mirrored, floor: [], doors: [], spots: {}, props: [] };
   templateRows(id, mirrored).forEach((row, dy) => {
     [...row].forEach((ch, dx) => {
       const x = room.x + dx;
       const y = room.y + dy;
+      if (ch === 'p') cells.props.push({ x, y });
       if (ch === '#' || ch === 'p') return;
       if (ch === '?' && !rng.chance(DUNGEON.templateHalf)) return;
       carve(tiles, x, y);
@@ -104,7 +108,8 @@ function anchor(room: Room, toward: Room, rng: SeededRNG): Pos {
 // Random non-overlapping rooms joined in sequence by L-shaped corridors, so every room is reachable.
 // With a theme that has hand-made rooms, some rooms (never the first, the start) are one of those.
 // A theme without any draws exactly the same numbers as before, so its maps do not change.
-export function randomRooms(rng: SeededRNG, theme?: FloorTheme): { tiles: Tile[]; rooms: Room[] } {
+// A district with rules (districts.data.ts) then adds loops, furnishes rooms and hangs neon signs.
+export function randomRooms(rng: SeededRNG, theme?: FloorTheme): { tiles: Tile[]; rooms: Room[]; props: PropState[]; signs: SignState[] } {
   const { cols, rows, corridorWidth: cw } = DUNGEON;
   const tiles = solid();
   const rooms: Room[] = [];
@@ -139,7 +144,23 @@ export function randomRooms(rng: SeededRNG, theme?: FloorTheme): { tiles: Tile[]
     for (let x = Math.min(ax, bx); x <= Math.max(ax, bx) + cw - 1; x++) for (let k = 0; k < cw; k++) carve(tiles, x, ay + k);
     for (let y = Math.min(ay, by); y <= Math.max(ay, by) + cw - 1; y++) for (let k = 0; k < cw; k++) carve(tiles, bx + k, y);
   }
-  return { tiles, rooms };
+  const district = theme ? DISTRICTS[theme] : undefined;
+  if (!district) return { tiles, rooms, props: [], signs: [] };
+  addLoops(tiles, rooms, district, rng);
+  const props = furnish(tiles, rooms, district, rng);
+  const signs = hangSigns(tiles, props, district, rng);
+  return { tiles, rooms, props, signs };
+}
+
+// An L-shaped corridor `cw` tiles wide from a to b (horizontal at a's row, then vertical at b's column).
+export function corridor(tiles: Tile[], a: Pos, b: Pos): void {
+  const cw = DUNGEON.corridorWidth;
+  const ax = Math.floor(a.x);
+  const ay = Math.floor(a.y);
+  const bx = Math.floor(b.x);
+  const by = Math.floor(b.y);
+  for (let x = Math.min(ax, bx); x <= Math.max(ax, bx) + cw - 1; x++) for (let k = 0; k < cw; k++) carve(tiles, x, ay + k);
+  for (let y = Math.min(ay, by); y <= Math.max(ay, by) + cw - 1; y++) for (let k = 0; k < cw; k++) carve(tiles, bx + k, y);
 }
 
 function weightedId(ids: RoomId[], rng: SeededRNG): RoomId {

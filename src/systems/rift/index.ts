@@ -9,4 +9,4 @@ export { harmless } from './strike';
 export { perkHud, activeSource, perkRows } from './hooks';
 export { survivorOf, strongLeft as strongStanding, type ObjectiveState, type Survivor, type QuarryCarry, type WardSite } from './objectives';
 export type { LairState } from './lair';
-export type { Floor, RiftInput, Enemy, Player, Stats, Pos, Telegraph, FloorStatus, EnemyShot, Theft } from './types';
+export type { Floor, RiftInput, Enemy, Player, Stats, Pos, Telegraph, FloorStatus, EnemyShot, Theft, PropState, SignState } from './types';

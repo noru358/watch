@@ -7,6 +7,7 @@ import type { GameEvent } from '../../types/events';
 import type { ObjectiveState } from './objectives/types';
 import type { LairState } from './lair';
 import type { FloorMods } from './modifiers';
+import type { PropArtId, SignArtId } from '../../data/districts.data';
 
 // Positions are in TILE units (floats); tile (x, y) covers [x, x+1) × [y, y+1).
 export type Tile = 'wall' | 'floor';
@@ -14,6 +15,24 @@ export type Tile = 'wall' | 'floor';
 export interface Pos {
   x: number;
   y: number;
+}
+
+// A prop on whole tiles (districts.data.ts PROPS): its tiles are 'wall' while it stands.
+export interface PropState {
+  id: number;
+  art: PropArtId;
+  x: number; // top-left tile
+  y: number;
+  w: number;
+  h: number;
+  hp: number | null; // blows left (null = unbreakable)
+}
+
+// A neon sign on the wall tile (x, y), on the face seen from the floor below it.
+export interface SignState {
+  x: number;
+  y: number;
+  art: SignArtId;
 }
 
 export interface Body extends Pos {
@@ -222,6 +241,9 @@ export interface Floor {
   rows: number;
   tiles: Tile[]; // row-major
   theme: FloorTheme; // which tile look this floor uses
+  props: PropState[]; // street props (district rules); their tiles are walls until broken
+  signs: SignState[]; // neon signs on wall faces
+  debris: Pos[]; // where props were broken (drawn on the floor)
   stairs: Pos | null; // tile centre; null on boss / arena floors
   objective: ObjectiveState | null; // what opens the stairs (normal floors); null = open from the start
   goal: boolean; // the contract's main objective is on this floor (finishing it offers to go home)

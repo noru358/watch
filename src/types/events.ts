@@ -11,6 +11,8 @@ export interface GameEventMap {
   enemyBurst: { x: number; y: number }; // a burster's blast
   playerGrabbed: { x: number; y: number }; // grab trait: rooted
   shotCut: { x: number; y: number }; // a swing cut a ghost's bullet
+  propHit: { x: number; y: number; id: number }; // a blow landed on a breakable prop
+  propBroken: { x: number; y: number }; // a prop broke: its tiles are floor now (the map redraws)
   ghostRally: { x: number; y: number }; // rally trait: the call went out
   skillStolen: { x: number; y: number };
   skillRecovered: { x: number; y: number };

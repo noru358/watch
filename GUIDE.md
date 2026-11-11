@@ -76,7 +76,7 @@ src/
 ├── i18n/         🔤 화면 글자 (ko.ts 한국어, en.ts 영어)
 ├── registry/     🧩 부품 상자: 강화 카드 효과(cardEffects.ts), 효과 부품(effects/ — 기술·장신구 특수·보급품이 전부 이 부품을 조합한 데이터 줄), 끼우는 타이밍 목록(hookPoints.ts)
 ├── systems/      🧮 계산기 (화면 코드 없음, 테스트 있음)
-│   ├── rift/         한 층: 방 배치·방 역할(layout) · 괴이·계단 놓기(mapgen) · 층 목표(objectives/: 목표 하나 = 파일 하나) · 괴이 특성(traits/: 특성 하나 = 파일 하나 — 방어·붙잡기·뛰어들기·터지기·쏘기·부르기·커지기·훔치기) · 예고가 끝날 때의 일(strike.ts) · 괴이 소굴(lair) · 액티브 기술(skills) · 벽 충돌 · 주인공(베기·발도·돌진) · 괴이 · 보스 · 잡몹 물결 · 예고
+│   ├── rift/         한 층: 방 배치·방 역할(layout) · 괴이·계단 놓기(mapgen) · 층 목표(objectives/: 목표 하나 = 파일 하나) · 괴이 특성(traits/: 특성 하나 = 파일 하나 — 방어·붙잡기·뛰어들기·터지기·쏘기·부르기·커지기·훔치기) · 예고가 끝날 때의 일(strike.ts) · 동네 규칙: 고리·방 종류·간판·소품 부수기(district) · 괴이 소굴(lair) · 액티브 기술(skills) · 벽 충돌 · 주인공(베기·발도·돌진) · 괴이 · 보스 · 잡몹 물결 · 예고
 │   ├── run/          한 밤: 층 진행 · 강화 카드 · 능력치 계산(기본 → 트레이닝 → 기술 → 카드) · 정산
 │   ├── growth/       성장: 트레이닝 값·사기, 기술 칸 열기·바꾸기, 시설 공사, 보급품, 트라우마 효과·회복
 │   ├── staff/        직원: 배정 성공률 · 밤 판정 · 주급 · 훈련 · 구인 (규칙 docs/rules/staff.md)
@@ -88,7 +88,7 @@ src/
 ├── store/        🗄️ 금고 (gameStore.ts = 행동, state.ts = 금고 모양·새 판·저장 사본, staffDesk.ts = 직원)
 ├── scenes/       🎬 Phaser 화면
 │   ├── rift/         밤 화면 (RiftScene 진행 · RiftView 그리는 순서 · RiftHud 목표·체력·층수)
-│   │   └── draw/         밤에 그리는 대상별 파일: 바닥·벽, 사무소장 몸(director), 칼·휘두름 잔상·발도 효과(sword), 괴이(art/ = 귀신·구미호 도트), 소품, 바닥 예고
+│   │   └── draw/         밤에 그리는 대상별 파일: 바닥·벽, 사무소장 몸(director), 칼·휘두름 잔상·발도 효과(sword), 괴이(art/ = 귀신·구미호 도트, 골목 소품·간판 streetArt), 소품, 골목 바닥·벽(streetTiles)·골목 소품·간판(street), 바닥 예고
 │   ├── hub/          낮 화면: 걸어다니는 사무소 실내 (HubScene 진행·경리 말풍선 · HubView 그리기)
 │   ├── title/        타이틀: 네온 간판 + 이어하기·새로 시작·설정(음량)
 │   └── shared/       공용: 카드 선택·결과 창, 타격 연출, 효과음
@@ -99,6 +99,7 @@ tests/            ✅ 자동 테스트
 tools/artlab/     🎨 그림체 견본 작업대 (게임 밖, 그림을 글자 격자로 적어서 뽑음; 구미호 생성기 gumiho_grid.py)
 tools/spritekit/  🧹 AI가 만든 픽셀 시트를 진짜 픽셀로 정리하는 도구 (+ 얼굴 손보기 face_edit.py)
 tools/catalog/    📒 총괄 장부: 게임의 모든 숫자·글을 코드에서 뽑아 웹 페이지 하나로 (npm run catalog). 줄마다 메모 → "장부 메모 반영해". 글 버전은 docs/catalog.md (AI가 읽는 용)
+tools/streetart/  🏮 골목 소품·간판 도트를 만드는 스크립트 (python3 tools/streetart/make.py → draw/art/streetArt.ts + 미리보기)
 tools/rooms/      🧱 방 틀 미리보기: src/data/rooms.data.ts의 글자 방을 평면도로 그린 페이지 (npm run rooms → dist-rooms/index.html, Claude가 게시)
 assets/source/    🗃️ 받은 그림 원본 보관 (제미나이 시트 등, 지우지 않음)
 assets/sprites/   🖼️ 원본을 정리한 게임용 그림 (지금: 주인공 제미나이 1차·3차) → assets/README.md
@@ -136,6 +137,7 @@ docs/rules/       🧮 규칙 장부(지금 코드가 계산하는 공식과 숫
 | 기술(패시브 18개, 칸 값, 액티브 3개) | `skills.data.ts` |
 | 시설 단계 값·효과, 보급품 | `facilities.data.ts` |
 | 맵 크기·방 개수·복도 폭·영력 줍기 | `dungeon.data.ts` |
+| 동네마다 층을 꾸미는 규칙: 고리 복도 수, 방 종류(포장마차 거리·인쇄소 뒷마당·가로등 공터·적치장)와 소품 배치, 소품(부서지나·영력·빛), 네온 간판 수·빛 | `districts.data.ts` |
 | 실패 페널티, 트라우마 효과·회복 | `penalties.data.ts` |
 | 타격감·화면 (멈칫 길이와 쿨다운·흔들림·확대 배율·카메라·키보드 조준·글자 선명도·색) | `feel.data.ts` |
 | 효과음 | `sfx.data.ts` |

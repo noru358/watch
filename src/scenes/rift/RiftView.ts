@@ -11,6 +11,10 @@ import { drawProps } from './draw/props';
 import { drawTelegraph } from './draw/telegraph';
 import { drawTiles } from './draw/tiles';
 import { drawEnemyMark, drawFloorMarks, drawShots } from './draw/marks';
+import { drawSigns, drawStreetProp, streetLights } from './draw/street';
+
+// Flash keys for props, apart from enemy ids.
+const PROP_FLASH = 1_000_000;
 
 export const tileToPx = (x: number, y: number) => ({ x: x * T, y: y * T });
 
@@ -41,6 +45,10 @@ export class RiftView {
 
   flash(entityId: number): void {
     this.flashes.set(entityId, FEEL.flashDuration);
+  }
+
+  flashProp(propId: number): void {
+    this.flashes.set(PROP_FLASH + propId, FEEL.flashDuration);
   }
 
   setNeon(on: boolean): void {
@@ -78,12 +86,14 @@ export class RiftView {
     if (f.payphone) pool(f.payphone.x, f.payphone.y - 0.5, FEEL.lights.payphone);
     const s = survivorOf(f);
     if (s) pool(s.x, s.y - 0.5, FEEL.lights.survivor);
+    streetLights(f, this.clock, pool);
   }
 
   render(f: Floor, alpha: number, dt: number): void {
     const g = this.g;
     this.clock += dt;
     g.clear();
+    drawSigns(g, f, this.clock);
     drawProps(g, f, this.clock);
     drawFloorMarks(g, f, this.clock);
     this.tele.clear();
@@ -99,6 +109,7 @@ export class RiftView {
         drawEnemyMark(g, e, alpha, this.clock);
       },
     }));
+    for (const p of f.props) draws.push({ y: p.y + p.h, fn: () => drawStreetProp(g, p, this.flashing(PROP_FLASH + p.id, dt)) });
     const s = survivorOf(f);
     if (s) draws.push({ y: s.y, fn: () => drawSurvivor(g, s, alpha, this.clock) });
     draws.push({ y: f.player.y, fn: () => drawDirector(g, f.player, f, alpha, this.clock, (anim, n) => directorSprite(this.scene, anim, n)) });

@@ -53,6 +53,9 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
     rows: DUNGEON.rows,
     tiles,
     theme: plan.theme,
+    props: [],
+    signs: [],
+    debris: [],
     stairs: null,
     objective: null,
     goal: plan.kind === 'normal' && plan.goal,
@@ -135,7 +138,7 @@ function baseFloor(index: number, tiles: Tile[], start: Pos, carry: FloorCarry, 
 // heap in the treasure room. Modifiers and "deep" floors (past the goal) add on top; a plain clear
 // floor draws exactly the same RNG as before, so main-story maps stay the same for a given seed.
 function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>, rng: SeededRNG, carry: FloorCarry): Floor {
-  const { tiles, rooms } = randomRooms(rng, plan.theme);
+  const { tiles, rooms, props, signs } = randomRooms(rng, plan.theme);
   const rooms_ = rooms;
   const { start, exit, treasure, side } = assignRoles(tiles, rooms, rng);
   const mods = plan.mods ?? [];
@@ -171,6 +174,9 @@ function normalFloor(index: number, plan: Extract<FloorPlan, { kind: 'normal' }>
   if (lairRoom) quiet = quiet.filter((r) => r !== lairRoom);
   const spread = side.filter((r) => r !== lairRoom);
   const f = baseFloor(index, tiles, start, carry, plan);
+  f.props = props;
+  f.signs = signs;
+  f.nextId = props.reduce((n, p) => Math.max(n, p.id + 1), f.nextId);
   f.stairs = spot([exit], 's');
   if (plan.payphone) f.payphone = free(spread);
   for (let i = 0; i < plan.enemies; i++) makeEnemy(f, rng.pick(plan.pool), i < DUNGEON.exitGuards ? spot([exit], 'e', f.stairs) : spot(spread, 'e'));

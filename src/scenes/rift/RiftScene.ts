@@ -227,6 +227,9 @@ export class RiftScene extends Phaser.Scene {
         this.view.drawMap(this.floor);
         this.overlay.banner(t('rift.lairLocked'));
       }
+      // A street prop took a blow (flash) or broke (its tiles are floor now: redraw the map).
+      for (const e of events) if (e.type === 'propHit') this.view.flashProp(e.id);
+      if (events.some((e) => e.type === 'propBroken')) this.view.drawMap(this.floor);
       if (events.some((e) => e.type === 'lairOpened')) {
         this.view.drawMap(this.floor);
         this.overlay.banner(t('rift.lairOpened'));

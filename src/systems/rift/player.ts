@@ -6,6 +6,7 @@ import { hitEnemy } from './combat';
 import { runHooks } from './hooks';
 import { useActive } from './skills';
 import { cutShots } from './strike';
+import { cutProps } from './district';
 import { survivorOf } from './objectives';
 import { angleDiff, dist, inTelegraph, moveBody } from './physics';
 import type { Enemy, Floor, RiftInput } from './types';
@@ -30,6 +31,7 @@ function swing(f: Floor, rng: SeededRNG): void {
   }
   if (landed) p.focus = Math.min(s.focusMax, p.focus + 1 + s.focusGain);
   cutShots(f, s.reach, w.arc, p.aim);
+  cutProps(f, s.reach, w.arc, p.aim);
   if (p.rooted > 0) p.rooted = Math.max(0, p.rooted - p.rootBreak); // a caught director hacks free
   runHooks(f, 'onSwing', { heavy, damage, rng });
   p.swingT = heavy ? s.finisherRecovery : s.swingTime;
@@ -105,6 +107,7 @@ function releaseDraw(f: Floor, rng: SeededRNG): void {
     f.events.push({ type: 'drawCut', x: p.x, y: p.y });
     hitAll(w.drawReach, (a) => angleDiff(a, p.drawAim) <= w.drawArc / 2, s.drawSlash, false);
     cutShots(f, w.drawReach, w.drawArc, p.drawAim);
+    cutProps(f, w.drawReach, w.drawArc, p.drawAim);
     return;
   }
   f.events.push({ type: 'parry', x: p.x, y: p.y });
