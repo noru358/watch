@@ -68,7 +68,7 @@ export const HUB_SPOTS: Record<HubSpotId, HubSpotData> = {
 
 export const LOBBY_FEATURES: Record<LobbyFeatureId, LobbyFeatureData> = {
   sortie: { titleKey: 'feature.sortie.title', wide: true },
-  ledger: { titleKey: 'feature.ledger.title', wide: false },
+  ledger: { titleKey: 'feature.ledger.title', wide: true }, // books on the left, staff and works on the right
   training: { titleKey: 'feature.training.title', wide: true },
   sofa: { titleKey: 'feature.sofa.title', wide: false },
   bench: { titleKey: 'feature.bench.title', wide: false },

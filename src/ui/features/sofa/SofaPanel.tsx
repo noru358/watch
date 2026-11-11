@@ -1,7 +1,7 @@
 import { useState, useSyncExternalStore } from 'react';
 import { store } from '../../../app/services';
 import { TRAUMA } from '../../../data/penalties.data';
-import { t } from '../../../i18n';
+import { t, won } from '../../../i18n';
 import { restAmount, traumaEffects } from '../../../systems/growth';
 import { panelCss as css } from '../panel';
 import { priceStyle, rowStyle, useNav } from '../useNav';
@@ -14,7 +14,7 @@ export function SofaPanel() {
   const fx = traumaEffects(s.trauma);
   const options = [
     { key: 'rest', name: t('sofa.rest'), desc: t('sofa.restDesc', { amount: restAmount(s) }), price: '', can: true },
-    { key: 'capital', name: t('sofa.capital'), desc: t('sofa.capitalDesc', { amount: TRAUMA.capitalAmount }), price: `₩${TRAUMA.capitalCost}`, can: s.trauma > 0 && s.money >= TRAUMA.capitalCost },
+    { key: 'capital', name: t('sofa.capital'), desc: t('sofa.capitalDesc', { amount: TRAUMA.capitalAmount }), price: won(TRAUMA.capitalCost), can: s.trauma > 0 && s.money >= TRAUMA.capitalCost },
   ] as const;
   const pick = (i: number) => {
     const o = options[i]!;

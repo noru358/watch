@@ -2,7 +2,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { input, requestPhase, store } from '../../../app/services';
 import { NODES } from '../../../data/nodes.data';
 import { OFFICE } from '../../../data/office.data';
-import { t } from '../../../i18n';
+import { t, won } from '../../../i18n';
 import { activeChapter, canJoin, chapterStatus, joinCandidates, type ContractOffer, type OfficeState } from '../../../systems/office';
 import { deskEffects, traumaEffects } from '../../../systems/growth';
 import { SUPPLIES } from '../../../data/facilities.data';
@@ -135,7 +135,7 @@ export function BoardPanel() {
             {s.debt > 0 && <span style={{ color: L.bounty }}>{t('board.debt', { debt: s.debt })}</span>}
             {s.trauma > 0 && <span style={{ color: s.trauma >= 2 ? L.bounty : L.dim }}>{t('board.trauma', { trauma: s.trauma })}</span>}
             {s.supply && <span>{t('board.supply', { name: t(SUPPLIES[s.supply].nameKey) })}</span>}
-            <span style={{ fontFamily: 'monospace', fontSize: 16, color: L.ink }}>₩ {s.money}</span>
+            <span style={{ fontFamily: 'monospace', fontSize: 16, color: L.ink }}>{won(s.money)}</span>
           </span>
         </div>
         <OpsMap board={s.board} selected={sel} onPick={pickNode} clue={clue} rank={s.rankReached} day={s.day} />

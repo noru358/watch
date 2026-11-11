@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { store } from '../../../app/services';
 import { closeFeature, openFeature } from '../../../app/features';
 import { OFFICE } from '../../../data/office.data';
-import { t, type TKey } from '../../../i18n';
+import { num, t, won, type TKey } from '../../../i18n';
 import { NODES } from '../../../data/nodes.data';
 import type { Morning } from '../../../store/staffDesk';
 import { activeChapter, chapterStatus, type OfficeState } from '../../../systems/office';
@@ -15,7 +15,7 @@ import { rankUnlocks } from '../rankUnlocks';
 import { outcomeLabel } from '../lastRun';
 import { panelCss as css } from '../panel';
 import { priceStyle, rowStyle, useNav } from '../useNav';
-import { staffRows } from './staffRows';
+import { staffRows, type LedgerRow } from './staffRows';
 import { staffName } from '../staffName';
 
 // The staff's night and the wages, one line each (docs/rules/staff.md).
@@ -61,48 +61,71 @@ function rankNextLine(s: { reputation: number; rankReached: number }): string {
   return t('ledger.rankNext', { need: next.need, unlocks: rankUnlocks(next.next).join(', ') });
 }
 
-// The bookkeeper's books: the day, rent and debt, money, trauma, record, last night.
+// The bookkeeper's books, two columns so the whole desk fits one screen: left the day, money, record
+// and last night; right one list with one cursor — 직원, 구인, then 시설 공사.
 export function LedgerPanel() {
   const s = useSyncExternalStore(store.subscribe, store.getState);
   const rentIn = OFFICE.rentEvery - (s.day % OFFICE.rentEvery);
   return (
     <>
       <div style={{ fontSize: 15 }}>“{t('feature.ledger.line')} {morningLines(s.lastMorning).join(' ')}”</div>
-      <div style={css.box}>
-        <div style={css.row}><span>{t('ledger.day')}</span><span>{t('board.day', { day: s.day })}</span></div>
-        <div style={css.row}><span>{t('ledger.rent')}</span><span>{t('ledger.rentDue', { rent: OFFICE.rent, days: rentIn })}</span></div>
-        {s.debt > 0 && <div style={{ ...css.row, color: '#ff5d7a' }}><span>{t('ledger.debt')}</span><span>{s.debt}</span></div>}
-        <div style={css.row}><span>{t('day.money')}</span><span>{s.money}</span></div>
-        <div style={css.row}><span>{t('day.trauma')}</span><span>{s.trauma}</span></div>
-        <div style={css.row}><span>{t('ledger.shards')}</span><span>{s.shards}</span></div>
-        <div style={css.row}><span>{t('day.runs')}</span><span>{s.solved}</span></div>
-        <div style={css.row}><span>{t('ledger.story')}</span><span>{storyLine(s)}</span></div>
-        <div style={css.row}><span>{t('ledger.rank')}</span><span>{t('ledger.rankLine', { name: t(RANKS[s.rankReached]!.nameKey), points: s.reputation })}</span></div>
-        <div style={{ ...css.row, fontSize: 12, color: '#c9bfe8' }}><span />{rankNextLine(s)}</div>
-      </div>
-      <Facilities />
-      {s.lastRun && (
-        <div style={css.box}>
-          <div style={{ ...css.row, ...css.dim }}>{t('day.lastResult')}</div>
-          <div style={css.row}><span>{outcomeLabel(s.lastRun)}</span><span>+{s.lastRun.settlement.moneyDelta}</span></div>
-          <button style={{ ...css.chip, marginTop: 6 }} onClick={() => { closeFeature(); openFeature('morning'); }}>{t('morning.open')}</button>
+      <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+        <div style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={css.box}>
+            <div style={css.row}><span>{t('ledger.day')}</span><span>{t('board.day', { day: s.day })}</span></div>
+            <div style={css.row}><span>{t('ledger.rent')}</span><span>{t('ledger.rentDue', { rent: OFFICE.rent, days: rentIn })}</span></div>
+            {s.debt > 0 && <div style={{ ...css.row, color: '#ff5d7a' }}><span>{t('ledger.debt')}</span><span>{won(s.debt)}</span></div>}
+            <div style={css.row}><span>{t('day.money')}</span><span>{won(s.money)}</span></div>
+            <div style={css.row}><span>{t('day.trauma')}</span><span>{s.trauma}</span></div>
+            <div style={css.row}><span>{t('ledger.shards')}</span><span>{num(s.shards)}</span></div>
+            <div style={css.row}><span>{t('day.runs')}</span><span>{num(s.solved)}</span></div>
+            <div style={css.row}><span>{t('ledger.story')}</span><span>{storyLine(s)}</span></div>
+            <div style={css.row}><span>{t('ledger.rank')}</span><span>{t('ledger.rankLine', { name: t(RANKS[s.rankReached]!.nameKey), points: s.reputation })}</span></div>
+            <div style={{ ...css.row, fontSize: 12, color: '#c9bfe8' }}><span />{rankNextLine(s)}</div>
+          </div>
+          {s.lastRun && (
+            <div style={css.box}>
+              <div style={{ ...css.row, ...css.dim }}>{t('day.lastResult')}</div>
+              <div style={css.row}><span>{outcomeLabel(s.lastRun)}</span><span>+{won(s.lastRun.settlement.moneyDelta)}</span></div>
+              <button style={{ ...css.chip, marginTop: 6 }} onClick={() => { closeFeature(); openFeature('morning'); }}>{t('morning.open')}</button>
+            </div>
+          )}
         </div>
-      )}
+        <div style={{ flex: '1 1 0', minWidth: 0 }}>
+          <Desk />
+        </div>
+      </div>
     </>
   );
 }
 
-// 시설 공사 (docs/rules/growth.md), then 직원 and 구인 (docs/rules/staff.md): one list, one cursor.
-function Facilities() {
+// 직원 and 구인 (docs/rules/staff.md), then 시설 공사 (docs/rules/growth.md): one list, one cursor.
+function Desk() {
   const s = useSyncExternalStore(store.subscribe, store.getState);
   const crew = staffRows(s);
-  const act = (i: number) => (i < FACILITY_IDS.length ? store.buildFacility(FACILITY_IDS[i]!) : crew[i - FACILITY_IDS.length]?.act());
-  const [cursor, setCursor] = useNav(FACILITY_IDS.length + crew.length, act);
-  const build = act;
+  const people = [...crew.roster, ...crew.hire];
+  const act = (i: number) => (i < people.length ? people[i]!.act() : store.buildFacility(FACILITY_IDS[i - people.length]!));
+  const [cursor, setCursor] = useNav(people.length + FACILITY_IDS.length, act);
+  const head = (text: string) => <div style={{ ...css.row, ...css.dim, marginTop: 8 }}>{text}</div>;
+  const row = (r: LedgerRow, i: number) => (
+    <div key={r.key}>
+      {r.head && head(r.head)}
+      <div style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseMove={() => setCursor(i)} onClick={r.act}>
+        <div style={{ flex: 1 }}>{r.body}</div>
+        {r.price}
+      </div>
+    </div>
+  );
   return (
     <div style={css.box}>
-      <div style={{ ...css.row, ...css.dim }}>{t('ledger.facilities')}</div>
-      {FACILITY_IDS.map((id, i) => {
+      {s.staff.length === 0 && <div style={{ ...css.row, ...css.dim }}>{t('staff.none')}</div>}
+      {crew.roster.map((r, k) => row(r, k))}
+      {head(crew.hireHead)}
+      {crew.hireNote && <div style={{ fontSize: 12, color: '#c9bfe8', padding: '2px 0' }}>{crew.hireNote}</div>}
+      {crew.hire.map((r, k) => row(r, crew.roster.length + k))}
+      {head(t('ledger.facilities'))}
+      {FACILITY_IDS.map((id, k) => {
+        const i = people.length + k;
         const f = FACILITIES[id];
         const level = s.facilities[id];
         const price = facilityPrice(s, id);
@@ -110,7 +133,7 @@ function Facilities() {
         const needRank = facilityRankNeeded(s, id);
         const locked = needRank !== null && needRank > s.rankReached;
         return (
-          <div key={id} style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseMove={() => setCursor(i)} onClick={() => build(i)}>
+          <div key={id} style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseMove={() => setCursor(i)} onClick={() => act(i)}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15 }}>{t(f.nameKey)} <span style={{ fontSize: 12, color: '#c9bfe8' }}>{level > 0 ? t('facility.level', { level }) : t('facility.none')}</span></div>
               <div style={{ fontSize: 12, color: '#c9bfe8' }}>{next ? `→ ${t(next)}` : t('facility.done')}</div>
@@ -120,19 +143,6 @@ function Facilities() {
             ) : (
               <span style={priceStyle(price !== null && s.money >= price)}>{price === null ? '' : t('facility.build', { cost: price })}</span>
             )}
-          </div>
-        );
-      })}
-      {s.staff.length === 0 && <div style={{ ...css.row, ...css.dim, marginTop: 8 }}>{t('staff.none')}</div>}
-      {crew.map((r, k) => {
-        const i = FACILITY_IDS.length + k;
-        return (
-          <div key={r.key}>
-            {r.head && <div style={{ ...css.row, ...css.dim, marginTop: 8 }}>{r.head}</div>}
-            <div style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseMove={() => setCursor(i)} onClick={r.act}>
-              <div style={{ flex: 1 }}>{r.body}</div>
-              {r.price}
-            </div>
           </div>
         );
       })}

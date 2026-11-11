@@ -1,6 +1,6 @@
 import type { JoinState } from './BoardPanel';
 import { NODES } from '../../../data/nodes.data';
-import { t, type TKey } from '../../../i18n';
+import { t, won, type TKey } from '../../../i18n';
 import { offerDifficulty, offerGoal, offerHeat, offerLength, type ContractOffer, type GoalKind } from '../../../systems/office';
 import { MODIFIERS } from '../../../data/modifiers.data';
 import { offerBody, offerTitle, targetName, targetTrait } from './offerText';
@@ -172,7 +172,7 @@ export function OfferSheet({ offer, day, known, index, count, join, onJoin, link
           </div>
           <div style={cell}>
             <span style={small}>{t('board.reward')}</span>
-            <span style={{ fontFamily: 'monospace', fontSize: 24, fontWeight: 700, lineHeight: 1 }}>₩ {offer.fee}</span>
+            <span style={{ fontFamily: 'monospace', fontSize: 24, fontWeight: 700, lineHeight: 1 }}>{won(offer.fee)}</span>
             <span style={{ display: 'flex', gap: 8, fontSize: 12, fontWeight: 700 }}>
               {offer.shards > 0 && <span style={{ color: L.shardInk }}>+ {t('board.shards', { shards: offer.shards })}</span>}
               {heat.fee > 0 && <span style={{ color: L.paperInk }}><span style={{ display: 'inline-block', width: 8, height: 8, marginRight: 4, background: heatColor(heat.risk), outline: `1px solid ${L.paperInk}` }} />{t('board.heatFee', { fee: heat.fee })}</span>}

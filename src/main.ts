@@ -6,16 +6,26 @@ import { forgetScene } from './app/dialogue';
 import { bindPhaseSwitch, input, requestPhase, store } from './app/services';
 import { eventBus } from './core/EventBus';
 import { PhaseController } from './core/phase';
-import { PALETTE, SCREEN } from './data/feel.data';
+import { PALETTE, SCREEN, UI_STAGE } from './data/feel.data';
 import { HubScene } from './scenes/hub/HubScene';
 import { RiftScene } from './scenes/rift/RiftScene';
 import { TitleScene } from './scenes/title/TitleScene';
 import { FeatureHost } from './ui/FeatureHost';
 
 const dayEl = document.getElementById('day-root')!;
-const dayRoot = createRoot(dayEl);
 // Panels catch their own clicks; empty overlay space lets clicks through to the hub canvas.
 dayEl.style.pointerEvents = 'none';
+// The panels' stage: UI_STAGE pixels, scaled to fit the window and centred like the canvas.
+const stage = document.createElement('div');
+Object.assign(stage.style, { position: 'absolute', left: '50%', top: '50%', width: `${UI_STAGE.width}px`, height: `${UI_STAGE.height}px`, transformOrigin: 'center' });
+dayEl.appendChild(stage);
+const fitStage = () => {
+  const k = Math.min(window.innerWidth / UI_STAGE.width, window.innerHeight / UI_STAGE.height);
+  stage.style.transform = `translate(-50%, -50%) scale(${k})`;
+};
+fitStage();
+window.addEventListener('resize', fitStage);
+const dayRoot = createRoot(stage);
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,

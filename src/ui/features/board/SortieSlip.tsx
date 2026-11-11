@@ -1,6 +1,6 @@
 import { MODIFIERS } from '../../../data/modifiers.data';
 import { NODES } from '../../../data/nodes.data';
-import { t } from '../../../i18n';
+import { t, won } from '../../../i18n';
 import { nightDifficulty, planNight, type ContractOffer } from '../../../systems/office';
 import { DifficultyDots } from './OfferSheet';
 import { targetName } from './offerText';
@@ -72,7 +72,7 @@ export function SortieSlip({ offers }: { offers: readonly ContractOffer[] }) {
               {r.what}
               {r.mods.map((m) => <span key={m} style={{ marginLeft: 6, color: L.stamp, fontSize: 11 }}>{m}</span>)}
             </span>
-            <span style={{ fontFamily: 'monospace', textAlign: 'right' }}>{r.fee === null ? '—' : r.fee}</span>
+            <span style={{ fontFamily: 'monospace', textAlign: 'right' }}>{r.fee === null ? '—' : won(r.fee)}</span>
           </div>
         ))}
         <div style={{ borderTop: `1px dashed #8d849a`, paddingTop: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -80,7 +80,7 @@ export function SortieSlip({ offers }: { offers: readonly ContractOffer[] }) {
             <span style={{ fontSize: 11, color: L.paperDim }}>{t('board.slipTotal')}</span>
             <DifficultyDots value={difficulty} heat={heat.dots} risk={heat.risk} size={12} />
           </span>
-          <span style={{ fontFamily: 'monospace', fontSize: 18, fontWeight: 800 }}>₩ {total}</span>
+          <span style={{ fontFamily: 'monospace', fontSize: 18, fontWeight: 800 }}>{won(total)}</span>
         </div>
       </div>
     </div>

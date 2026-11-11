@@ -2,6 +2,9 @@
 import type { FloorTheme } from '../types/ids';
 
 export const SCREEN = { width: 960, height: 540 } as const;
+// The day panels are laid out on a fixed stage of this size, scaled to the window the same way the
+// game canvas is (fit, centred), so a panel looks the same and fits the same on every window.
+export const UI_STAGE = { width: 1280, height: 720 } as const;
 
 export const FEEL = {
   fixedStep: 1 / 60, // simulation tick (seconds)

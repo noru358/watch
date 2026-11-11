@@ -2,10 +2,11 @@ import { staffLines } from '../ledger/LedgerPanel';
 import { useEffect, useSyncExternalStore } from 'react';
 import { closeFeature, openFeature } from '../../../app/features';
 import { input, store } from '../../../app/services';
-import { GEAR_SLOTS, GRADES } from '../../../data/gear.data';
+import { GRADE_IDS, GRADES } from '../../../data/gear.data';
+import type { GearItem } from '../../../systems/gear';
 import { NODES } from '../../../data/nodes.data';
 import { OFFICE } from '../../../data/office.data';
-import { t } from '../../../i18n';
+import { t, won } from '../../../i18n';
 import type { ContractOffer } from '../../../systems/office';
 import { BOARD_LOOK as L } from '../board/look';
 import { offerTitle, targetName } from '../board/offerText';
@@ -25,6 +26,12 @@ function what(o: ContractOffer): string {
 // 아침 보고 (canvas MorningReport, user 2026-10-28 "가안 ㅇㅋ"): the bookkeeper's sheet the morning
 // after a night — each offer taken (해결 stamp when it was finished and paid), what came home, and
 // what today holds. Opens by itself once per morning; Enter goes on to the board.
+// The night's 장신구 in one line, counted by grade (best first): "장신구 전설 2 · 귀함 3".
+function gearLine(gear: readonly GearItem[]): string {
+  const counts = [...GRADE_IDS].reverse().map((g) => [g, gear.filter((x) => x.grade === g).length] as const).filter(([, n]) => n > 0);
+  return t('morning.gear', { list: counts.map(([g, n]) => t('morning.gearCount', { grade: t(GRADES[g].nameKey), n })).join(' · ') });
+}
+
 export function MorningPanel() {
   const s = useSyncExternalStore(store.subscribe, store.getState);
   const r = s.lastRun;
@@ -58,7 +65,7 @@ export function MorningPanel() {
                   <div key={o.id} style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 44px 86px', gap: 10, padding: '6px 0', borderBottom: `1px dashed rgba(42,34,51,0.3)`, color: done ? L.paperInk : L.paperDim, alignItems: 'center' }}>
                     <span style={{ minWidth: 0 }}><b>{offerTitle(o)}</b> <span style={{ fontSize: 13, color: L.paperDim }}>· {what(o)}</span></span>
                     <span style={{ display: 'flex', justifyContent: 'center' }}>{done && <span style={{ ...STAMP, transform: `rotate(${(o.id % 5) * 5 - 10}deg)` }}>{t('morning.stamp')}</span>}</span>
-                    <span style={{ textAlign: 'right', fontWeight: done ? 700 : 400, fontVariantNumeric: 'tabular-nums' }}>{done ? `₩ ${paid}` : t('morning.noFee')}</span>
+                    <span style={{ textAlign: 'right', fontWeight: done ? 700 : 400, fontVariantNumeric: 'tabular-nums' }}>{done ? won(paid) : t('morning.noFee')}</span>
                   </div>
                 );
               })}
@@ -66,7 +73,7 @@ export function MorningPanel() {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px', alignItems: 'center', fontSize: 14 }}>
               <span>{t('morning.loot', { loot: r.settlement.lootKept })}{r.settlement.lootLost > 0 ? ` (${t('morning.lootLost', { lost: r.settlement.lootLost })})` : ''}</span>
               {r.settlement.shards > 0 && <span style={{ color: L.shardInk, fontWeight: 700 }}>{t('result.shards', { shards: r.settlement.shards })}</span>}
-              {(r.gear ?? []).map((g) => <span key={g.id}>{t('morning.gear', { name: `${t(GRADES[g.grade].nameKey)} ${t(GEAR_SLOTS[g.slot].nameKey)}` })}</span>)}
+              {(r.gear ?? []).length > 0 && <span>{gearLine(r.gear!)}</span>}
               {(r.gearMelted ?? 0) > 0 && <span style={{ color: L.paperDim }}>{t('morning.gearMelted', { money: r.gearMelted! })}</span>}
               {r.reputation ? <span>{t('morning.reputation', { n: r.reputation > 0 ? `+${r.reputation}` : r.reputation })}</span> : null}
               {r.clue && <span style={{ height: 24, padding: '0 8px', display: 'inline-flex', alignItems: 'center', border: `3px solid ${L.accentInk}`, color: L.accentInk, fontWeight: 900, transform: 'rotate(-4deg)' }}>{t('morning.clue')}</span>}
@@ -83,7 +90,7 @@ export function MorningPanel() {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderTop: `2px solid ${L.paperInk}`, paddingTop: 6 }}>
           <span style={{ fontSize: 12, color: L.paperDim }}>{t('morning.keys')}</span>
-          <span style={{ fontSize: 13, color: L.paperDim }}>{t('morning.balance')} <b style={{ fontSize: 20, color: L.paperInk, fontVariantNumeric: 'tabular-nums' }}>₩ {s.money}</b></span>
+          <span style={{ fontSize: 13, color: L.paperDim }}>{t('morning.balance')} <b style={{ fontSize: 20, color: L.paperInk, fontVariantNumeric: 'tabular-nums' }}>{won(s.money)}</b></span>
         </div>
       </article>
     </>

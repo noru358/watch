@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { store } from '../../../app/services';
 import { SUPPLIES } from '../../../data/facilities.data';
-import { t } from '../../../i18n';
+import { t, won } from '../../../i18n';
 import { suppliesOffered } from '../../../systems/growth';
 import { panelCss as css } from '../panel';
 import { priceStyle, rowStyle, useNav } from '../useNav';
@@ -28,7 +28,7 @@ export function BenchPanel() {
                 <div style={{ fontSize: 15, fontWeight: packed ? 700 : 400 }}>{t(sup.nameKey)}{packed ? ` · ${t('bench.packedTag')}` : ''}</div>
                 <div style={{ fontSize: 12, color: '#c9bfe8' }}>{t(sup.descKey)}</div>
               </div>
-              <span style={priceStyle(packed || s.money >= sup.cost)}>₩{sup.cost}</span>
+              <span style={priceStyle(packed || s.money >= sup.cost)}>{won(sup.cost)}</span>
             </div>
           );
         })}

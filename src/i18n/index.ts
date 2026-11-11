@@ -19,11 +19,22 @@ export function keysWith(prefix: string): TKey[] {
   return out;
 }
 
+// Numbers as the reader writes them: 9992838 → '9,992,838'. Every number shown goes through this
+// (t() does it for number params), so one place decides how numbers look.
+export function num(n: number): string {
+  return n.toLocaleString(locale === 'ko' ? 'ko-KR' : 'en-US');
+}
+
+// Money: '₩9,992,838'.
+export function won(n: number): string {
+  return `₩${num(n)}`;
+}
+
 // t('hud.room', { current: 1, total: 7 }) → '방 1/7'
 export function t(key: TKey, params?: Record<string, string | number>): string {
   let text = TABLES[locale][key];
   if (params) {
-    for (const [k, v] of Object.entries(params)) text = text.replaceAll(`{${k}}`, String(v));
+    for (const [k, v] of Object.entries(params)) text = text.replaceAll(`{${k}}`, typeof v === 'number' ? num(v) : v);
   }
   return text;
 }
