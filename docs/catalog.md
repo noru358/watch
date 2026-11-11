@@ -72,7 +72,7 @@
 ## 판 · 보수 · 오염
 고치는 곳: `src/data/office.data.ts`
 
-- rentEvery 7 · rent 450 · boardSize 4
+- rentEvery 7 · rent 450 · boardSize 4 · boardPerRank 1 · boardMax 8
 - general: enemiesBase 5 · feeBase 60 · feePerDifficulty 30 · feePerFloor 20 · feePerTargetLevel 0.15 · payphoneFrom 3
 - difficulty steps 20/30/42/55 · boss 20 · per level 4
 - grades: 6/3/1/0 · 4/4/2/1 · 2/4/3/2 · 1/3/4/3 · urgent: chance 0.1 · fromGrade 1 · days 1 · feeMult 1.5 · repMult 1.5 · rep 10

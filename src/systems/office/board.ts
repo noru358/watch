@@ -150,7 +150,7 @@ export function refillBoard(s: OfficeState, rng: SeededRNG): number {
     if (s.storyDone.includes(id) || s.board.some((o) => o.story === id)) continue;
     s.board.push(mainOffer(s, id));
   }
-  const size = OFFICE.boardSize + deskBonus(s).board;
+  const size = Math.min(OFFICE.boardMax, OFFICE.boardSize + deskBonus(s).board + s.rankReached * OFFICE.boardPerRank);
   const u = OFFICE.urgent;
   while (s.board.filter((x) => x.kind === 'general').length < size) {
     const offer = generalOffer(s, rng, s.wanted.shift() ?? null);

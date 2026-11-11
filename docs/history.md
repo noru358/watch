@@ -3,6 +3,7 @@
 Long-form log moved out of HANDOFF.md on 2026-10-28 so a new session reads less. Newest status first; read only when you need the story behind something.
 
 ## Status log (to 2026-11-11)
+- **2026-11-11 later:** management core in: hired staff with grade, power, speciality and trauma; R on the board puts one on an offer with the odds shown; after the night they roll, succeed like a finished job (fee, 평판, clues, no spirit or 파편) or fail with trauma; idle ones rest; wages with the rent; training and weekly hiring in the ledger; the board grows by one offer per 평판 rank. Wages raised from the spec's 120 to 200 per grade. Save v9.
 - **2026-11-11 (owner: "지운다"):** district contamination removed — no rise, overflow, spread or cleanse; offers carry a rolled grade 0..3 (more high grades at higher 평판 rank) and a rare one-night urgent offer; reputation lost its hot-district bonus; chapter 2 opens by days only; the map shows offer pins; morning report says when an urgent job was missed. Save v8.
 - **2026-11-11 morning (owner: rooms "가안 통과, 나중에 검수"):** affixes on named targets, then sortie lengths 단타 / 보통 / 원정 with mid-bosses, save-point checkpoints, deeper floors richer and with affixes. Bot check on a 16-floor 원정: 2/6, 16–25 min bot time.
 - **2026-11-11 later:** hand-made text rooms in the floor generator (spots for stairs, guards, treasure; plain floors draw the same numbers), the room preview page, a fairer 결계 spacing fallback. The 막차 bot check now uses 40 seeds: over 8 it swung with map luck (25/40 with rooms vs 24/40 without).

@@ -2,8 +2,10 @@ import { useSyncExternalStore } from 'react';
 import { store } from '../../../app/services';
 import { closeFeature, openFeature } from '../../../app/features';
 import { OFFICE } from '../../../data/office.data';
-import { t } from '../../../i18n';
-import { activeChapter, chapterStatus, type MorningReport, type OfficeState } from '../../../systems/office';
+import { t, type TKey } from '../../../i18n';
+import { NODES } from '../../../data/nodes.data';
+import type { Morning } from '../../../store/staffDesk';
+import { activeChapter, chapterStatus, type OfficeState } from '../../../systems/office';
 import { CHAPTERS } from '../../../data/chapters.data';
 import { FACILITIES, FACILITY_IDS } from '../../../data/facilities.data';
 import { facilityPrice, facilityRankNeeded } from '../../../systems/growth';
@@ -13,14 +15,31 @@ import { rankUnlocks } from '../rankUnlocks';
 import { outcomeLabel } from '../lastRun';
 import { panelCss as css } from '../panel';
 import { priceStyle, rowStyle, useNav } from '../useNav';
+import { staffRows } from './staffRows';
+import { staffName } from '../staffName';
 
-// What the bookkeeper says this morning (rent, the city, expired offers).
-export function morningLines(m: MorningReport | null): string[] {
+// The staff's night and the wages, one line each (docs/rules/staff.md).
+export function staffLines(m: Morning): string[] {
+  const out: string[] = [];
+  for (const l of m.staff ?? []) {
+    const name = staffName(l);
+    const offer = l.node ? `${t(NODES[l.node].nameKey)} ${l.objective ? t(`board.goal.${l.objective}` as TKey) : ''}`.trim() : '';
+    if (l.offerId === null) continue; // resting is not news
+    out.push(l.success ? t('staff.done', { name, offer, fee: l.fee }) : t('staff.failed', { name, offer, n: l.trauma }));
+  }
+  if (m.wages) out.push(t('staff.wages', { paid: m.wages }));
+  if (m.quit && m.quit.length > 0) out.push(t('staff.quit', { names: m.quit.map(staffName).join(', ') }));
+  return out;
+}
+
+// What the bookkeeper says this morning (rent, expired offers, the staff's night).
+export function morningLines(m: Morning | null): string[] {
   if (!m) return [t('morning.quiet')];
   const lines: string[] = [];
   if (m.rentDue && m.debtAdded > 0) lines.push(t('morning.rentShort', { short: m.debtAdded }));
   else if (m.rentDue) lines.push(t('morning.rentPaid', { paid: m.rentPaid }));
   if (m.urgentMissed > 0) lines.push(t('morning.urgentMissed'));
+  lines.push(...staffLines(m));
   if (m.expired > 0) lines.push(t('morning.expired', { count: m.expired }));
   if (m.rankUp !== null && m.rankUp !== undefined) lines.push(t('morning.rankUp', { name: t(RANKS[m.rankUp]!.nameKey) }));
   return lines.length > 0 ? lines : [t('morning.quiet')];
@@ -73,11 +92,13 @@ export function LedgerPanel() {
   );
 }
 
-// 시설 공사: every office facility is ordered here (docs/rules/growth.md).
+// 시설 공사 (docs/rules/growth.md), then 직원 and 구인 (docs/rules/staff.md): one list, one cursor.
 function Facilities() {
   const s = useSyncExternalStore(store.subscribe, store.getState);
-  const build = (i: number) => store.buildFacility(FACILITY_IDS[i]!);
-  const [cursor, setCursor] = useNav(FACILITY_IDS.length, build);
+  const crew = staffRows(s);
+  const act = (i: number) => (i < FACILITY_IDS.length ? store.buildFacility(FACILITY_IDS[i]!) : crew[i - FACILITY_IDS.length]?.act());
+  const [cursor, setCursor] = useNav(FACILITY_IDS.length + crew.length, act);
+  const build = act;
   return (
     <div style={css.box}>
       <div style={{ ...css.row, ...css.dim }}>{t('ledger.facilities')}</div>
@@ -99,6 +120,19 @@ function Facilities() {
             ) : (
               <span style={priceStyle(price !== null && s.money >= price)}>{price === null ? '' : t('facility.build', { cost: price })}</span>
             )}
+          </div>
+        );
+      })}
+      {s.staff.length === 0 && <div style={{ ...css.row, ...css.dim, marginTop: 8 }}>{t('staff.none')}</div>}
+      {crew.map((r, k) => {
+        const i = FACILITY_IDS.length + k;
+        return (
+          <div key={r.key}>
+            {r.head && <div style={{ ...css.row, ...css.dim, marginTop: 8 }}>{r.head}</div>}
+            <div style={rowStyle(i === cursor)} data-cursor={i === cursor || undefined} onMouseMove={() => setCursor(i)} onClick={r.act}>
+              <div style={{ flex: 1 }}>{r.body}</div>
+              {r.price}
+            </div>
           </div>
         );
       })}

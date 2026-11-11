@@ -4,6 +4,8 @@ export const OFFICE = {
   rentEvery: 7, // rent is charged on days 7, 14, 21, …
   rent: 450,
   boardSize: 4, // 일반 의뢰 kept on the board (메인 스토리 comes on top; +1 with the 경리 책상 level 1)
+  boardPerRank: 1, // …and +1 per 평판 rank (more work than the office can cover: staff take the rest)
+  boardMax: 8, // general offers at most
   deadline: { min: 3, max: 5 }, // days a general offer stays up
   // 의뢰 등급 0..3 (replaced district contamination, owner 2026-11-11): rolled per offer; a higher
   // 평판 등급 sees higher grades more often. Grade adds strong ghosts per floor and a denser swarm, and

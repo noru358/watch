@@ -11,6 +11,7 @@ import { BOARD_LOOK as L } from './look';
 import { OfferSheet } from './OfferSheet';
 import { OpsMap, type CaseFile } from './OpsMap';
 import { SortieSlip } from './SortieSlip';
+import { AssignStrip } from './AssignStrip';
 import { CONTRACTS } from '../../../data/contracts.data';
 import { CHAPTERS } from '../../../data/chapters.data';
 
@@ -102,6 +103,10 @@ export function BoardPanel() {
       if (action === 'up') stepOffer(-1);
       if (action === 'down') stepOffer(1);
       if (action === 'mark') store.toggleJoin();
+      if (action === 'assign') {
+        const cur = selected();
+        if (cur) store.cycleAssign(cur.id);
+      }
     });
   }, []);
 
@@ -143,6 +148,7 @@ export function BoardPanel() {
         ) : (
           <div style={{ color: L.dim, padding: 20 }}>{t('board.pick')}</div>
         )}
+        {sel && <AssignStrip offer={sel} staff={s.staff} assign={s.assign} />}
         <div style={{ display: 'flex', gap: 8, height: 52 }}>
           <button style={arrow} onClick={() => stepDistrict(-1)} aria-label={t('board.prev')}>
             <span style={{ fontSize: 20, lineHeight: 1 }}>‹</span><span style={{ fontSize: 10, color: L.dim, lineHeight: 1 }}>A</span>

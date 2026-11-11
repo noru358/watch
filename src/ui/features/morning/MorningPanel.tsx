@@ -1,3 +1,4 @@
+import { staffLines } from '../ledger/LedgerPanel';
 import { useEffect, useSyncExternalStore } from 'react';
 import { closeFeature, openFeature } from '../../../app/features';
 import { input, store } from '../../../app/services';
@@ -76,6 +77,7 @@ export function MorningPanel() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, fontSize: 14 }}>
           <span>{m?.rentDue ? (m.debtAdded > 0 ? t('morning.rentShort', { short: m.debtAdded }) : t('morning.rentPaid', { paid: m.rentPaid })) : t('morning.rentIn', { rent: OFFICE.rent, days: rentIn })}</span>
           {m && m.urgentMissed > 0 && <span style={{ color: L.stamp }}>{t('morning.urgentMissed')}</span>}
+          {m && staffLines(m).map((line, i) => <span key={`st-${i}`}>{line}</span>)}
           {m && m.expired > 0 && <span>{t('morning.expired', { count: m.expired })}</span>}
           {m && m.newOffers > 0 && <span>{t('morning.newOffers', { count: m.newOffers })}{s.board.some((o) => o.urgent) ? ` · ${t('morning.urgent')}` : ''}</span>}
         </div>

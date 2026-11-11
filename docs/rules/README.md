@@ -11,6 +11,7 @@
 | [밤 · 한 판](night.md) | 층 순서, 강화 카드 뽑기, 능력치 계산, 성공·귀환·쓰러짐 정산, 트라우마 | `src/data/cards.data.ts`, `penalties.data.ts`, `protagonist.data.ts`, `weapons.data.ts` | `src/systems/run/`, `src/registry/cardEffects.ts` |
 | [성장](growth.md) | 효과 부품, 트레이닝 v2 33줄과 값, 기술 v2(패시브 4갈래 14칸, 듀오, 액티브 10과 개조), 장신구, 심연 파편, 트라우마, 시설 3종, 보급품 | `src/data/training.data.ts`, `skills.data.ts`, `gear.data.ts`, `facilities.data.ts`, `penalties.data.ts` | `src/systems/growth/`, `src/systems/gear/`, `src/registry/effects/` |
 | [평판](reputation.md) | 평판 얻고 잃기, 등급 5단계, 등급이 여는 의뢰 종류·변형·동네·시설 단계·트레이닝 한도, 등급 오른 날 연락 | `src/data/reputation.data.ts` + 각 표의 `rank` | `src/systems/reputation/`, `office/board.ts` |
+| [직원](staff.md) | 직원 배정과 성공률, 밤 판정, 주급, 훈련, 구인 | `src/data/staff.data.ts` | `src/systems/staff/` |
 | [메인 스토리 장](story.md) | 장이 시작되는 때(날짜 또는 평판), 단서 모으기, 메인 의뢰가 올라오는 때 | `src/data/chapters.data.ts`, `contracts.data.ts` | `src/systems/office/chapters.ts` |
 | [사무소 허브](hub.md) | 누가 언제 나타나나(해금), 이야기 장면 순서, 경리 잡담 | `src/data/lobby.data.ts`, `story.data.ts` | `src/systems/hub/`, `src/systems/story/` |
 

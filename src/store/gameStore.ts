@@ -1,5 +1,8 @@
 import { SAVE_VERSION, type SaveData } from '../core/SaveManager';
 import { SeededRNG } from '../core/SeededRNG';
+import type { HirePool, Staff } from '../systems/staff';
+import * as desk from './staffDesk';
+import type { Morning } from './staffDesk';
 import type { ActiveId, ChapterId, ContractId, FacilityId, NodeId, Phase, SceneId, SkillSlotId, SupplyId, TrainingId, UpgradeId } from '../types/ids';
 import { rollDrop, type GearItem, type GearSlot } from '../systems/gear';
 import type { TrainingLevels } from '../systems/run';
@@ -14,7 +17,6 @@ import {
   refillBoard,
   resolveNight,
   type ContractOffer,
-  type MorningReport,
   type OfficeState,
   type WantedTarget,
   type ChapterState,
@@ -68,11 +70,15 @@ export interface GameState {
   chapters: Partial<Record<ChapterId, ChapterState>>; // 메인 스토리 장 (save v5)
   reputation: number; // 평판 (save v6)
   rankReached: number;
+  staff: Staff[]; // 직원 (save v9)
+  assign: Record<number, number>; // tonight: offer id → staff id
+  nextStaffId: number;
+  hirePool: HirePool | null; // this week's 구인 list
   // not saved
   activeOfferId: number | null; // chosen on the board, played tonight
   joined: number[]; // 합동 출동: offers put in tonight's set on the board (empty = just the chosen one)
   lastRun: LastRun | null;
-  lastMorning: MorningReport | null;
+  lastMorning: Morning | null;
 }
 
 // What the end-of-night panel shows.
@@ -168,6 +174,10 @@ export class GameStore {
       chapters: {},
       reputation: 0,
       rankReached: 0,
+      staff: [],
+      assign: {},
+      nextStaffId: 1,
+      hirePool: null,
       activeOfferId: null,
       joined: [],
       lastRun: null,
@@ -236,6 +246,10 @@ export class GameStore {
       chapters: { ...s.chapters },
       reputation: s.reputation,
       rankReached: s.rankReached,
+      staff: s.staff.map((x) => ({ ...x, name: [...x.name] as [number, number] })),
+      assign: { ...s.assign },
+      nextStaffId: s.nextStaffId,
+      hirePool: s.hirePool ? { week: s.hirePool.week, list: s.hirePool.list.map((c) => ({ ...c, name: [...c.name] as [number, number] })) } : null,
     };
   }
 
@@ -310,17 +324,42 @@ export class GameStore {
     return this.grow((g) => growth.capitalTherapy(g));
   }
 
+  // ---- staff (rules in systems/staff, wiring in staffDesk.ts) ----
+
+  hireStaff(index: number): boolean {
+    const patch = desk.hire(this.state, index);
+    if (patch) this.set(patch);
+    return !!patch;
+  }
+
+  trainStaff(id: number): boolean {
+    const patch = desk.train(this.state, id);
+    if (patch) this.set(patch);
+    return !!patch;
+  }
+
+  // R on the board: the next free staff member on this offer, then nobody.
+  cycleAssign(offerId: number): void {
+    const offer = this.state.board.find((x) => x.id === offerId);
+    const assign = offer ? desk.cycleAssign(this.state, offerId, offer) : null;
+    if (assign) this.set({ assign });
+  }
+
   // 휴식하기: no night out; the day passes (rent, the city, deadlines) and trauma comes down.
   restToday(): void {
     const o = office(this.state);
+    const crew = desk.staffNight(this.state, o, [], this.state.facilities.sofa);
     const morning = advanceDay(o, new SeededRNG(morningSeed(this.state.seedBase, o.day + 1)));
+    const paid = desk.staffMorning(crew.staff, o, morning);
     this.set({
       ...o,
+      staff: paid.staff,
+      assign: {},
       trauma: Math.max(0, this.state.trauma - growth.restAmount(this.state)),
       activeOfferId: null,
       joined: [],
       lastRun: null,
-      lastMorning: morning,
+      lastMorning: { ...morning, rankUp: crew.rankUp ?? morning.rankUp, staff: crew.lines, ...paid.report },
     });
   }
 
@@ -415,9 +454,13 @@ export class GameStore {
     const rolled = result.drops.map((src) => rollDrop(rng, src, difficulty, nextGearId++)).filter((x): x is GearItem => !!x);
     const stowed = growth.stowDrops(g, rolled);
     o.money = g.money;
+    const crew = desk.staffNight(this.state, o, result.offers, this.state.facilities.sofa);
     const morning = advanceDay(o, new SeededRNG(morningSeed(this.state.seedBase, o.day + 1)));
+    const paid = desk.staffMorning(crew.staff, o, morning);
     this.set({
       ...o,
+      staff: paid.staff,
+      assign: {},
       gear: g.gear,
       nextGearId,
       trauma: this.state.trauma + settlement.traumaDelta,
@@ -430,7 +473,7 @@ export class GameStore {
         offers: taken, paid: Object.fromEntries(night.completed.map((id) => [id, Math.round((taken.find((x) => x.id === id)?.fee ?? 0) * (1 + feeBonus))])),
         reputation: night.reputation, gear: stowed.kept, gearMelted: stowed.melted, shown: false,
       },
-      lastMorning: { ...morning, rankUp: night.rankUp },
+      lastMorning: { ...morning, rankUp: night.rankUp ?? crew.rankUp, staff: crew.lines, ...paid.report },
     });
     return { ...settlement, clue: night.clue, completed: night.completed.length, reputation: night.reputation, gear: stowed.kept, gearMelted: stowed.melted };
   }

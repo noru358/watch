@@ -5,11 +5,12 @@
 import type { ChapterState, ContractOffer, WantedTarget } from '../systems/office';
 import type { ActiveId, ChapterId, ContractId, FacilityId, NodeId, SceneId, SkillSlotId, SupplyId, UpgradeId } from '../types/ids';
 import type { GearItem, GearSlot } from '../systems/gear';
+import type { HirePool, Staff } from '../systems/staff';
 import { TRAINING, TRAINING_V1_TO_V2 } from '../data/training.data';
 import type { TrainingLevels } from '../systems/run';
 import { rankFor } from '../systems/reputation';
 
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 
 export interface SaveData {
   schemaVersion: typeof SAVE_VERSION;
@@ -48,6 +49,11 @@ export interface SaveData {
   equipped: Partial<Record<GearSlot, number>>;
   nextGearId: number;
   // v8: district contamination removed (offers carry a 등급 instead)
+  // v9: staff (직원), tonight's assignments, this week's 구인 list
+  staff: Staff[];
+  assign: Record<number, number>;
+  nextStaffId: number;
+  hirePool: HirePool | null;
 }
 
 // The part of localStorage we use; tests pass a Map-backed fake.
@@ -106,6 +112,8 @@ const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
     const board = Array.isArray(old.board) ? (old.board as Raw[]).map((o) => ({ ...o, risk: Math.min(3, isNum(o.risk) ? o.risk : 0) })) : old.board;
     return { ...rest, board };
   },
+  // v8 → v9: no staff yet.
+  8: (old) => ({ ...old, staff: [], assign: {}, nextStaffId: 1, hirePool: null }),
 };
 const MIGRATE_REP_PER_SOLVED = 20;
 
@@ -141,6 +149,8 @@ export function migrate(raw: unknown): SaveData | null {
   }
   const { money, trauma, solved, seedBase, runCounter, day, debt, known, board, nextOfferId, storyDone, seen } = data;
   const { shards, training, trainingBought, facilities, supply, passives, actives, active, wanted, chapters, reputation, rankReached, upgrades, gear, equipped, nextGearId } = data;
+  const { staff, assign, nextStaffId, hirePool } = data;
+  if (!Array.isArray(staff) || !isObj(assign) || !isNum(nextStaffId) || (hirePool !== null && !isObj(hirePool))) return null;
   if (![money, trauma, solved, seedBase, runCounter, day, debt, nextOfferId, shards, trainingBought, reputation, rankReached, nextGearId].every(isNum)) return null;
   if (!isObj(upgrades) || !Array.isArray(gear) || !isObj(equipped)) return null;
   if (!Array.isArray(known) || !Array.isArray(board) || !Array.isArray(storyDone) || !Array.isArray(seen)) return null;
@@ -175,6 +185,10 @@ export function migrate(raw: unknown): SaveData | null {
     gear,
     equipped,
     nextGearId,
+    staff,
+    assign,
+    nextStaffId,
+    hirePool,
   } as SaveData;
 }
 

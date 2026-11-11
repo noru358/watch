@@ -1,6 +1,6 @@
 // Key bindings (KeyboardEvent.code, or 'Mouse0'/'Mouse2' for mouse buttons). One keyboard key (+ one mouse
 // button) per action, so the controls stay easy to remember. Touch/gamepad will map to the same actions.
-export type Action = 'up' | 'down' | 'left' | 'right' | 'attack' | 'dash' | 'draw' | 'skill' | 'confirm' | 'choice1' | 'choice2' | 'choice3' | 'choice4' | 'pause' | 'interact' | 'mark';
+export type Action = 'up' | 'down' | 'left' | 'right' | 'attack' | 'dash' | 'draw' | 'skill' | 'confirm' | 'choice1' | 'choice2' | 'choice3' | 'choice4' | 'pause' | 'interact' | 'mark' | 'assign';
 
 export const KEY_BINDINGS: Record<Action, readonly string[]> = {
   up: ['KeyW'],
@@ -19,4 +19,5 @@ export const KEY_BINDINGS: Record<Action, readonly string[]> = {
   pause: ['Escape'],
   interact: ['KeyE'], // hub: talk / use (souls-style)
   mark: ['KeyF'], // board: put the offer into tonight's joint sortie
+  assign: ['KeyR'], // board: change which staff member takes this offer tonight
 };
