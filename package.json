@@ -10,7 +10,8 @@
     "test": "vitest",
     "check": "tsc --noEmit && vitest run",
     "catalog": "vite-node tools/catalog/build.ts",
-    "rooms": "vite-node tools/rooms/build.ts"
+    "rooms": "vite-node tools/rooms/build.ts",
+    "feel": "vite-node tools/feel/coverage.ts"
   },
   "dependencies": {
     "phaser": "^3.90.0",
