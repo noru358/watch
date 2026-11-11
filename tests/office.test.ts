@@ -8,12 +8,12 @@ import { GENERAL_OBJECTIVES } from '../src/data/objectives.data';
 import { NODES } from '../src/data/nodes.data';
 import { OFFICE } from '../src/data/office.data';
 import { GameStore } from '../src/store/gameStore';
-import { advanceDay, canJoin, offerDifficulty, offerFee, offerFloors, offerGoal, refillBoard, resolveNight, startingContamination, type ContractOffer, type OfficeState } from '../src/systems/office';
+import { advanceDay, canJoin, offerDifficulty, offerFee, offerFloors, offerGoal, refillBoard, resolveNight, type ContractOffer, type OfficeState } from '../src/systems/office';
 import type { NodeId, ObjectiveKind } from '../src/types/ids';
 import { playNight, skilled } from './bots';
 
 function fresh(): OfficeState {
-  const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: CH1_OPEN.reputation, rankReached: 0 };
+  const s: OfficeState = { day: 1, money: 0, debt: 0, known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: CH1_OPEN.reputation, rankReached: 0 };
   refillBoard(s, new SeededRNG(5));
   return s;
 }
@@ -52,7 +52,7 @@ describe('office: contract board', () => {
     const seen = new Set<string>();
     const mods = new Set<string>();
     for (let seed = 1; seed < 120; seed++) {
-      const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 1200, rankReached: 4 };
+      const s: OfficeState = { day: 1, money: 0, debt: 0, known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 1200, rankReached: 4 };
       refillBoard(s, new SeededRNG(seed));
       for (const o of s.board) {
         if (o.objective) seen.add(o.objective);
@@ -64,7 +64,7 @@ describe('office: contract board', () => {
   });
 
   it('the 경리 책상 adds an offer and a day to deadlines', () => {
-    const s: OfficeState = { day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 3, reputation: 0, rankReached: 0 };
+    const s: OfficeState = { day: 1, money: 0, debt: 0, known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 3, reputation: 0, rankReached: 0 };
     refillBoard(s, new SeededRNG(5));
     expect(s.board.filter((o) => o.kind === 'general')).toHaveLength(OFFICE.boardSize + 1);
     for (const o of s.board.filter((x) => x.kind === 'general')) expect(o.deadline! - s.day).toBeGreaterThanOrEqual(OFFICE.deadline.min + 1);
@@ -74,10 +74,9 @@ describe('office: contract board', () => {
     expect(fresh().board).toEqual(fresh().board);
   });
 
-  it('success finishes only the offers whose objective was done (no free bundling), and calms the node', () => {
+  it('success finishes only the offers whose objective was done (no free bundling)', () => {
     const s = fresh();
     s.board = [];
-    s.contamination.motel = 4;
     const a = general(s, 'motel');
     const b = general(s, 'motel');
     const c = general(s, 'station');
@@ -86,7 +85,6 @@ describe('office: contract board', () => {
     expect(night.completed).toEqual([a.id]);
     expect(night.fee).toBe(a.fee);
     expect(s.board.map((o) => o.id)).toEqual([b.id, c.id]);
-    expect(s.contamination.motel).toBe(4 - GENERAL_OBJECTIVES.clear.cleanse);
     expect(s.known).toContain('motel');
   });
 
@@ -160,19 +158,47 @@ describe('office: the day loop', () => {
     expect(s.money).toBe(300);
   });
 
-  it('expired offers leave and make their node worse; contamination stays within 0..max', () => {
+  it('expired offers leave the board', () => {
     const s = fresh();
     s.board = [];
-    s.contamination = { ...startingContamination(), station: 0 };
     const o = general(s, 'station');
     o.deadline = s.day;
     s.board.push(o);
     const r = advanceDay(s, new SeededRNG(3));
     expect(r.expired).toBe(1);
     expect(s.board.some((x) => x.id === o.id)).toBe(false);
-    expect(s.contamination.station).toBeGreaterThanOrEqual(OFFICE.contamination.expireRise);
-    for (let i = 0; i < 60; i++) advanceDay(s, new SeededRNG(100 + i));
-    for (const v of Object.values(s.contamination)) expect(v).toBeLessThanOrEqual(OFFICE.contamination.max);
+  });
+
+  it('offers carry a grade 0..3; a higher 평판 rank sees higher grades more often; urgent ones are rare, graded, one at a time', () => {
+    const avg = (rank: number) => {
+      let sum = 0;
+      let n = 0;
+      let urgent = 0;
+      for (let seed = 1; seed <= 80; seed++) {
+        const s = fresh();
+        s.rankReached = rank;
+        s.board = [];
+        refillBoard(s, new SeededRNG(seed));
+        const g = s.board.filter((o) => o.kind === 'general');
+        expect(g.filter((o) => o.urgent).length).toBeLessThanOrEqual(1);
+        for (const o of g) {
+          expect(o.risk).toBeGreaterThanOrEqual(0);
+          expect(o.risk).toBeLessThanOrEqual(3);
+          if (o.urgent) {
+            urgent++;
+            expect(o.risk).toBeGreaterThanOrEqual(OFFICE.urgent.fromGrade);
+            expect(o.deadline).toBe(s.day + OFFICE.urgent.days - 1);
+          }
+          sum += o.risk;
+          n++;
+        }
+      }
+      return { grade: sum / n, urgent };
+    };
+    const low = avg(0);
+    const high = avg(3);
+    expect(high.grade).toBeGreaterThan(low.grade + 0.5);
+    expect(low.urgent).toBeGreaterThan(0);
   });
 
   it('the objective sits on its goal floor only; floors past it are deep (more ghosts)', () => {
@@ -257,14 +283,14 @@ describe('office: store and save', () => {
     expect(v2?.schemaVersion).toBe(SAVE_VERSION);
     expect(v2?.day).toBe(1);
     expect(v2?.storyDone).toEqual(['lights_out']);
-    expect(v2?.contamination).toEqual(startingContamination());
+    expect('contamination' in (v2 ?? {})).toBe(false);
     const store = new GameStore(v2 ?? {});
     expect(store.getState().board.length).toBeGreaterThan(0);
     expect(store.getState().board.some((o) => o.story === 'lights_out')).toBe(false);
   });
 
   it('migrates a v2 save to v3: the opening counts as seen once a night was played', () => {
-    const base = { money: 1, trauma: 0, solved: 0, seedBase: 2, day: 3, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [] };
+    const base = { money: 1, trauma: 0, solved: 0, seedBase: 2, day: 3, debt: 0, known: [], board: [], nextOfferId: 1, storyDone: [] };
     expect(migrate({ schemaVersion: 2, ...base, runCounter: 2 })?.seen).toEqual(['intro']);
     expect(migrate({ schemaVersion: 2, ...base, runCounter: 0 })?.seen).toEqual([]);
   });

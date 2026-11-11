@@ -50,7 +50,7 @@ function treeCost(): { total: number; ranks: number } {
   }
 }
 
-// Example fees: each objective at contamination 0 and 3, 3 floors, no modifiers.
+// Example fees: each objective at grade 0 and 3, 3 floors, no modifiers.
 function feeExamples() {
   return (Object.keys(GENERAL_OBJECTIVES) as ObjectiveKind[]).map((objective) => {
     const at = (risk: number) => {

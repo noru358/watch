@@ -65,3 +65,16 @@ describe('save v7 (skills v2, training v2, 장신구)', () => {
     expect(v.nextGearId).toBe(1);
   });
 });
+
+describe('save v8 (district contamination removed)', () => {
+  it('a v7 save drops contamination and caps the old risk on its offers at grade 3', () => {
+    const now = new GameStore().toSave() as unknown as Record<string, unknown>;
+    const board = (now.board as Record<string, unknown>[]).map((o, i) => ({ ...o, risk: i === 0 ? 5 : 1 }));
+    const v7 = { ...now, schemaVersion: 7, contamination: { alley: 5, printshop: 1 }, board };
+    const v = migrate(v7)!;
+    expect(v.schemaVersion).toBe(SAVE_VERSION);
+    expect('contamination' in v).toBe(false);
+    expect(v.board[0]!.risk).toBe(3);
+    expect(v.board[1]?.risk ?? 1).toBe(1);
+  });
+});

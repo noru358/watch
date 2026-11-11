@@ -75,8 +75,7 @@ export function MorningPanel() {
         <span style={{ ...label, marginTop: 4 }}>{t('morning.today')}</span>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, fontSize: 14 }}>
           <span>{m?.rentDue ? (m.debtAdded > 0 ? t('morning.rentShort', { short: m.debtAdded }) : t('morning.rentPaid', { paid: m.rentPaid })) : t('morning.rentIn', { rent: OFFICE.rent, days: rentIn })}</span>
-          {m && m.worsened.length > 0 && <span>{t('morning.worse', { nodes: m.worsened.map((id) => t(NODES[id].nameKey)).join(', ') })}</span>}
-          {m && m.overflowed?.length > 0 && <span style={{ color: L.stamp }}>{t('morning.overflow', { nodes: m.overflowed.map((id) => t(NODES[id].nameKey)).join(', ') })}</span>}
+          {m && m.urgentMissed > 0 && <span style={{ color: L.stamp }}>{t('morning.urgentMissed')}</span>}
           {m && m.expired > 0 && <span>{t('morning.expired', { count: m.expired })}</span>}
           {m && m.newOffers > 0 && <span>{t('morning.newOffers', { count: m.newOffers })}{s.board.some((o) => o.urgent) ? ` · ${t('morning.urgent')}` : ''}</span>}
         </div>

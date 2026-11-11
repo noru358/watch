@@ -21,11 +21,8 @@ export const RANKS: readonly RankData[] = [
 ];
 
 export const REPUTATION = {
-  // Earned per finished offer: 일반 의뢰 = 난이도 × perDifficulty (+ hotBonus if its district was at
-  // hotAt or more), 메인 스토리 = main.
+  // Earned per finished offer: 일반 의뢰 = 난이도 × perDifficulty (긴급 × urgent.repMult), 메인 스토리 = main.
   perDifficulty: 10,
-  hotAt: 4,
-  hotBonus: 5,
   main: 60,
   // Lost: the director fell / the objective was lost (per night), an offer left to expire (each).
   died: 15,

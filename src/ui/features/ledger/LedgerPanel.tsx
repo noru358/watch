@@ -1,7 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { store } from '../../../app/services';
 import { closeFeature, openFeature } from '../../../app/features';
-import { NODES } from '../../../data/nodes.data';
 import { OFFICE } from '../../../data/office.data';
 import { t } from '../../../i18n';
 import { activeChapter, chapterStatus, type MorningReport, type OfficeState } from '../../../systems/office';
@@ -21,8 +20,7 @@ export function morningLines(m: MorningReport | null): string[] {
   const lines: string[] = [];
   if (m.rentDue && m.debtAdded > 0) lines.push(t('morning.rentShort', { short: m.debtAdded }));
   else if (m.rentDue) lines.push(t('morning.rentPaid', { paid: m.rentPaid }));
-  if (m.worsened.length > 0) lines.push(t('morning.worse', { nodes: m.worsened.map((id) => t(NODES[id].nameKey)).join(', ') }));
-  if (m.overflowed?.length) lines.push(t('morning.overflow', { nodes: m.overflowed.map((id) => t(NODES[id].nameKey)).join(', ') }));
+  if (m.urgentMissed > 0) lines.push(t('morning.urgentMissed'));
   if (m.expired > 0) lines.push(t('morning.expired', { count: m.expired }));
   if (m.rankUp !== null && m.rankUp !== undefined) lines.push(t('morning.rankUp', { name: t(RANKS[m.rankUp]!.nameKey) }));
   return lines.length > 0 ? lines : [t('morning.quiet')];

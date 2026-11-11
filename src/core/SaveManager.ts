@@ -2,14 +2,14 @@
 // a step to MIGRATIONS plus a test. Only long-lived office state is saved; a night in
 // progress is not (quitting mid-night = the night never happened).
 
-import { startingContamination, type ChapterState, type ContractOffer, type Contamination, type WantedTarget } from '../systems/office';
+import type { ChapterState, ContractOffer, WantedTarget } from '../systems/office';
 import type { ActiveId, ChapterId, ContractId, FacilityId, NodeId, SceneId, SkillSlotId, SupplyId, UpgradeId } from '../types/ids';
 import type { GearItem, GearSlot } from '../systems/gear';
 import { TRAINING, TRAINING_V1_TO_V2 } from '../data/training.data';
 import type { TrainingLevels } from '../systems/run';
 import { rankFor } from '../systems/reputation';
 
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 
 export interface SaveData {
   schemaVersion: typeof SAVE_VERSION;
@@ -21,7 +21,6 @@ export interface SaveData {
   // v2: day loop, contract board, operations map
   day: number;
   debt: number;
-  contamination: Contamination;
   known: NodeId[];
   board: ContractOffer[];
   nextOfferId: number;
@@ -48,6 +47,7 @@ export interface SaveData {
   gear: GearItem[];
   equipped: Partial<Record<GearSlot, number>>;
   nextGearId: number;
+  // v8: district contamination removed (offers carry a 등급 instead)
 }
 
 // The part of localStorage we use; tests pass a Map-backed fake.
@@ -66,7 +66,6 @@ const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
     ...old,
     day: 1,
     debt: 0,
-    contamination: null, // null = starting contamination (filled by the store)
     known: [],
     board: [],
     nextOfferId: 1,
@@ -100,6 +99,13 @@ const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
     return { ...old, reputation, rankReached: rankFor(reputation) };
   },
   6: toV7,
+  // v7 → v8: no more district contamination. Offers already on the board keep their numbers (their
+  // risk was the contamination when posted, 0..5; a grade is 0..3, so it is capped).
+  7: (old) => {
+    const { contamination: _gone, ...rest } = old;
+    const board = Array.isArray(old.board) ? (old.board as Raw[]).map((o) => ({ ...o, risk: Math.min(3, isNum(o.risk) ? o.risk : 0) })) : old.board;
+    return { ...rest, board };
+  },
 };
 const MIGRATE_REP_PER_SOLVED = 20;
 
@@ -133,13 +139,12 @@ export function migrate(raw: unknown): SaveData | null {
     data = { ...step(data), schemaVersion: v + 1 };
     v += 1;
   }
-  const { money, trauma, solved, seedBase, runCounter, day, debt, contamination, known, board, nextOfferId, storyDone, seen } = data;
+  const { money, trauma, solved, seedBase, runCounter, day, debt, known, board, nextOfferId, storyDone, seen } = data;
   const { shards, training, trainingBought, facilities, supply, passives, actives, active, wanted, chapters, reputation, rankReached, upgrades, gear, equipped, nextGearId } = data;
   if (![money, trauma, solved, seedBase, runCounter, day, debt, nextOfferId, shards, trainingBought, reputation, rankReached, nextGearId].every(isNum)) return null;
   if (!isObj(upgrades) || !Array.isArray(gear) || !isObj(equipped)) return null;
   if (!Array.isArray(known) || !Array.isArray(board) || !Array.isArray(storyDone) || !Array.isArray(seen)) return null;
   if (!Array.isArray(actives) || !Array.isArray(wanted) || !isObj(training) || !isObj(facilities) || !isObj(passives) || !isObj(chapters)) return null;
-  if (contamination !== null && (typeof contamination !== 'object' || Array.isArray(contamination))) return null;
   return {
     schemaVersion: SAVE_VERSION,
     money,
@@ -149,7 +154,6 @@ export function migrate(raw: unknown): SaveData | null {
     runCounter,
     day,
     debt,
-    contamination: contamination ?? startingContamination(),
     known,
     board,
     nextOfferId,

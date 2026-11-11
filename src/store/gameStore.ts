@@ -13,8 +13,6 @@ import {
   planNight,
   refillBoard,
   resolveNight,
-  startingContamination,
-  type Contamination,
   type ContractOffer,
   type MorningReport,
   type OfficeState,
@@ -48,7 +46,6 @@ export interface GameState {
   // office (Gate 2-A day loop)
   day: number;
   debt: number;
-  contamination: Contamination;
   known: NodeId[];
   board: ContractOffer[];
   nextOfferId: number;
@@ -119,7 +116,6 @@ const office = (s: GameState): OfficeState => ({
   day: s.day,
   money: s.money,
   debt: s.debt,
-  contamination: { ...s.contamination },
   known: [...s.known],
   board: s.board.map((o) => ({ ...o, pool: [...o.pool] })),
   nextOfferId: s.nextOfferId,
@@ -151,7 +147,6 @@ export class GameStore {
       runCounter: 0,
       day: 1,
       debt: 0,
-      contamination: startingContamination(),
       known: [],
       board: [],
       nextOfferId: 1,
@@ -209,7 +204,7 @@ export class GameStore {
 
   // What goes into the save file (long-lived office state only).
   toSave(): SaveData {
-    const { money, trauma, solved, seedBase, runCounter, day, debt, contamination, known, board, nextOfferId, storyDone, seen } = this.state;
+    const { money, trauma, solved, seedBase, runCounter, day, debt, known, board, nextOfferId, storyDone, seen } = this.state;
     const s = this.state;
     return {
       schemaVersion: SAVE_VERSION,
@@ -220,7 +215,6 @@ export class GameStore {
       runCounter,
       day,
       debt,
-      contamination: { ...contamination },
       known: [...known],
       board: board.map((o) => ({ ...o, pool: [...o.pool] })),
       nextOfferId,

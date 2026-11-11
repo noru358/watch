@@ -69,7 +69,7 @@ export const OBJECTIVES = {
 // weight: how often the board rolls it. floors: length range. goal: which floor it ends on
 // ('last', 'random' = any floor, a number = that 0-based floor capped to the last, 'any' = wherever
 // it is caught). feeMult: on top of the fee formula. shards: 심연 파편 for finishing it.
-// cleanse: node contamination removed on success. difficulty: extra points for the 난이도 score.
+// difficulty: extra points for the 난이도 score.
 export interface ObjectiveRule {
   rank: number; // 평판 rank before the board posts it (reputation.data.ts)
   weight: number;
@@ -78,18 +78,17 @@ export interface ObjectiveRule {
   lengths: readonly ('short' | 'normal' | 'long')[]; // which 의뢰 길이 it can come in (office.data.ts lengths)
   feeMult: number;
   shards: number;
-  cleanse: number;
   difficulty: number;
 }
 
 export const GENERAL_OBJECTIVES: Record<ObjectiveKind, ObjectiveRule> = {
-  clear: { rank: 0, weight: 3, floors: [2, 4], goal: 'last', feeMult: 1, shards: 0, cleanse: 2, difficulty: 0, lengths: ['short', 'normal', 'long'] },
-  rescue: { rank: 0, weight: 2, floors: [2, 4], goal: 1, feeMult: 1.1, shards: 0, cleanse: 2, difficulty: 2, lengths: ['short', 'normal'] },
-  bounty: { rank: 1, weight: 2, floors: [2, 4], goal: 'random', feeMult: 1.5, shards: 1, cleanse: 3, difficulty: 8, lengths: ['short', 'normal', 'long'] },
-  chase: { rank: 2, weight: 1.5, floors: [3, 4], goal: 'any', feeMult: 1.4, shards: 1, cleanse: 2, difficulty: 8, lengths: ['short', 'normal'] },
-  ward: { rank: 0, weight: 1.5, floors: [2, 3], goal: 'random', feeMult: 0.8, shards: 0, cleanse: 4, difficulty: 4, lengths: ['short', 'normal', 'long'] },
-  firsttrain: { rank: 1, weight: 1.5, floors: [1, 2], goal: 'last', feeMult: 1.2, shards: 0, cleanse: 2, difficulty: 6, lengths: ['short', 'normal'] },
-  timeattack: { rank: 0, weight: 2, floors: [1, 3], goal: 'random', feeMult: 1.2, shards: 0, cleanse: 3, difficulty: 5, lengths: ['short', 'normal'] },
+  clear: { rank: 0, weight: 3, floors: [2, 4], goal: 'last', feeMult: 1, shards: 0, difficulty: 0, lengths: ['short', 'normal', 'long'] },
+  rescue: { rank: 0, weight: 2, floors: [2, 4], goal: 1, feeMult: 1.1, shards: 0, difficulty: 2, lengths: ['short', 'normal'] },
+  bounty: { rank: 1, weight: 2, floors: [2, 4], goal: 'random', feeMult: 1.5, shards: 1, difficulty: 8, lengths: ['short', 'normal', 'long'] },
+  chase: { rank: 2, weight: 1.5, floors: [3, 4], goal: 'any', feeMult: 1.4, shards: 1, difficulty: 8, lengths: ['short', 'normal'] },
+  ward: { rank: 0, weight: 1.5, floors: [2, 3], goal: 'random', feeMult: 0.8, shards: 0, difficulty: 4, lengths: ['short', 'normal', 'long'] },
+  firsttrain: { rank: 1, weight: 1.5, floors: [1, 2], goal: 'last', feeMult: 1.2, shards: 0, difficulty: 6, lengths: ['short', 'normal'] },
+  timeattack: { rank: 0, weight: 2, floors: [1, 3], goal: 'random', feeMult: 1.2, shards: 0, difficulty: 5, lengths: ['short', 'normal'] },
 };
 
 // "계속" after the goal: floors past the goal floor are richer and harder; the last one hides a shard.

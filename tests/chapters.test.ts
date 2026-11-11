@@ -3,7 +3,7 @@ import { migrate, SAVE_VERSION } from '../src/core/SaveManager';
 import { SeededRNG } from '../src/core/SeededRNG';
 import { CHAPTERS } from '../src/data/chapters.data';
 import { NODES } from '../src/data/nodes.data';
-import { chapterStatus, offerFloors, refillBoard, resolveNight, startingContamination, type ContractOffer, type OfficeState } from '../src/systems/office';
+import { chapterStatus, offerFloors, refillBoard, resolveNight, type ContractOffer, type OfficeState } from '../src/systems/office';
 
 import type { NodeId } from '../src/types/ids';
 
@@ -12,7 +12,7 @@ import type { NodeId } from '../src/types/ids';
 // districts, then posts its main contract.
 
 function fresh(day = 1): OfficeState {
-  const s: OfficeState = { day, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 0, rankReached: 0 };
+  const s: OfficeState = { day, money: 0, debt: 0, known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 0, rankReached: 0 };
   refillBoard(s, new SeededRNG(5));
   return s;
 }
@@ -67,17 +67,9 @@ describe('main story chapters', () => {
     expect(chapterStatus(s, 'ch2')).toBe('gathering');
   });
 
-  it('…or at once, when one of its districts is hot enough', () => {
-    const s = fresh();
-    finishCh1(s);
-    s.contamination.station = CHAPTERS.ch2.startHeat;
-    refillBoard(s, new SeededRNG(1));
-    expect(chapterStatus(s, 'ch2')).toBe('gathering');
-  });
-
   it('never before the chapter before it is done', () => {
     const s = fresh(30);
-    s.contamination.station = 4;
+    s.day += 30;
     refillBoard(s, new SeededRNG(1));
     expect(chapterStatus(s, 'ch2')).toBe('locked');
   });

@@ -2,7 +2,7 @@ import { CH1_OPEN } from './helpers';
 import { describe, expect, it } from 'vitest';
 import { OFFICE } from '../src/data/office.data';
 import { NODES } from '../src/data/nodes.data';
-import { canJoin, offerFloors, planNight, resolveNight, startingContamination, type ContractOffer, type OfficeState } from '../src/systems/office';
+import { canJoin, offerFloors, planNight, resolveNight, type ContractOffer, type OfficeState } from '../src/systems/office';
 
 import { feeSoFar, finishAtGoal, goalReached, leaveFloor, runResult, startRun, enterFloor } from '../src/systems/run';
 import { GameStore } from '../src/store/gameStore';
@@ -16,7 +16,7 @@ const offer = (node: NodeId, objective: ObjectiveKind, floors: number, goalFloor
   id: nextId++, kind: 'general', node, story: null, objective, request: 'flicker', mods, target: objective === 'bounty' || objective === 'chase' ? { ghost: 'cheonyeo', name: [0, 0], level: 0 } : null,
   pool: [...NODES[node].pool], risk: 1, floors, goalFloor, fee: 100 + floors * 10, shards: 0, deadline: 5,
 });
-const office = (board: ContractOffer[]): OfficeState => ({ day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board, nextOfferId: 100, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 0, rankReached: 0 });
+const office = (board: ContractOffer[]): OfficeState => ({ day: 1, money: 0, debt: 0, known: [], board, nextOfferId: 100, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 0, rankReached: 0 });
 
 describe('합동 출동: which offers can go together', () => {
   it('same district general offers yes; other district, 추격, main story, too many: no', () => {

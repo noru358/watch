@@ -20,16 +20,14 @@ export interface ContractOffer {
   mods: ModifierId[]; // 현장 변형
   target: OfferTarget | null; // 현상수배 / 추격
   pool: GhostId[]; // strong ghosts on the floors
-  risk: number; // node contamination when posted (0..5): ghost density and swarm only
+  risk: number; // 의뢰 등급 0..3 (office.data.ts gradeWeights): ghost density and swarm only
   floors: number;
   goalFloor: number; // 0-based floor the objective ends on (추격: the last floor, it may end sooner)
   fee: number;
   shards: number; // 심연 파편 for finishing the objective
   deadline: number | null; // last day it can be taken; null = stays until done
-  urgent?: boolean; // 긴급 의뢰 from an overflowing district (office.data.ts contamination.overflow)
+  urgent?: boolean; // 긴급 의뢰 (office.data.ts urgent): one night, pays more
 }
-
-export type Contamination = Record<NodeId, number>;
 
 // One main-story chapter's progress (save v5).
 export interface ChapterState {
@@ -48,7 +46,6 @@ export interface OfficeState {
   day: number;
   money: number;
   debt: number;
-  contamination: Contamination;
   known: NodeId[]; // nodes visited at least once (their ghosts are no longer "?")
   board: ContractOffer[];
   nextOfferId: number;
@@ -67,8 +64,7 @@ export interface MorningReport {
   rentPaid: number;
   debtAdded: number;
   expired: number;
-  worsened: NodeId[]; // nodes whose contamination rose
-  overflowed: NodeId[]; // districts whose 긴급 의뢰 was missed: they spilled into their neighbours
+  urgentMissed: number; // 긴급 의뢰 left to expire last night
   newOffers: number;
   rankUp: number | null; // the rank reached last night (a text comes in the morning)
 }

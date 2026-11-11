@@ -3,6 +3,7 @@
 Long-form log moved out of HANDOFF.md on 2026-10-28 so a new session reads less. Newest status first; read only when you need the story behind something.
 
 ## Status log (to 2026-11-11)
+- **2026-11-11 (owner: "지운다"):** district contamination removed — no rise, overflow, spread or cleanse; offers carry a rolled grade 0..3 (more high grades at higher 평판 rank) and a rare one-night urgent offer; reputation lost its hot-district bonus; chapter 2 opens by days only; the map shows offer pins; morning report says when an urgent job was missed. Save v8.
 - **2026-11-11 morning (owner: rooms "가안 통과, 나중에 검수"):** affixes on named targets, then sortie lengths 단타 / 보통 / 원정 with mid-bosses, save-point checkpoints, deeper floors richer and with affixes. Bot check on a 16-floor 원정: 2/6, 16–25 min bot time.
 - **2026-11-11 later:** hand-made text rooms in the floor generator (spots for stairs, guards, treasure; plain floors draw the same numbers), the room preview page, a fairer 결계 spacing fallback. The 막차 bot check now uses 40 seeds: over 8 it swung with map luck (25/40 with rooms vs 24/40 without).
 - **2026-11-11 (owner switched to Opus, "핸드오프 오푸스 작업"):** seven role ghosts built on the trait parts, with telegraph effects, ghost bullets, floor hazards and a night-long theft; district pools assigned; the bot learned remote marks, hazards, bullets and to path round walls; a `moveBody` rounding bug that stuck bodies to corners fixed. Skin list parked for later by the owner.

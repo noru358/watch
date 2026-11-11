@@ -1,19 +1,19 @@
 # 나이트워치 총괄 장부 (자동 생성)
 
-`npm run catalog`가 코드에서 뽑은 것 (2026-11-10). 손으로 고치지 말 것 — 표의 원본을 고치고 다시 뽑는다. 글자는 전부 `src/i18n/ko.ts`.
+`npm run catalog`가 코드에서 뽑은 것 (2026-11-11). 손으로 고치지 말 것 — 표의 원본을 고치고 다시 뽑는다. 글자는 전부 `src/i18n/ko.ts`.
 
 ## 의뢰 목표
 고치는 곳: `src/data/objectives.data.ts`
 
-| 목표 | id | 등급 | 가중치 | 길이 | 끝나는 층 | 보수× | 파편 | 오염− | 난이도+ | 보수 예(3층, 오염0→3) |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 섬멸 | clear | 0 | 3 | 2~4 | last | 1 | 0 | 2 | 0 | 150→180 |
-| 구조 | rescue | 0 | 2 | 2~4 | 1 | 1.1 | 0 | 2 | 2 | 200→200 |
-| 현상수배 | bounty | 1 | 2 | 2~4 | random | 1.5 | 1 | 3 | 8 | 270→320 |
-| 추격 | chase | 2 | 1.5 | 3~4 | any | 1.4 | 1 | 2 | 8 | 250→290 |
-| 결계 | ward | 0 | 1.5 | 2~3 | random | 0.8 | 0 | 4 | 4 | 140→170 |
-| 첫차까지 | firsttrain | 1 | 1.5 | 1~2 | last | 1.2 | 0 | 2 | 6 | 220→220 |
-| 속전속결 | timeattack | 0 | 2 | 1~3 | random | 1.2 | 0 | 3 | 5 | 220→250 |
+| 목표 | id | 등급 | 가중치 | 길이 | 끝나는 층 | 보수× | 파편 | 난이도+ | 보수 예(3층, 등급0→3) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 섬멸 | clear | 0 | 3 | 2~4 | last | 1 | 0 | 0 | 150→180 |
+| 구조 | rescue | 0 | 2 | 2~4 | 1 | 1.1 | 0 | 2 | 200→200 |
+| 현상수배 | bounty | 1 | 2 | 2~4 | random | 1.5 | 1 | 8 | 270→320 |
+| 추격 | chase | 2 | 1.5 | 3~4 | any | 1.4 | 1 | 8 | 250→290 |
+| 결계 | ward | 0 | 1.5 | 2~3 | random | 0.8 | 0 | 4 | 140→170 |
+| 첫차까지 | firsttrain | 1 | 1.5 | 1~2 | last | 1.2 | 0 | 6 | 220→220 |
+| 속전속결 | timeattack | 0 | 2 | 1~3 | random | 1.2 | 0 | 5 | 220→250 |
 
 - 구조: hp 6 · radius 0.3 · hurtIframes 0.7 · findRange 1.4 · fearPerSecond 0.013333333333333334 · fearNearMult 2.5 · nearRange 4.5 · fearRelief 0.04 · cryEvery 5 · followSpeed 5.6 · followGap 0.9 · carryMoveMult 0.85
 - 현상수배: hpMult 4 · hpPerLevel 1 · damageAdd 1 · speedMult 1.1 · windupMult 0.85 · maxLevel 3
@@ -75,20 +75,20 @@
 - rentEvery 7 · rent 450 · boardSize 4
 - general: enemiesBase 5 · feeBase 60 · feePerDifficulty 30 · feePerFloor 20 · feePerTargetLevel 0.15 · payphoneFrom 3
 - difficulty steps 20/30/42/55 · boss 20 · per level 4
-- contamination: max 5 · expireRise 1 · failRise 1 · overflow: at 5 · days 2 · feeMult 1.5 · repMult 1.5 · rise 1 · rep 10
+- grades: 6/3/1/0 · 4/4/2/1 · 2/4/3/2 · 1/3/4/3 · urgent: chance 0.1 · fromGrade 1 · days 1 · feeMult 1.5 · repMult 1.5 · rep 10
 - swarm: every 6.5 · everyPerRisk -0.4 · group 4 · cap 12 · capPerRisk 2 · joint: max 3 · extraFloors 1
 
 ## 동네
 고치는 곳: `src/data/nodes.data.ts`
 
-| 동네 | id | 등급 | 시작 오염 | 괴이 | 층 모습 | 이웃 |
-| --- | --- | --- | --- | --- | --- | --- |
-| 노포 골목 | alley | 0 | 2 | 처녀귀신, 달걀귀신, 뛰어드는 것 | alley, basement | 인쇄소 골목, 을지로 지하상가 |
-| 인쇄소 골목 | printshop | 0 | 1 | 달걀귀신, 쏘는 것, 터지는 것 | alley, basement | 노포 골목, 을지로3가역, 폐모텔, 옥탑 달동네 |
-| 을지로 지하상가 | arcade | 0 | 1 | 처녀귀신, 지하철 망령, 붙잡는 것 | arcade, basement | 노포 골목, 을지로3가역 |
-| 을지로3가역 | station | 0 | 0 | 지하철 망령, 달걀귀신, 부르는 것 | arcade, basement | 을지로 지하상가, 인쇄소 골목, 폐모텔 |
-| 폐모텔 | motel | 1 | 0 | 처녀귀신, 도깨비, 훔치는 것, 커지는 것 | basement, alley | 인쇄소 골목, 을지로3가역, 옥탑 달동네 |
-| 옥탑 달동네 | rooftop | 2 | 0 | 도깨비, 뛰어드는 것, 쏘는 것, 커지는 것 | rooftop, alley | 인쇄소 골목, 폐모텔 |
+| 동네 | id | 등급 | 괴이 | 층 모습 | 이웃 |
+| --- | --- | --- | --- | --- | --- |
+| 노포 골목 | alley | 0 | 처녀귀신, 달걀귀신, 뛰어드는 것 | alley, basement | 인쇄소 골목, 을지로 지하상가 |
+| 인쇄소 골목 | printshop | 0 | 달걀귀신, 쏘는 것, 터지는 것 | alley, basement | 노포 골목, 을지로3가역, 폐모텔, 옥탑 달동네 |
+| 을지로 지하상가 | arcade | 0 | 처녀귀신, 지하철 망령, 붙잡는 것 | arcade, basement | 노포 골목, 을지로3가역 |
+| 을지로3가역 | station | 0 | 지하철 망령, 달걀귀신, 부르는 것 | arcade, basement | 을지로 지하상가, 인쇄소 골목, 폐모텔 |
+| 폐모텔 | motel | 1 | 처녀귀신, 도깨비, 훔치는 것, 커지는 것 | basement, alley | 인쇄소 골목, 을지로3가역, 옥탑 달동네 |
+| 옥탑 달동네 | rooftop | 2 | 도깨비, 뛰어드는 것, 쏘는 것, 커지는 것 | rooftop, alley | 인쇄소 골목, 폐모텔 |
 
 ## 괴이
 고치는 곳: `src/data/ghosts.data.ts`
@@ -113,10 +113,10 @@
 ## 메인 스토리 장
 고치는 곳: `src/data/chapters.data.ts · contracts.data.ts`
 
-| 장 | id | 앞 장 | 열림(일 / 오염) | 단서 | 단서 동네 | 본 의뢰 | 보수 |
+| 장 | id | 앞 장 | 열림(일) | 단서 | 단서 동네 | 본 의뢰 | 보수 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1장 | ch1 |  | 3 / 0 | 0 | 노포 골목 | 메인 의뢰 1 5층 | 300 |
-| 2장 | ch2 | ch1 | 4 / 4 | 3 | 을지로3가역, 을지로 지하상가 | 메인 의뢰 2 4층 | 450 |
+| 1장 | ch1 |  | 3 | 0 | 노포 골목 | 메인 의뢰 1 5층 | 300 |
+| 2장 | ch2 | ch1 | 4 | 3 | 을지로3가역, 을지로 지하상가 | 메인 의뢰 2 4층 | 450 |
 
 ## 장면 대사
 고치는 곳: `src/data/story.data.ts (순서) · ko.ts scene.*`
@@ -242,7 +242,7 @@
 - 2 을지로 단골: 300점, 트레이닝 한도 80%
 - 3 구청이 연락하는: 650점, 트레이닝 한도 100%
 - 4 서울 밤의 명함: 1200점, 트레이닝 한도 100%
-- perDifficulty 10 · hotAt 4 · hotBonus 5 · main 60 · died 15 · failed 10 · expired 5
+- perDifficulty 10 · main 60 · died 15 · failed 10 · expired 5
 
 ## 강화 카드 · 무기 · 주인공
 고치는 곳: `src/data/cards.data.ts · weapons.data.ts · protagonist.data.ts`

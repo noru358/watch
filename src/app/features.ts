@@ -23,6 +23,8 @@ export function openFeature(id: LobbyFeatureId): void {
   input.push('modal');
   notify();
 }
+// Dev-only: open a hub panel from automated play-tests (window.__open('sortie')).
+if (import.meta.env.DEV) (window as unknown as { __open?: unknown }).__open = openFeature;
 
 export function closeFeature(): void {
   if (!open) return;

@@ -1,3 +1,4 @@
+import { OFFICE } from '../src/data/office.data';
 import { describe, expect, it } from 'vitest';
 import { migrate, SAVE_VERSION } from '../src/core/SaveManager';
 import { SeededRNG } from '../src/core/SeededRNG';
@@ -6,14 +7,14 @@ import { MODIFIERS } from '../src/data/modifiers.data';
 import { NODES } from '../src/data/nodes.data';
 import { RANKS, REPUTATION } from '../src/data/reputation.data';
 import { TRAINING } from '../src/data/training.data';
-import { advanceDay, offerDifficulty, refillBoard, resolveNight, startingContamination, type ContractOffer, type OfficeState } from '../src/systems/office';
+import { advanceDay, offerDifficulty, refillBoard, resolveNight, type ContractOffer, type OfficeState } from '../src/systems/office';
 import { addReputation, rankFor, trainingCap } from '../src/systems/reputation';
 import { buildFacility, buyTraining, NO_FACILITIES, trainingCapped, type GrowthState } from '../src/systems/growth';
 import { GameStore } from '../src/store/gameStore';
 
 // 평판 (docs/rules/reputation.md).
 const office = (patch: Partial<OfficeState> = {}): OfficeState => ({
-  day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 0, rankReached: 0, ...patch,
+  day: 1, money: 0, debt: 0, known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 0, rankReached: 0, ...patch,
 });
 const general = (s: OfficeState, patch: Partial<ContractOffer> = {}): ContractOffer => {
   const o: ContractOffer = { id: s.nextOfferId++, kind: 'general', node: 'alley', story: null, objective: 'clear', request: 'flicker', mods: [], target: null, pool: ['cheonyeo'], risk: 1, floors: 3, goalFloor: 2, fee: 100, shards: 0, deadline: 4, ...patch };
@@ -32,14 +33,13 @@ describe('평판: points and ranks', () => {
     expect(s.rankReached).toBe(1);
   });
 
-  it('a finished job pays difficulty × 10 (+5 in a hot district); falling or failing costs', () => {
+  it('a finished job pays difficulty × 10 (× 1.5 urgent); falling or failing costs', () => {
     const s = office();
     const o = general(s);
     const want = offerDifficulty(o) * REPUTATION.perDifficulty;
     expect(resolveNight(s, { offers: [o.id], completed: [o.id], reached: [o.id], outcome: 'success' }).reputation).toBe(want);
-    s.contamination.alley = REPUTATION.hotAt;
-    const hot = general(s);
-    expect(resolveNight(s, { offers: [hot.id], completed: [hot.id], reached: [hot.id] }).reputation).toBe(want + REPUTATION.hotBonus);
+    const urgent = general(s, { urgent: true });
+    expect(resolveNight(s, { offers: [urgent.id], completed: [urgent.id], reached: [urgent.id] }).reputation).toBe(Math.round(offerDifficulty(urgent) * REPUTATION.perDifficulty * OFFICE.urgent.repMult));
     const lost = general(s);
     expect(resolveNight(s, { offers: [lost.id], completed: [], reached: [lost.id], outcome: 'died' }).reputation).toBe(-REPUTATION.died);
   });
@@ -63,13 +63,6 @@ describe('평판: what a rank opens on the board', () => {
         for (const m of o.mods) expect(MODIFIERS[m].rank).toBe(0);
       }
     }
-  });
-
-  it('a locked district does not get worse until it opens', () => {
-    const s = office();
-    const before = s.contamination.rooftop;
-    for (let d = 0; d < 30; d++) advanceDay(s, new SeededRNG(d + 1));
-    expect(s.contamination.rooftop).toBe(before);
   });
 });
 

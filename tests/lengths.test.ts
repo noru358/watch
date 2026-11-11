@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SeededRNG } from '../src/core/SeededRNG';
 import { NODES } from '../src/data/nodes.data';
 import { OFFICE } from '../src/data/office.data';
-import { offerFee, offerFloors, offerLength, refillBoard, startingContamination, type ContractOffer, type OfficeState } from '../src/systems/office';
+import { offerFee, offerFloors, offerLength, refillBoard, type ContractOffer, type OfficeState } from '../src/systems/office';
 import { generateFloor } from '../src/systems/rift';
 import { enterFloor, leaveFloor, runResult, saveAtCheckpoint, settleRun, startRun } from '../src/systems/run';
 import { playNight, skilled } from './bots';
@@ -12,7 +12,7 @@ const offer = (patch: Partial<ContractOffer>): ContractOffer => ({
   id: 7, kind: 'general', node: 'alley', story: null, objective: 'clear', request: 'flicker', mods: [], target: null, pool: [...NODES.alley.pool],
   risk: 0, floors: 3, goalFloor: 2, fee: 0, shards: 0, deadline: 4, ...patch,
 });
-const office = (rank: number): OfficeState => ({ day: 1, money: 0, debt: 0, contamination: startingContamination(), known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 0, rankReached: rank });
+const office = (rank: number): OfficeState => ({ day: 1, money: 0, debt: 0, known: [], board: [], nextOfferId: 1, storyDone: [], wanted: [], chapters: {}, deskLevel: 0, reputation: 0, rankReached: rank });
 
 describe('의뢰 길이 세 단계', () => {
   it('an old saved offer (no length) is short, and short floors are as before', () => {

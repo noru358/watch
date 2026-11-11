@@ -226,9 +226,8 @@ function contracts() {
     { h: '끝나는 층', f: (r) => goalText(r.goal) },
     { h: '보수 배율', f: (r) => `×${r.feeMult}`, cls: 'num' },
     { h: '파편', f: (r) => r.shards, cls: 'num' },
-    { h: '오염 감소', f: (r) => `−${r.cleanse}`, cls: 'num' },
     { h: '난이도 가점', f: (r) => r.difficulty, cls: 'num' },
-    { h: '보수 예 (3층, 오염 0 → 3)', f: (r) => `${won(fee[r.id].calm)} → ${won(fee[r.id].hot)}`, cls: 'num' },
+    { h: '보수 예 (3층, 등급 0 → 3)', f: (r) => `${won(fee[r.id].calm)} → ${won(fee[r.id].hot)}`, cls: 'num' },
   ], rowsOf(d.objectives.general, (id) => objName(id)));
   const rules = Object.entries(d.objectives.rules).map(([id, v]) => `<details><summary>${esc(objName(id))} 세부 숫자</summary>${kv(v)}</details>`).join('');
   const mods = table('modifier', [
@@ -252,12 +251,12 @@ function contracts() {
   const suf = Object.keys(d.t).filter((k) => k.startsWith('wanted.suf.')).map(T);
   for (const a of pre) for (const b of suf) names.push(`${a} ${b}`);
   const g = d.office.general;
-  const formula = `<p style="margin:0">보수 = (${g.feeBase} + 난이도 × ${g.feePerDifficulty} + 층수 × ${g.feePerFloor}) × 목표 배율 × (1 + 변형 보수 합 + 놓친 횟수 × ${g.feePerTargetLevel}), 10원 단위. 난이도 = 목표 층까지 강적 수 + 목표 가점 + 변형 가점이 ${d.office.difficulty.steps.join(' / ')}를 몇 개 넘었나 + 1. 층마다 강적 = ${g.enemiesBase} + 오염 + 층 번호.</p>`;
+  const formula = `<p style="margin:0">보수 = (${g.feeBase} + 난이도 × ${g.feePerDifficulty} + 층수 × ${g.feePerFloor}) × 목표 배율 × (1 + 변형 보수 합 + 놓친 횟수 × ${g.feePerTargetLevel}), 10원 단위. 난이도 = 목표 층까지 강적 수 + 목표 가점 + 변형 가점이 ${d.office.difficulty.steps.join(' / ')}를 몇 개 넘었나 + 1. 층마다 강적 = ${g.enemiesBase} + 등급 + 층 번호.</p>`;
   return sheet('목표 (일반 의뢰는 이 중 하나)', 'src/data/objectives.data.ts', obj + rules) +
     sheet('현장 변형 (의뢰마다 0~2개)', 'src/data/modifiers.data.ts', mods, `0개 ${pct(d.modifiers.count[0])} · 1개 ${pct(d.modifiers.count[1])} · 2개 ${pct(d.modifiers.count[2])}`) +
     sheet('의뢰 사연 (목표마다 틀)', 'src/data/requests.data.ts, 글은 ko.ts request.*', req) +
     sheet('보수 · 난이도 · 판', 'src/data/office.data.ts', formula + kv({ '판에 일반 의뢰': d.office.boardSize, '마감 최소(일)': d.office.deadline.min, '마감 최대(일)': d.office.deadline.max, '합동 출동 최대': d.office.joint.max, '공중전화 나오는 길이': g.payphoneFrom })) +
-    sheet('오염 · 넘침', 'src/data/office.data.ts contamination', kv({ '최대': d.office.contamination.max, '만료 시 +': d.office.contamination.expireRise, '실패 시 +': d.office.contamination.failRise, '넘침 시작': d.office.contamination.overflow.at, '긴급 마감(일)': d.office.contamination.overflow.days, '긴급 보수 ×': d.office.contamination.overflow.feeMult, '긴급 평판 ×': d.office.contamination.overflow.repMult, '놓치면 이웃 +': d.office.contamination.overflow.rise, '놓치면 평판 −': d.office.contamination.overflow.rep, '메인 끝내면 −': d.office.contamination.cleanse.main })) +
+    sheet('의뢰 등급 · 긴급', 'src/data/office.data.ts gradeWeights · urgent', kv({ '등급별 가중치(평판 등급 0→3)': d.office.gradeWeights.map((w) => w.join('/')).join(' · '), '긴급 확률': d.office.urgent.chance, '긴급 최소 등급': d.office.urgent.fromGrade, '긴급 마감(일)': d.office.urgent.days, '긴급 보수 ×': d.office.urgent.feeMult, '긴급 평판 ×': d.office.urgent.repMult, '놓치면 평판 −': d.office.urgent.rep })) +
     sheet('현상수배 · 추격 표적 이름', 'src/i18n/ko.ts wanted.pre.N · wanted.suf.N (줄만 더하면 됨)', `<p style="margin:0">앞말 ${pre.length}개 × 뒷말 ${suf.length}개를 무작위로 붙인다(괴이 종류와 상관없음). 놓칠 때마다 단계 +1, 이름은 그대로.</p><p style="margin:0;font-size:14px">${esc(names.join(' · '))}</p>`);
 }
 
@@ -266,7 +265,6 @@ function city() {
   const nodes = table('node', [
     { h: '동네', f: (r) => esc(r.label), cls: 'name' },
     { h: '평판 등급', f: (r) => r.rank, cls: 'num' },
-    { h: '시작 오염', f: (r) => r.startContamination, cls: 'num' },
     { h: '나오는 괴이', f: (r) => esc(r.pool.map(ghost).join(', ')) },
     { h: '층 모습', f: (r) => esc(r.themes.join(', ')) },
     { h: '이웃', f: (r) => esc(r.links.map(node).join(', ')) },
@@ -290,7 +288,7 @@ function story() {
   const ch = table('chapter', [
     { h: '장', f: (r) => esc(r.label), cls: 'name' },
     { h: '앞 장', f: (r) => esc(r.after ? T(d.chapters[r.after].nameKey) : '—') },
-    { h: '열리는 때', f: (r) => esc(r.after ? `앞 장 끝나고 ${r.startAfterDays}일, 또는 단서 동네 오염 ${r.startHeat}` : '처음부터') },
+    { h: '열리는 때', f: (r) => esc(r.after ? `앞 장 끝나고 ${r.startAfterDays}일` : '처음부터') },
     { h: '단서', f: (r) => `${r.clues}개`, cls: 'num' },
     { h: '단서 동네', f: (r) => esc(r.clueNodes.map(node).join(', ')) },
     { h: '본 의뢰', f: (r) => { const c = d.contracts[r.contract]; return esc(`${T(c.nameKey) || r.contract} · ${c.floors.length}층 · ${won(c.fee)}`); } },
@@ -403,7 +401,7 @@ function rank() {
     { h: '열리는 것', f: (r) => opens(r.i).map((s) => `<span class="chip">${esc(s)}</span>`).join('') || '—', cls: 'text' },
     { h: '등급 오른 아침 문자', f: (r) => esc(`${T(r.from)}: ${T(r.textKey)}`), cls: 'text' },
   ], rows);
-  return sheet('평판 등급', 'src/data/reputation.data.ts (+ 각 데이터 줄의 rank 칸)', t, `끝낸 일반 의뢰 = 난이도 × ${d.reputation.rules.perDifficulty} (오염 ${d.reputation.rules.hotAt} 이상 동네면 +${d.reputation.rules.hotBonus}), 메인 스토리 ${d.reputation.rules.main}.`);
+  return sheet('평판 등급', 'src/data/reputation.data.ts (+ 각 데이터 줄의 rank 칸)', t, `끝낸 일반 의뢰 = 난이도 × ${d.reputation.rules.perDifficulty}, 메인 스토리 ${d.reputation.rules.main}.`);
 }
 
 function night() {

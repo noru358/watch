@@ -5,20 +5,15 @@ export const OFFICE = {
   rent: 450,
   boardSize: 4, // 일반 의뢰 kept on the board (메인 스토리 comes on top; +1 with the 경리 책상 level 1)
   deadline: { min: 3, max: 5 }, // days a general offer stays up
-  contamination: {
-    max: 5,
-    // No random rise or spread (user 2026-10-27): a district only gets worse because of the office —
-    // an offer left to expire, an objective failed or fallen on there.
-    expireRise: 1, // an offer left to expire makes its node worse
-    failRise: 1, // the night ended there without its objective done (fallen, failed, gone home before it)
-    // 넘침 (Pandemic outbreak, shown like Helldivers supply lines): a district at `at` posts one 긴급
-    // 의뢰 (open for `days` nights, fee and 평판 × mult). Let it expire and every open neighbour gets
-    // `rise`, and the office loses `rep` 평판.
-    overflow: { at: 5, days: 2, feeMult: 1.5, repMult: 1.5, rise: 1, rep: 10 },
-    cleanse: { main: 3 }, // general contracts: by objective (objectives.data.ts GENERAL_OBJECTIVES.cleanse)
-  },
+  // 의뢰 등급 0..3 (replaced district contamination, owner 2026-11-11): rolled per offer; a higher
+  // 평판 등급 sees higher grades more often. Grade adds strong ghosts per floor and a denser swarm, and
+  // pays for it (offer.risk holds it). gradeWeights[min(rank, last)][grade].
+  gradeWeights: [[6, 3, 1, 0], [4, 4, 2, 1], [2, 4, 3, 2], [1, 3, 4, 3]],
+  // 긴급 의뢰: a new offer of grade `fromGrade`+ is urgent with this chance (at most one on the board):
+  // one night to take it, fee and 평판 × mult; letting it expire costs `rep` 평판 on top.
+  urgent: { chance: 0.1, fromGrade: 1, days: 1, feeMult: 1.5, repMult: 1.5, rep: 10 },
   general: {
-    enemiesBase: 5, // strong ghosts per floor = base + risk + floor index (+ floors past the goal)
+    enemiesBase: 5, // strong ghosts per floor = base + grade + floor index (+ floors past the goal)
     // fee = (feeBase + 난이도 × feePerDifficulty + floors × feePerFloor) × objective feeMult × (1 + modifier bonuses)
     feeBase: 60,
     feePerDifficulty: 30,

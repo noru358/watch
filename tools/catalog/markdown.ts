@@ -23,8 +23,8 @@ export function catalogMarkdown(c: Catalog): string {
 
   h('의뢰 목표', 'src/data/objectives.data.ts');
   const fee = Object.fromEntries(c.objectives.fees.map((f) => [f.objective, f]));
-  out.push(table(['목표', 'id', '등급', '가중치', '길이', '끝나는 층', '보수×', '파편', '오염−', '난이도+', '보수 예(3층, 오염0→3)'],
-    Object.entries(c.objectives.general).map(([id, r]) => [obj(id), id, r.rank, r.weight, `${r.floors[0]}~${r.floors[1]}`, r.goal, r.feeMult, r.shards, r.cleanse, r.difficulty, `${fee[id]?.calm}→${fee[id]?.hot}`])));
+  out.push(table(['목표', 'id', '등급', '가중치', '길이', '끝나는 층', '보수×', '파편', '난이도+', '보수 예(3층, 등급0→3)'],
+    Object.entries(c.objectives.general).map(([id, r]) => [obj(id), id, r.rank, r.weight, `${r.floors[0]}~${r.floors[1]}`, r.goal, r.feeMult, r.shards, r.difficulty, `${fee[id]?.calm}→${fee[id]?.hot}`])));
   out.push('', ...Object.entries(c.objectives.rules).map(([id, v]) => `- ${obj(id)}: ${kv(v)}`));
 
   h('현장 변형', 'src/data/modifiers.data.ts');
@@ -41,11 +41,11 @@ export function catalogMarkdown(c: Catalog): string {
 
   h('판 · 보수 · 오염', 'src/data/office.data.ts');
   out.push(`- ${kv(c.office)}`, `- general: ${kv(c.office.general)}`, `- difficulty steps ${c.office.difficulty.steps.join('/')} · boss ${c.office.difficulty.bossWeight} · per level ${c.office.difficulty.bountyPerLevel}`,
-    `- contamination: ${kv(c.office.contamination)} · overflow: ${kv(c.office.contamination.overflow)}`, `- swarm: ${kv(c.office.swarm)} · joint: ${kv(c.office.joint)}`);
+    `- grades: ${c.office.gradeWeights.map((w) => w.join('/')).join(' · ')} · urgent: ${kv(c.office.urgent)}`, `- swarm: ${kv(c.office.swarm)} · joint: ${kv(c.office.joint)}`);
 
   h('동네', 'src/data/nodes.data.ts');
-  out.push(table(['동네', 'id', '등급', '시작 오염', '괴이', '층 모습', '이웃'],
-    Object.entries(c.nodes).map(([id, n]) => [T(n.nameKey), id, n.rank, n.startContamination, n.pool.map(ghost).join(', '), n.themes.join(', '), n.links.map(node).join(', ')])));
+  out.push(table(['동네', 'id', '등급', '괴이', '층 모습', '이웃'],
+    Object.entries(c.nodes).map(([id, n]) => [T(n.nameKey), id, n.rank, n.pool.map(ghost).join(', '), n.themes.join(', '), n.links.map(node).join(', ')])));
 
   h('괴이', 'src/data/ghosts.data.ts');
   out.push(table(['괴이', 'id', '체력', '피해', '속도', '공격', '예고', '영력', '그 밖'],
@@ -53,8 +53,8 @@ export function catalogMarkdown(c: Catalog): string {
   out.push('', ...Object.entries(c.bosses).map(([id, b]) => `- 보스 ${ghost(id)}: ${kv(b)}`));
 
   h('메인 스토리 장', 'src/data/chapters.data.ts · contracts.data.ts');
-  out.push(table(['장', 'id', '앞 장', '열림(일 / 오염)', '단서', '단서 동네', '본 의뢰', '보수'],
-    Object.entries(c.chapters).map(([id, ch]) => { const k = c.contracts[ch.contract as keyof typeof c.contracts]; return [T(ch.nameKey), id, ch.after ?? '', `${ch.startAfterDays} / ${ch.startHeat}`, ch.clues, ch.clueNodes.map(node).join(', '), `${T(k.nameKey)} ${k.floors.length}층`, k.fee]; })));
+  out.push(table(['장', 'id', '앞 장', '열림(일)', '단서', '단서 동네', '본 의뢰', '보수'],
+    Object.entries(c.chapters).map(([id, ch]) => { const k = c.contracts[ch.contract as keyof typeof c.contracts]; return [T(ch.nameKey), id, ch.after ?? '', `${ch.startAfterDays}`, ch.clues, ch.clueNodes.map(node).join(', '), `${T(k.nameKey)} ${k.floors.length}층`, k.fee]; })));
 
   h('장면 대사', 'src/data/story.data.ts (순서) · ko.ts scene.*');
   for (const [id, lines] of Object.entries(c.story.scenes)) out.push(`- **${id}**: ${lines.map((l) => `${T(c.story.speakers[l.speaker].nameKey)} "${T(l.key)}"`).join(' / ')}`);

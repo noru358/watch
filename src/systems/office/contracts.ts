@@ -121,7 +121,7 @@ export function offerGoal(offer: ContractOffer): { kind: GoalKind; floor: number
   return { kind: offer.objective ?? 'clear', floor: offer.goalFloor };
 }
 
-// 난이도 1..5 from what the night really holds up to its goal (not the node's contamination):
+// 난이도 1..5 from what the night really holds up to its goal:
 // strong ghosts up to the goal floor + the objective's points (+ the target's level) + modifiers.
 export function offerDifficulty(offer: ContractOffer): number {
   const d = OFFICE.difficulty;
@@ -150,11 +150,11 @@ export function offerFee(offer: ContractOffer): number {
   return Math.round(raw / 10) * 10;
 }
 
-// What the district's contamination adds to an offer (the board draws this part in the heat colour):
-// the same offer at contamination 0 vs as posted. Contamination only adds strong ghosts per floor and a
+// What the offer's 등급 adds (the board draws this part in the grade colour): the same offer at grade 0
+// vs as posted. The grade only adds strong ghosts per floor and a
 // thicker wisp swarm; difficulty and fee follow from that (and an urgent offer's ×fee on top).
 export interface OfferHeat {
-  risk: number; // contamination when posted
+  risk: number; // 의뢰 등급
   dots: number; // 난이도 dots that come from it
   fee: number; // money that comes from it
   ghosts: number; // extra strong ghosts per floor
