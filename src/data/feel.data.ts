@@ -39,6 +39,7 @@ export const FEEL = {
   flashDuration: 70, // ms enemy white flash on hit
   drawFxTime: 0.3, // seconds a 발도's range arc/ring stays visible
   swingTrailTime: 0.16, // seconds a swing's smear stays visible (fading)
+  directorRimAlpha: 0.45, // the director's rim light (PALETTE.directorRim)
   swingSweepTime: 0.06, // seconds the blade takes to cross the arc (fast: the smear carries the motion)
   smearThickness: 0.45, // smear width at its leading edge, as a fraction of the reach
   smearAlpha: 0.6,
@@ -88,6 +89,7 @@ export const PALETTE = {
   pickup: 0x6ef0ff,
   payphone: 0x41e0c8,
   shield: 0xe8f4ff,
+  directorRim: 0xb9c4ff, // 1px rim round the director so the black jacket reads on dark floors
   cheonyeo: 0xe8e8ff,
   dalgyal: 0xf4f0d8,
   subway: 0x7fb7ff,

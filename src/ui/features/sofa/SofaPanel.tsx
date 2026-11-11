@@ -6,7 +6,8 @@ import { restAmount, traumaEffects } from '../../../systems/growth';
 import { panelCss as css } from '../panel';
 import { priceStyle, rowStyle, useNav } from '../useNav';
 
-// The worn sofa: 휴식하기 (skip tonight, the day passes), 자본 치료 (money), 진정제 사용 (needs an item: not yet).
+// The worn sofa: 휴식하기 (skip tonight, the day passes), 자본 치료 (money). 진정제 사용 comes back as a
+// row once there is a sedative item to use (none yet, so the row is not shown).
 export function SofaPanel() {
   const s = useSyncExternalStore(store.subscribe, store.getState);
   const [note, setNote] = useState('');
@@ -14,7 +15,6 @@ export function SofaPanel() {
   const options = [
     { key: 'rest', name: t('sofa.rest'), desc: t('sofa.restDesc', { amount: restAmount(s) }), price: '', can: true },
     { key: 'capital', name: t('sofa.capital'), desc: t('sofa.capitalDesc', { amount: TRAUMA.capitalAmount }), price: `₩${TRAUMA.capitalCost}`, can: s.trauma > 0 && s.money >= TRAUMA.capitalCost },
-    { key: 'sedative', name: t('sofa.sedative'), desc: t('sofa.sedativeDesc'), price: '', can: false },
   ] as const;
   const pick = (i: number) => {
     const o = options[i]!;

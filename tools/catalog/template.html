@@ -277,7 +277,7 @@ function city() {
     { h: '공격', f: (r) => ({ cone: '부채꼴(받아치기 가능)', circle: '원(받아치기 가능)', line: '돌진(피하기만)', none: '몸통' })[r.attack] },
     { h: '예고', f: (r) => (r.windup ? `${r.windup}초` : '—'), cls: 'num' },
     { h: '영력', f: (r) => r.drop, cls: 'num' },
-    { h: '특징', f: (r) => esc([r.teleportEvery ? `${r.teleportEvery}초마다 뒤로 순간이동` : '', r.darkness ? `맞으면 ${r.darkness}초 어둠` : '', r.fodder ? '무리' : ''].filter(Boolean).join(' · ') || '—'), cls: 'text' },
+    { h: '특징', f: (r) => esc([r.teleportEvery ? `${r.teleportEvery}초마다 뒤로 순간이동` : '', r.darkness ? `맞으면 ${r.darkness}초 어둠` : '', r.fodder ? '무리' : '', ...(r.traits || []).map((x) => T(`trait.${x.part}`))].filter(Boolean).join(' · ') || '—'), cls: 'text' },
   ], rowsOf(d.ghosts, (id) => ghost(id)));
   const bosses = Object.entries(d.bosses).map(([id, v]) => `<details><summary>${esc(ghost(id))}</summary>${kv(v)}</details>`).join('');
   return sheet('동네 (을지로 작전 지도)', 'src/data/nodes.data.ts', nodes) + sheet('괴이', 'src/data/ghosts.data.ts', ghosts) + sheet('보스', 'src/data/ghosts.data.ts BOSSES', bosses);

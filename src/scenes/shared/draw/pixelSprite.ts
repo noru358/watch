@@ -97,12 +97,13 @@ export function stackSprites(top: PixelSprite, body: PixelSprite, rows: number):
 
 // Draws with the feet (anchor column, bottom row) at (fx, fy), each sprite pixel `scale` px wide.
 // `white` paints every pixel white (hit flash).
-export function drawPixelSprite(g: G, s: PixelSprite, fx: number, fy: number, flip: boolean, alpha = 1, white = false, scale = 1): void {
+// `solid`: draw every pixel in this one colour (a rim or a flash) instead of the sprite's own.
+export function drawPixelSprite(g: G, s: PixelSprite, fx: number, fy: number, flip: boolean, alpha = 1, white = false, scale = 1, solid?: number): void {
   const ax = s.anchorX ?? s.w / 2;
   const x0 = Math.round(fx - (flip ? s.w - ax : ax) * scale);
   const y0 = Math.round(fy - s.h * scale);
   for (const r of s.runs) {
-    g.fillStyle(white ? 0xffffff : r.color, alpha);
+    g.fillStyle(solid ?? (white ? 0xffffff : r.color), alpha);
     const x = flip ? s.w - r.x - r.len : r.x;
     g.fillRect(x0 + x * scale, y0 + r.y * scale, r.len * scale, scale);
   }

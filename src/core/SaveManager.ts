@@ -6,11 +6,13 @@ import type { ChapterState, ContractOffer, WantedTarget } from '../systems/offic
 import type { ActiveId, ChapterId, ContractId, FacilityId, NodeId, SceneId, SkillSlotId, SupplyId, UpgradeId } from '../types/ids';
 import type { GearItem, GearSlot } from '../systems/gear';
 import type { HirePool, Staff } from '../systems/staff';
+import type { LastRun } from '../store/gameStore'; // type only: the report's shape is the store's
+import type { Morning } from '../store/staffDesk';
 import { TRAINING, TRAINING_V1_TO_V2 } from '../data/training.data';
 import type { TrainingLevels } from '../systems/run';
 import { rankFor } from '../systems/reputation';
 
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
 
 export interface SaveData {
   schemaVersion: typeof SAVE_VERSION;
@@ -54,6 +56,9 @@ export interface SaveData {
   assign: Record<number, number>;
   nextStaffId: number;
   hirePool: HirePool | null;
+  // v10: last night and this morning's report, so a reload still shows the morning (plain JSON)
+  lastRun: LastRun | null;
+  lastMorning: Morning | null;
 }
 
 // The part of localStorage we use; tests pass a Map-backed fake.
@@ -114,6 +119,8 @@ const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
   },
   // v8 → v9: no staff yet.
   8: (old) => ({ ...old, staff: [], assign: {}, nextStaffId: 1, hirePool: null }),
+  // v9 → v10: no report kept from before.
+  9: (old) => ({ ...old, lastRun: null, lastMorning: null }),
 };
 const MIGRATE_REP_PER_SOLVED = 20;
 
@@ -149,7 +156,8 @@ export function migrate(raw: unknown): SaveData | null {
   }
   const { money, trauma, solved, seedBase, runCounter, day, debt, known, board, nextOfferId, storyDone, seen } = data;
   const { shards, training, trainingBought, facilities, supply, passives, actives, active, wanted, chapters, reputation, rankReached, upgrades, gear, equipped, nextGearId } = data;
-  const { staff, assign, nextStaffId, hirePool } = data;
+  const { staff, assign, nextStaffId, hirePool, lastRun, lastMorning } = data;
+  if ((lastRun !== null && !isObj(lastRun)) || (lastMorning !== null && !isObj(lastMorning))) return null;
   if (!Array.isArray(staff) || !isObj(assign) || !isNum(nextStaffId) || (hirePool !== null && !isObj(hirePool))) return null;
   if (![money, trauma, solved, seedBase, runCounter, day, debt, nextOfferId, shards, trainingBought, reputation, rankReached, nextGearId].every(isNum)) return null;
   if (!isObj(upgrades) || !Array.isArray(gear) || !isObj(equipped)) return null;
@@ -189,6 +197,8 @@ export function migrate(raw: unknown): SaveData | null {
     assign,
     nextStaffId,
     hirePool,
+    lastRun,
+    lastMorning,
   } as SaveData;
 }
 

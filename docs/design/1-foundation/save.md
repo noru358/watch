@@ -31,3 +31,5 @@
 
 ## 📝 다음 버전
 무기 단계, 나중에 동료·기질. 저장 슬롯 여러 개는 필요해지면.
+
+- v8: 동네 오염 지움. v9: 직원(`staff`, `assign`, `nextStaffId`, `hirePool`). v10: 어젯밤 결과와 아침 보고(`lastRun`, `lastMorning`) — 새로고침해도 아침 보고가 남는다.

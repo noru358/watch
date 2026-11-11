@@ -45,6 +45,8 @@ function pickPose(p: Player, f: Floor, clock: number): Pose {
   return side(anim, nth(list, Math.floor(clock * S.fps) % list.length));
 }
 
+const RIM = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
+
 // The director: body (pixel sprite when loaded, shapes otherwise), the separately drawn
 // sword and swing smear (sword.ts), and the 발도 range effects.
 export function drawDirector(g: G, p: Player, f: Floor, alpha: number, clock: number, frames: FrameLookup): void {
@@ -69,6 +71,9 @@ export function drawDirector(g: G, p: Player, f: Floor, alpha: number, clock: nu
       drawSmear(g, p, f, step, x, y);
       drawSword(g, p, f, step, hx, hy, !right);
     }
+    // Rim light: the silhouette one pixel out on each side, under the body (the jacket is near-black).
+    const rimA = (blink ? S.blinkAlpha : 1) * FEEL.directorRimAlpha;
+    for (const [dx, dy] of RIM) drawPixelSprite(g, sprite, x + dx, y + 1 + dy, flip, rimA, false, 1, PALETTE.directorRim);
     drawPixelSprite(g, sprite, x, y + 1, flip, blink ? S.blinkAlpha : 1);
     if (!behind) {
       drawSword(g, p, f, step, hx, hy, !right);

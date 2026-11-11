@@ -78,3 +78,17 @@ describe('save v8 (district contamination removed)', () => {
     expect(v.board[1]?.risk ?? 1).toBe(1);
   });
 });
+
+describe('save v10 (the morning report survives a reload)', () => {
+  it('last night and the morning report are saved, and a v9 save starts without them', () => {
+    const store = new GameStore({ money: 100, seedBase: 2 });
+    store.restToday();
+    const saved = migrate(JSON.parse(JSON.stringify(store.toSave())))!;
+    expect(saved.lastMorning?.day).toBe(store.getState().day);
+    expect(new GameStore(saved).getState().lastMorning?.day).toBe(store.getState().day);
+    const { lastRun: _r, lastMorning: _m, ...rest } = store.toSave() as unknown as Record<string, unknown>;
+    const v = migrate({ ...rest, schemaVersion: 9 })!;
+    expect(v.lastRun).toBeNull();
+    expect(v.lastMorning).toBeNull();
+  });
+});

@@ -250,6 +250,9 @@ export class GameStore {
       assign: { ...s.assign },
       nextStaffId: s.nextStaffId,
       hirePool: s.hirePool ? { week: s.hirePool.week, list: s.hirePool.list.map((c) => ({ ...c, name: [...c.name] as [number, number] })) } : null,
+      // The morning report survives a reload (it is plain data; a deep copy keeps the save apart).
+      lastRun: s.lastRun ? JSON.parse(JSON.stringify(s.lastRun)) : null,
+      lastMorning: s.lastMorning ? JSON.parse(JSON.stringify(s.lastMorning)) : null,
     };
   }
 
