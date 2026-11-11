@@ -40,6 +40,11 @@ describe('의뢰 길이 세 단계', () => {
     expect(at(16)!.objective).toBe('clear');
     expect(at(10)!.affixChance).toBeGreaterThan(0);
     expect(at(5)!.affixChance).toBeUndefined();
+    // A graded offer shows words from the first floor, more for a higher grade.
+    const g1 = offerFloors({ ...offer({ floors: 3, goalFloor: 2 }), risk: 1 })[0]!;
+    const g3 = offerFloors({ ...offer({ floors: 3, goalFloor: 2 }), risk: 3 })[0]!;
+    expect(g1.kind === 'normal' && g1.affixChance).toBe(OFFICE.affixByGrade[1]);
+    expect(g3.kind === 'normal' && g3.affixChance).toBe(OFFICE.affixByGrade[3]);
     expect(offerFee(o)).toBeGreaterThan(offerFee({ ...o, length: 'short' }) * 3);
   });
 

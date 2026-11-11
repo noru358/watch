@@ -37,6 +37,9 @@ export const OFFICE = {
   },
   // Floors past the 4th get harder slowly and richer (the first four are as they always were).
   depth: { from: 3, enemiesEvery: 2, lootPerFloor: 0.12, affixFrom: 7, affixChance: 0.25, affixChancePerFloor: 0.03, affixChanceMax: 0.6 },
+  // …and from the first floor, by 의뢰 등급 0..3: a graded offer mixes in strong ghosts with a word
+  // (affixes.data.ts), so a short job shows them too. Added to the depth chance, same cap.
+  affixByGrade: [0, 0.08, 0.15, 0.25],
   swarm: { every: 6.5, everyPerRisk: -0.4, group: 4, cap: 12, capPerRisk: 2 },
   // 의뢰판 난이도 1..5 (docs/rules/office.md): strong ghosts the player must get through up to the
   // goal floor + the objective's and modifiers' points (+ bossWeight for a boss), against these steps.

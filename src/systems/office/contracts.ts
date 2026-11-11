@@ -43,10 +43,12 @@ function enemiesAt(i: number): number {
   return Math.min(i, d.from) + Math.floor(Math.max(0, i - d.from) / d.enemiesEvery);
 }
 
-// Chance that an ordinary strong ghost carries an affix, on floor i (0 before affixFrom).
-function affixChanceAt(i: number): number {
+// Chance that an ordinary strong ghost carries an affix on floor i: from the offer's 등급 on every
+// floor, plus the depth part from affixFrom on (OFFICE.affixByGrade, OFFICE.depth).
+function affixChanceAt(i: number, grade: number): number {
   const d = OFFICE.depth;
-  return i < d.affixFrom ? 0 : Math.min(d.affixChanceMax, d.affixChance + d.affixChancePerFloor * (i - d.affixFrom));
+  const deep = i < d.affixFrom ? 0 : d.affixChance + d.affixChancePerFloor * (i - d.affixFrom);
+  return Math.min(d.affixChanceMax, deep + (OFFICE.affixByGrade[Math.min(grade, OFFICE.affixByGrade.length - 1)] ?? 0));
 }
 
 const AFFIX_WORDS = Object.keys(AFFIXES).map(Number);
@@ -105,7 +107,7 @@ export function offerFloors(offer: ContractOffer): readonly FloorPlan[] {
           ? midBoss(offer, i)
           : undefined,
       ...(i > OFFICE.depth.from ? { depth: i } : {}),
-      ...(affixChanceAt(i) > 0 ? { affixChance: affixChanceAt(i) } : {}),
+      ...(affixChanceAt(i, offer.risk) > 0 ? { affixChance: affixChanceAt(i, offer.risk) } : {}),
       ...(checkpoint ? { checkpoint: true } : {}),
       ...(i === last && L.endShards > 0 ? { bonusShards: L.endShards } : {}),
     });

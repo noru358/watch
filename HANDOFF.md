@@ -15,6 +15,8 @@ Branch: `main` only. Docs: `docs/design/` (what and why, map in its README), `do
 - 2026-11-11: district contamination removed (owner confirmed): offers roll a grade 0..3 (`OFFICE.gradeWeights`, held in `risk`), a rare urgent offer (`OFFICE.urgent`), the map shows offer pins only, chapters open by days or 평판. Save v8 drops contamination.
 - Save is v10 (staff in v9; the last night and morning report kept in v10). Canvas of screen drafts: https://claude.ai/artifact/SZksbAdYMtCzoup7wyBzEE. 총괄 장부: https://claude.ai/artifact/YFeE4XiaLTBUWSPg1Hrm8X (republish after `npm run catalog`; its 괴이 "특징" column in `tools/catalog/template.html` does not show traits yet).
 
+- 2026-11-11: graded offers mix affixed strong ghosts in from the first floor (`OFFICE.affixByGrade`); the 난이도 dots do not count words yet.
+
 ## Next tasks (in order)
 The owner runs cheaper models on work that only needs a spec followed. `[Opus]` = implement the written spec; ask only if the spec contradicts the code. `[Fable]` = needs design judgment; leave it unless you are that model or the owner says otherwise.
 1. Done 2026-11-11: all eight role ghosts, district pools (provisional), bot fixes. Skins (`enemies.md` "겉 목록 초안") wait for the owner — later, do not apply them unasked.
