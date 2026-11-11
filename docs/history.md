@@ -3,6 +3,7 @@
 Long-form log moved out of HANDOFF.md on 2026-10-28 so a new session reads less. Newest status first; read only when you need the story behind something.
 
 ## Status log (to 2026-11-11)
+- **2026-11-11:** per-entity art spec fixed as data (`src/data/artSpec.data.ts`): ten classes with canvas, ground point, facing, colour cap and frame names; each ghost role and the boss list their extra poses; one art pixel = one game pixel. `tests/artSpec.test.ts` reads the PNGs (master passes; a spec folder is checked once one exists). Not yet read by the drawing code.
 - **2026-11-11 (owner "핸드오프 보고 작업 하자"):** the store split (`src/store/state.ts` holds the state shape, a fresh state, the save copy and the office / growth / night-plan views; `gameStore.ts` 483 → 272 lines, actions only). 난이도 counts affixed strong ghosts: each expected one weighs 1 + `difficulty.affixWeight` (1). Over 2,100 sampled board offers 13% read one dot harder (grade 1: 10%, 2: 10%, 3: 25%; grade 0 none); fees +1% on average.
 - **2026-11-11:** feedback table generated from the code (`npm run feel`): 38 events, 6 with no feedback; findings and five recommendations in `combat.md`, not applied yet.
 - **2026-11-11 small fixes:** rim light round the director; last night and the morning report saved (v10), so a reload still shows the morning; the empty sedative row hidden; ghost traits shown in the catalog page.

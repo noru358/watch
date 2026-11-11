@@ -15,4 +15,6 @@
 - `master/director-master.png` — 주인공 마스터 한 장(`v3:0`을 32×36 캔버스에 발 맞춰 옮김, `@8x`는 확대본). 동작 프레임은 이걸 고쳐서 만든다 → [그림 작업 절차](../docs/design/5-business/art-pipeline.md)
 - `palette/master.gpl` — 프로젝트 고정 팔레트(지금 26색, 32색까지). 에디터에서 Indexed 모드로 불러와 쓴다.
 
+규격: 새 그림은 `src/data/artSpec.data.ts`의 종류에 맞춘 캔버스·서는 점·프레임 이름으로, 폴더는 `sprites/<종류>-<id>/`(예: `ghost-grabber/idle.png`, `walk_0.png`). `tests/artSpec.test.ts`가 검사한다. → [아트·에셋](../docs/design/5-business/art.md) "개체별 규격"
+
 새 그림을 받으면: 원본을 `source/<도구>/`에 넣고 → `python3 tools/spritekit/clean_sheet.py 원본 결과폴더` → 결과를 `sprites/<이름>/`에 → `src/data/sprites.data.ts`(또는 해당 그림 파일)에 연결.
