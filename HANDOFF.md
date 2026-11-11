@@ -17,21 +17,18 @@ Branch: `main` only. Docs: `docs/design/` (what and why, map in its README), `do
 
 - 2026-11-11: graded offers mix affixed strong ghosts in from the first floor (`OFFICE.affixByGrade`); the 난이도 dots do not count words yet.
 
-## Next tasks (in order)
-The owner runs cheaper models on work that only needs a spec followed. `[Opus]` = implement the written spec; ask only if the spec contradicts the code. `[Fable]` = needs design judgment; leave it unless you are that model or the owner says otherwise.
-1. Done 2026-11-11: all eight role ghosts, district pools (provisional), bot fixes. Skins (`enemies.md` "겉 목록 초안") wait for the owner — later, do not apply them unasked.
-2. Done 2026-11-11: text room templates (`src/data/rooms.data.ts`, 16 rooms), `npm run rooms` preview published at https://claude.ai/artifact/8ydEiJThDmNJbCM8SmzoW1 — the owner passed them provisionally (will review later). A theme without rooms keeps its maps (`tests/rooms.test.ts` holds the hashes).
-2b. Done 2026-11-11: named-target affixes (`src/data/affixes.data.ts`, 14 words with effects, shown on the contract sheet).
-3. Done 2026-11-11: sortie lengths (`office.data.ts` `lengths` / `depth`, mid-bosses, checkpoints that save, deep affixes, tier on the sheet). Numbers are provisional; long expeditions need a human run.
-4. Done 2026-11-11: management core steps 1–3 — hired staff (`src/systems/staff/`, `src/data/staff.data.ts`, rules `docs/rules/staff.md`), R on the board assigns, roster / training / hiring in the ledger, staff results and wages in the morning report, board grows with 평판 rank, save v9. Not in yet: story staff and the call skill, gear on staff. `src/store/gameStore.ts` is ~480 lines (over the ~400 rule): move the growth wrappers out next time it is touched.
-5. `[Fable]` After the owner picks four of the second set of story cards: order them into four acts, find what the four enemies share (the through-line), write each chapter's five scenes, and turn each person into a staff row + call skill and each enemy into a boss spec.
-6. `[Opus]` Lending as a labour market with no rival-office system (`4-day/economy.md` "대여") — a borrow chip on the assignment strip, a send-out action on the roster, a morning report line. Needs task 4 with at least two staff.
-7. Half done 2026-11-11: the event × feedback table is generated (`npm run feel` → `docs/feel-coverage.md`) and judged in `2-night/combat.md` "연출 점검" — the owner confirms the five recommended changes before any feel changes. Still to do: day panels, screen × state (empty, full, cannot afford, first visit).
-8. Done 2026-11-11: rim light on the director, the morning report saved (save v10), the sedative row hidden until a sedative exists, traits in the catalog page's 특징 column. First-night guidance still needs a short proposal first.
-9. Art (later, one pass): fix a per-entity spec (canvas size, anchor, frame names and counts) before content depends on it; placeholders until then.
+## Next tasks
+The full list (everything ahead, by who and size) lives in `docs/design/roadmap.md` "할 일 전체" — that list is the source; strike items there when done, add new ones there. The next few, in order:
+1. Owner: pick 4 of the 6 story cards (`bible.md` "작업 중") and which of the 5 feel fixes to do (`combat.md` "연출 점검").
+2. `[Opus]` Split `src/store/gameStore.ts` under ~400 lines; make the 난이도 dots count affixed ghosts.
+3. `[Opus]` Fix a per-entity art spec (canvas size, anchor, frame names and counts) before content depends on it.
+4. `[Opus]` Day panels, screen × state check (empty, full, cannot afford, first visit) — report before changing.
+5. `[Opus]` Lending as a labour market (`4-day/economy.md` "대여"), following the multiplayer principles there.
+6. `[Opus]` Second region, decoupled from story chapters.
+7. `[Fable]` Once the cards are picked: the story (four acts, through-line, five scenes a chapter), then staff members and chapter bosses.
 
 ## Open decisions (do not build as if decided)
-Companion call key, protagonist look, big story and ending, first companion and recruiting, squad-operation weight, keeping per-run cards, night length target, the cat's role, rental market, weapon B, final map style.
+Companion call key, protagonist look, big story and ending, keeping per-run cards, night length target, the cat's role, weapon B, final map style. (Settled 2026-11-11: squad operations → staff assignment; rental market → labour market without rival offices; first companion and recruiting → staff come with the story cards.)
 
 ## Decisions to respect
 Read these through the 2026-11-10 direction above: where they disagree (light management, day income capped under night income, paper UI as fixed, Gate 2 scope), the new direction wins.
