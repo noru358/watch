@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { SeededRNG } from '../src/core/SeededRNG';
 import { OFFICE } from '../src/data/office.data';
 import { freshLoan, loanAct, reclaimPrice, resolveEnvelope, settleLoan, type Seizable } from '../src/systems/office';
+import { migrate } from '../src/core/SaveManager';
+import { GameStore } from '../src/store/gameStore';
 
 const L = OFFICE.loan;
 const things: Seizable[] = [
@@ -123,5 +125,61 @@ describe('인수 빚: 막과 되찾기', () => {
 
   it('buying back costs the rate × value', () => {
     expect(reclaimPrice(things[0]!)).toBe(Math.round(800 * L.reclaimRate));
+  });
+});
+
+describe('인수 빚 in the store', () => {
+  const toRentMorning = (store: GameStore) => {
+    for (let d = store.getState().day; (d + 1) % OFFICE.rentEvery !== 0; d++) store.restToday();
+    store.restToday();
+  };
+
+  it('rent morning with enough money: the minimum goes, the morning says so', () => {
+    const store = new GameStore({ money: 5000, seedBase: 2 });
+    toRentMorning(store);
+    const m = store.getState().lastMorning!;
+    expect(m.loan?.short).toBe(false);
+    expect(store.getState().loan.left).toBe(L.total - L.minPayment);
+    expect(store.getState().money).toBe(5000 - OFFICE.rent - L.minPayment);
+  });
+
+  it('broke twice: an envelope, then a red sticker on a facility, bought back for the reclaim price', () => {
+    const store = new GameStore({ money: 0, seedBase: 2, facilities: { desk: 0, bench: 0, sofa: 1 } });
+    toRentMorning(store);
+    expect(store.getState().lastMorning!.loan?.envelope).toBe(true);
+    expect(store.getState().loan.envelope).toBe('offered');
+    toRentMorning(store);
+    const m = store.getState().lastMorning!;
+    expect(m.loan?.seized?.kind).toBe('facility');
+    expect(store.getState().facilities.sofa).toBe(0);
+    expect(store.getState().seized).toHaveLength(1);
+    const price = reclaimPrice(store.getState().seized[0]!);
+    expect(store.reclaim(0)).toBe(false);
+    const rich = new GameStore({ ...store.getState(), money: price });
+    expect(rich.reclaim(0)).toBe(true);
+    expect(rich.getState().facilities.sofa).toBe(1);
+    expect(rich.getState().money).toBe(0);
+    expect(rich.getState().seized).toHaveLength(0);
+  });
+
+  it('더 갚기 takes one step, never past the wallet', () => {
+    const store = new GameStore({ money: 100 });
+    expect(store.payLoan()).toBe(true);
+    expect(store.getState().money).toBe(0);
+    expect(store.getState().loan.left).toBe(L.total - 100);
+    expect(store.payLoan()).toBe(false);
+  });
+
+  it('saves and loads; a v10 save starts owing the whole debt', () => {
+    const store = new GameStore({ money: 0, seedBase: 2, facilities: { desk: 0, bench: 0, sofa: 1 } });
+    toRentMorning(store);
+    toRentMorning(store);
+    const saved = migrate(JSON.parse(JSON.stringify(store.toSave())))!;
+    expect(saved.seized).toHaveLength(1);
+    expect(new GameStore(saved).getState().loan).toEqual(store.getState().loan);
+    const { loan: _l, seized: _s, ...rest } = new GameStore().toSave() as unknown as Record<string, unknown>;
+    const v = migrate({ ...rest, schemaVersion: 10 })!;
+    expect(v.loan).toEqual(freshLoan());
+    expect(v.seized).toEqual([]);
   });
 });

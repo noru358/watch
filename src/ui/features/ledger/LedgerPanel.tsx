@@ -5,7 +5,9 @@ import { OFFICE } from '../../../data/office.data';
 import { num, t, won, type TKey } from '../../../i18n';
 import { NODES } from '../../../data/nodes.data';
 import type { Morning } from '../../../store/staffDesk';
-import { activeChapter, chapterStatus, type OfficeState } from '../../../systems/office';
+import { activeChapter, chapterStatus, minPaymentDue, reclaimPrice, type OfficeState } from '../../../systems/office';
+import type { Seized } from '../../../store/loanDesk';
+import type { FacilityId } from '../../../types/ids';
 import { CHAPTERS } from '../../../data/chapters.data';
 import { FACILITIES, FACILITY_IDS } from '../../../data/facilities.data';
 import { facilityPrice, facilityRankNeeded } from '../../../systems/growth';
@@ -32,6 +34,19 @@ export function staffLines(m: Morning): string[] {
   return out;
 }
 
+// The creditor's rent-morning visit (docs/design/4-day/economy.md "인수 빚과 채권자").
+const seizedName = (x: Seized): string => (x.kind === 'facility' ? t(FACILITIES[x.id as FacilityId].nameKey) : t('ledger.seizedGear'));
+export function loanLines(m: Morning): string[] {
+  const l = m.loan;
+  if (!l) return [];
+  const out: string[] = [];
+  if (!l.short) out.push(t('morning.loanPaid', { paid: l.paid, left: l.left }));
+  else if (l.envelope) out.push(t('morning.loanEnvelope'));
+  else out.push(l.seized ? t('morning.loanSeized', { thing: seizedName(l.seized) }) : t('morning.loanSeizedNone'));
+  if (l.actUp !== null) out.push(l.actUp >= OFFICE.loan.acts ? t('morning.loanDone') : t('morning.loanAct', { pct: Math.round((l.actUp / OFFICE.loan.acts) * 100) }));
+  return out;
+}
+
 // What the bookkeeper says this morning (rent, expired offers, the staff's night).
 export function morningLines(m: Morning | null): string[] {
   if (!m) return [t('morning.quiet')];
@@ -40,6 +55,7 @@ export function morningLines(m: Morning | null): string[] {
   else if (m.rentDue) lines.push(t('morning.rentPaid', { paid: m.rentPaid }));
   if (m.urgentMissed > 0) lines.push(t('morning.urgentMissed'));
   lines.push(...staffLines(m));
+  lines.push(...loanLines(m));
   if (m.expired > 0) lines.push(t('morning.expired', { count: m.expired }));
   if (m.rankUp !== null && m.rankUp !== undefined) lines.push(t('morning.rankUp', { name: t(RANKS[m.rankUp]!.nameKey) }));
   return lines.length > 0 ? lines : [t('morning.quiet')];
@@ -75,6 +91,13 @@ export function LedgerPanel() {
             <div style={css.row}><span>{t('ledger.day')}</span><span>{t('board.day', { day: s.day })}</span></div>
             <div style={css.row}><span>{t('ledger.rent')}</span><span>{t('ledger.rentDue', { rent: OFFICE.rent, days: rentIn })}</span></div>
             {s.debt > 0 && <div style={{ ...css.row, color: '#ff5d7a' }}><span>{t('ledger.debt')}</span><span>{won(s.debt)}</span></div>}
+            {s.loan.left > 0 && <div style={css.row}><span>{t('ledger.loan')}</span><span>{t('ledger.loanLine', { left: s.loan.left, min: minPaymentDue(s.loan) })}</span></div>}
+            {s.loan.envelope !== 'none' && <div style={{ ...css.row, fontSize: 12, color: '#ff5d7a' }}><span />{t('ledger.envelope')}</div>}
+            {s.loan.left > 0 && s.money > 0 && <button style={{ ...css.chip, marginTop: 4 }} onClick={() => store.payLoan()}>{t('ledger.loanPay', { n: Math.min(OFFICE.loan.minPayment, s.loan.left, s.money) })}</button>}
+            {s.seized.length > 0 && <div style={{ ...css.row, ...css.dim, marginTop: 6 }}>{t('ledger.seized')}</div>}
+            {s.seized.map((x, i) => (
+              <button key={`${x.kind}-${x.id}-${i}`} style={{ ...css.chip, marginTop: 4, opacity: s.money >= reclaimPrice(x) ? 1 : 0.5 }} onClick={() => store.reclaim(i)}>{t('ledger.reclaim', { thing: seizedName(x), price: reclaimPrice(x) })}</button>
+            ))}
             <div style={css.row}><span>{t('day.money')}</span><span>{won(s.money)}</span></div>
             <div style={css.row}><span>{t('day.trauma')}</span><span>{s.trauma}</span></div>
             <div style={css.row}><span>{t('ledger.shards')}</span><span>{num(s.shards)}</span></div>

@@ -5,11 +5,12 @@ import { SAVE_VERSION, type SaveData } from '../core/SaveManager';
 import { SeededRNG } from '../core/SeededRNG';
 import type { HirePool, Staff } from '../systems/staff';
 import type { Morning } from './staffDesk';
+import type { Seized } from './loanDesk';
 import type { ActiveId, ChapterId, ContractId, FacilityId, NodeId, Phase, SceneId, SkillSlotId, SupplyId, UpgradeId } from '../types/ids';
 import type { GearItem, GearSlot } from '../systems/gear';
 import type { TrainingLevels, RunGoal, RunResult, Settlement } from '../systems/run';
 import * as growth from '../systems/growth';
-import { morningSeed, planNight, refillBoard, type ContractOffer, type OfficeState, type WantedTarget, type ChapterState, type NightResolution } from '../systems/office';
+import { freshLoan, morningSeed, planNight, refillBoard, type LoanState, type ContractOffer, type OfficeState, type WantedTarget, type ChapterState, type NightResolution } from '../systems/office';
 import type { FloorPlan } from '../data/contracts.data';
 
 export interface LastRun {
@@ -62,6 +63,8 @@ export interface GameState {
   assign: Record<number, number>; // tonight: offer id → staff id
   nextStaffId: number;
   hirePool: HirePool | null; // this week's 구인 list
+  loan: LoanState; // 인수 빚 (save v11)
+  seized: Seized[]; // red stickers, waiting to be bought back
   // not saved
   activeOfferId: number | null; // chosen on the board, played tonight
   joined: number[]; // 합동 출동: offers put in tonight's set on the board (empty = just the chosen one)
@@ -155,6 +158,8 @@ export function freshState(initial: Partial<GameState>): GameState {
     assign: {},
     nextStaffId: 1,
     hirePool: null,
+    loan: freshLoan(),
+    seized: [],
     activeOfferId: null,
     joined: [],
     lastRun: null,
@@ -207,6 +212,8 @@ export function toSave(s: GameState): SaveData {
     assign: { ...s.assign },
     nextStaffId: s.nextStaffId,
     hirePool: s.hirePool ? { week: s.hirePool.week, list: s.hirePool.list.map((c) => ({ ...c, name: [...c.name] as [number, number] })) } : null,
+    loan: { ...s.loan },
+    seized: JSON.parse(JSON.stringify(s.seized)),
     // The morning report survives a reload (it is plain data; a deep copy keeps the save apart).
     lastRun: s.lastRun ? JSON.parse(JSON.stringify(s.lastRun)) : null,
     lastMorning: s.lastMorning ? JSON.parse(JSON.stringify(s.lastMorning)) : null,

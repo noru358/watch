@@ -1,6 +1,8 @@
 import type { SaveData } from '../core/SaveManager';
 import { SeededRNG } from '../core/SeededRNG';
 import * as desk from './staffDesk';
+import * as debt from './loanDesk';
+import { GEAR_ECONOMY } from '../data/gear.data';
 import type { ActiveId, FacilityId, Phase, SceneId, SkillSlotId, SupplyId, TrainingId, UpgradeId } from '../types/ids';
 import { rollDrop, type GearItem } from '../systems/gear';
 import * as growth from '../systems/growth';
@@ -130,6 +132,31 @@ export class GameStore {
     return !!patch;
   }
 
+  // ---- 인수 빚 (store/loanDesk.ts wires systems/office/loan.ts) ----
+
+  // A rent morning: the creditor takes the minimum after rent and wages. Mutates `o.money`.
+  private loanMorning(o: { money: number; day: number }, morning: Parameters<typeof debt.loanMorning>[3], gear: GearItem[]) {
+    const s = this.state;
+    const r = debt.loanMorning({ money: o.money, loan: s.loan, seized: s.seized, facilities: s.facilities, gear, equipped: s.equipped }, s.seedBase, o.day, morning);
+    o.money = r.patch.money;
+    const { money: _m, ...patch } = r.patch;
+    return { patch, report: r.report };
+  }
+
+  // 더 갚기 (ledger): one minimum-payment step off the purchase debt.
+  payLoan(): boolean {
+    const r = debt.payExtra(this.state);
+    if (r) this.set(r);
+    return !!r;
+  }
+
+  // 되찾기 (ledger): buy a seized thing back.
+  reclaim(index: number): boolean {
+    const r = debt.reclaim(this.state, index, GEAR_ECONOMY.bag);
+    if (r) this.set(r);
+    return !!r;
+  }
+
   // R on the board: the next free staff member on this offer, then nobody.
   cycleAssign(offerId: number): void {
     const offer = this.state.board.find((x) => x.id === offerId);
@@ -143,15 +170,17 @@ export class GameStore {
     const crew = desk.staffNight(this.state, o, [], this.state.facilities.sofa);
     const morning = advanceDay(o, new SeededRNG(morningSeed(this.state.seedBase, o.day + 1)));
     const paid = desk.staffMorning(crew.staff, o, morning);
+    const owed = this.loanMorning(o, morning, this.state.gear);
     this.set({
       ...o,
+      ...owed.patch,
       staff: paid.staff,
       assign: {},
       trauma: Math.max(0, this.state.trauma - growth.restAmount(this.state)),
       activeOfferId: null,
       joined: [],
       lastRun: null,
-      lastMorning: { ...morning, rankUp: crew.rankUp ?? morning.rankUp, staff: crew.lines, ...paid.report },
+      lastMorning: { ...morning, rankUp: crew.rankUp ?? morning.rankUp, staff: crew.lines, ...paid.report, ...(owed.report ? { loan: owed.report } : {}) },
     });
   }
 
@@ -249,11 +278,12 @@ export class GameStore {
     const crew = desk.staffNight(this.state, o, result.offers, this.state.facilities.sofa);
     const morning = advanceDay(o, new SeededRNG(morningSeed(this.state.seedBase, o.day + 1)));
     const paid = desk.staffMorning(crew.staff, o, morning);
+    const owed = this.loanMorning(o, morning, g.gear);
     this.set({
       ...o,
+      ...owed.patch,
       staff: paid.staff,
       assign: {},
-      gear: g.gear,
       nextGearId,
       trauma: this.state.trauma + settlement.traumaDelta,
       shards: this.state.shards + settlement.shards,
@@ -265,7 +295,7 @@ export class GameStore {
         offers: taken, paid: Object.fromEntries(night.completed.map((id) => [id, Math.round((taken.find((x) => x.id === id)?.fee ?? 0) * (1 + feeBonus))])),
         reputation: night.reputation, gear: stowed.kept, gearMelted: stowed.melted, shown: false,
       },
-      lastMorning: { ...morning, rankUp: night.rankUp ?? crew.rankUp, staff: crew.lines, ...paid.report },
+      lastMorning: { ...morning, rankUp: night.rankUp ?? crew.rankUp, staff: crew.lines, ...paid.report, ...(owed.report ? { loan: owed.report } : {}) },
     });
     return { ...settlement, clue: night.clue, completed: night.completed.length, reputation: night.reputation, gear: stowed.kept, gearMelted: stowed.melted };
   }

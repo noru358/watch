@@ -8,11 +8,13 @@ import type { GearItem, GearSlot } from '../systems/gear';
 import type { HirePool, Staff } from '../systems/staff';
 import type { LastRun } from '../store/gameStore'; // type only: the report's shape is the store's
 import type { Morning } from '../store/staffDesk';
+import type { Seized } from '../store/loanDesk';
+import { freshLoan, type LoanState } from '../systems/office';
 import { TRAINING, TRAINING_V1_TO_V2 } from '../data/training.data';
 import type { TrainingLevels } from '../systems/run';
 import { rankFor } from '../systems/reputation';
 
-export const SAVE_VERSION = 10;
+export const SAVE_VERSION = 11;
 
 export interface SaveData {
   schemaVersion: typeof SAVE_VERSION;
@@ -59,6 +61,9 @@ export interface SaveData {
   // v10: last night and this morning's report, so a reload still shows the morning (plain JSON)
   lastRun: LastRun | null;
   lastMorning: Morning | null;
+  // v11: 인수 빚 (the purchase debt) and what the 집행관 took
+  loan: LoanState;
+  seized: Seized[];
 }
 
 // The part of localStorage we use; tests pass a Map-backed fake.
@@ -121,6 +126,8 @@ const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
   8: (old) => ({ ...old, staff: [], assign: {}, nextStaffId: 1, hirePool: null }),
   // v9 → v10: no report kept from before.
   9: (old) => ({ ...old, lastRun: null, lastMorning: null }),
+  // v10 → v11: an older office starts owing the whole purchase debt, nothing seized.
+  10: (old) => ({ ...old, loan: freshLoan(), seized: [] }),
 };
 const MIGRATE_REP_PER_SOLVED = 20;
 
@@ -156,7 +163,8 @@ export function migrate(raw: unknown): SaveData | null {
   }
   const { money, trauma, solved, seedBase, runCounter, day, debt, known, board, nextOfferId, storyDone, seen } = data;
   const { shards, training, trainingBought, facilities, supply, passives, actives, active, wanted, chapters, reputation, rankReached, upgrades, gear, equipped, nextGearId } = data;
-  const { staff, assign, nextStaffId, hirePool, lastRun, lastMorning } = data;
+  const { staff, assign, nextStaffId, hirePool, lastRun, lastMorning, loan, seized } = data;
+  if (!isObj(loan) || !isNum((loan as Raw).left) || !isNum((loan as Raw).missed) || !Array.isArray(seized)) return null;
   if ((lastRun !== null && !isObj(lastRun)) || (lastMorning !== null && !isObj(lastMorning))) return null;
   if (!Array.isArray(staff) || !isObj(assign) || !isNum(nextStaffId) || (hirePool !== null && !isObj(hirePool))) return null;
   if (![money, trauma, solved, seedBase, runCounter, day, debt, nextOfferId, shards, trainingBought, reputation, rankReached, nextGearId].every(isNum)) return null;
@@ -199,6 +207,8 @@ export function migrate(raw: unknown): SaveData | null {
     hirePool,
     lastRun,
     lastMorning,
+    loan,
+    seized,
   } as SaveData;
 }
 

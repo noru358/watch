@@ -2,9 +2,10 @@
 // state: the rules live in src/systems/staff; this file only wires them to the state and the seeds.
 import { SeededRNG } from '../core/SeededRNG';
 import { morningSeed, type MorningReport, type OfficeState } from '../systems/office';
+import type { LoanMorning } from './loanDesk';
 import { assignable, canWork, hireCap, hirePool, payWages, staffOdds, trainPrice, wageOf, weekOf, workNight, type HirePool, type Staff, type StaffMorning } from '../systems/staff';
 
-export type Morning = MorningReport & StaffMorning;
+export type Morning = MorningReport & StaffMorning & { loan?: LoanMorning };
 
 export interface StaffState {
   day: number;

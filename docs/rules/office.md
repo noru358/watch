@@ -1,7 +1,7 @@
 # 🧮 낮 · 사무소 규칙
 
 ← [장부 목록](README.md) · 기획 이유: [의뢰판·작전 지도](../design/4-day/contracts-map-ops.md), [경제](../design/4-day/economy.md)
-계산 코드: `src/systems/office/board.ts`(하루 넘기기·의뢰 생성·등급·긴급·놓친 표적), `contracts.ts`(의뢰 → 층 구성·난이도·수임료, 합동 출동 `planNight`). 숫자: `office.data.ts`, `objectives.data.ts`(`GENERAL_OBJECTIVES`), `modifiers.data.ts`, `requests.data.ts`. 테스트: `tests/office.test.ts`.
+계산 코드: `src/systems/office/loan.ts`(인수 빚), `src/systems/office/board.ts`(하루 넘기기·의뢰 생성·등급·긴급·놓친 표적), `contracts.ts`(의뢰 → 층 구성·난이도·수임료, 합동 출동 `planNight`). 숫자: `office.data.ts`, `objectives.data.ts`(`GENERAL_OBJECTIVES`), `modifiers.data.ts`, `requests.data.ts`. 테스트: `tests/office.test.ts`, `tests/loan.test.ts`.
 
 ## 하루와 월세
 밤 한 판 = 하루. 밤이 끝나면(성공·귀환·쓰러짐 모두) 다음 날 아침으로 넘어가고, 아침 처리 순서는 월세 → 마감 넘긴 의뢰 정리(평판 감소) → 의뢰판 채우기다(`advanceDay`).
@@ -11,6 +11,22 @@
 | 월세 주기 | 7일마다(7, 14, 21일째 아침) | `office.data.ts` `rentEvery` |
 | 월세 | 450 | `rent` |
 | 돈이 모자랄 때 | 있는 만큼 내고 나머지는 빚. 다음 월세 때 월세 + 빚을 한꺼번에 걷는다. 이자·게임오버 없음 | 공식은 `board.ts` `advanceDay` |
+
+## 인수 빚 (2026-11-18, 숫자는 가안)
+월세 날 아침, 월세와 주급이 나간 뒤 채권자가 최소 상환을 받아 간다(`store/loanDesk.ts` `loanMorning` → `systems/office/loan.ts` `settleLoan`). 압류 고르기는 그날 씨앗(`morningSeed ^ 0x10a7`)으로 정해진다.
+
+| 규칙 | 지금 값 | 어디서 바꾸나 |
+|------|--------|--------------|
+| 처음 빚 | 12,000 | `office.data.ts` `loan.total` |
+| 월세 날 최소 상환 | 300 (남은 빚이 더 적으면 그만큼) | `loan.minPayment` |
+| 더 갚기 | 장부에서 한 번에 최소 상환만큼, 지갑·남은 빚을 넘지 않음 | `loanDesk.ts` `payExtra` |
+| 못 맞춘 첫 월세 날 | 있는 만큼 내고 봉투(`envelope: 'offered'`). 압류 없음 | `loan.ts` `settleLoan` |
+| 봉투가 나가 있는데 또 못 맞춤 | 있는 만큼 내고 압류 하나. 봉투·미달 횟수 초기화 | 같은 곳 |
+| 최소 상환을 맞춘 날 | 답 안 한 봉투는 거둬 간다, 미달 횟수 0 | 같은 곳 |
+| 압류 대상 | 지어진 시설의 맨 윗 단계(값 = 그 단계 공사비), 가방의 장신구(값 = 녹인 값). 가진 게 없으면 아무 일 없음. 직원 계약은 아직 아님 | `loanDesk.ts` `seizableOf` |
+| 되찾기 | 값 × 0.5. 시설은 한 단계 돌아오고, 장신구는 가방에 자리가 있을 때만 | `loan.reclaimRate`, `loanDesk.ts` `reclaim` |
+| 봉투 의뢰 | 깨면 1,000 차감, 거절·실패면 압류. 함수만 있고 의뢰판·장면은 아직 없다 | `loan.envelopeCredit`, `loan.ts` `resolveEnvelope` |
+| 막 | 처음 빚을 4등분, 갚을 때마다 막 +1, 다 갚으면 끝. 아침 보고에만 나오고 장 해금과는 아직 안 묶임 | `loan.acts`, `loan.ts` `loanAct` |
 
 ## 의뢰판 채우기
 아침마다(그리고 새 게임 시작 때) `refillBoard`가 판을 채운다. 하루치 판은 세이브 씨앗 + 날짜로 정해져서(`morningSeed`) 다시 불러와도 똑같다. 의뢰는 두 종류다(`ContractKind`).
