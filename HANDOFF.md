@@ -21,9 +21,10 @@ Branch: `main` only. Docs: `docs/design/` (what and why, map in its README), `do
 The full list (everything ahead, by who and size) lives in `docs/design/roadmap.md` "할 일 전체" — that list is the source; strike items there when done, add new ones there. The next few, in order:
 1. Owner: pick 4 of the 6 story cards (`bible.md` "작업 중") and which of the 5 feel fixes to do (`combat.md` "연출 점검").
 2. Owner: play an alley sortie (노포 골목 / 인쇄골목 offers) and judge the look and the room kinds. On a yes, `[Opus]` gives 지하상가, 옥상, 폐모텔 their own rules and art the same way; then the day UI as printed paper (one font, one paper kit, the ledger first).
-3. `[Opus]` Lending as a labour market (`4-day/economy.md` "대여"), following the multiplayer principles there.
-4. `[Opus]` Second region, decoupled from story chapters.
-5. `[Fable]` Once the cards are picked: the story (four acts, through-line, five scenes a chapter), then staff members and chapter bosses.
+3. `[Opus]` Purchase debt, creditor, envelope jobs and seizure (`4-day/economy.md` "인수 빚과 채권자", build steps 1–3; owner decided 2026-11-18). This is the pressure the loop lacks; do it before lending.
+4. `[Opus]` Lending as a labour market (`4-day/economy.md` "대여"), following the multiplayer principles there.
+5. `[Opus]` Second region, decoupled from story chapters.
+6. `[Fable]` Once the cards are picked: the story (four acts, through-line, five scenes a chapter), then staff members and chapter bosses.
 
 ## Open decisions (do not build as if decided)
 Companion call key, protagonist look, big story and ending, keeping per-run cards, night length target, the cat's role, weapon B, final map style. (Settled 2026-11-11: squad operations → staff assignment; rental market → labour market without rival offices; first companion and recruiting → staff come with the story cards.)
