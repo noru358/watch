@@ -1,11 +1,12 @@
 // The staff side of the store (kept apart so gameStore.ts stays small). Pure helpers over the game
 // state: the rules live in src/systems/staff; this file only wires them to the state and the seeds.
 import { SeededRNG } from '../core/SeededRNG';
+import { FACILITY_EFFECTS } from '../data/facilities.data';
 import { morningSeed, type MorningReport, type OfficeState } from '../systems/office';
 import type { LoanMorning } from './loanDesk';
 import { assignable, canWork, hireCap, hirePool, payWages, staffOdds, trainPrice, wageOf, weekOf, workNight, type HirePool, type Staff, type StaffMorning } from '../systems/staff';
 
-export type Morning = MorningReport & StaffMorning & { loan?: LoanMorning };
+export type Morning = MorningReport & StaffMorning & { loan?: LoanMorning; away?: number };
 
 export interface StaffState {
   day: number;
@@ -17,6 +18,9 @@ export interface StaffState {
   nextStaffId: number;
   hirePool: HirePool | null;
 }
+
+// 탕비실 (facilities.data.ts): added to every staff member's odds.
+export const pantryBonus = (level: number): number => FACILITY_EFFECTS.pantry.oddsPerLevel * level;
 
 const copy = (staff: readonly Staff[]): Staff[] => staff.map((x) => ({ ...x, name: [...x.name] as [number, number] }));
 
@@ -59,17 +63,17 @@ export function cycleAssign(s: StaffState, offerId: number, offer: Parameters<ty
   return assign;
 }
 
-export const oddsFor = (staff: readonly Staff[], assign: Readonly<Record<number, number>>, offer: Parameters<typeof staffOdds>[1]) => {
+export const oddsFor = (staff: readonly Staff[], assign: Readonly<Record<number, number>>, offer: Parameters<typeof staffOdds>[1], pantry = 0) => {
   const st = staff.find((x) => x.id === assign[offer.id]);
-  return st ? { staff: st, odds: staffOdds(st, offer) } : null;
+  return st ? { staff: st, odds: staffOdds(st, offer, pantryBonus(pantry)) } : null;
 };
 
 // After the director's night (or a rest day), before the morning: staff work or rest. Mutates `o`
 // (fees, 평판, offers finished) and returns the staff changes and the report lines.
-export function staffNight(s: StaffState, o: OfficeState, taken: readonly number[], sofa: number) {
+export function staffNight(s: StaffState, o: OfficeState, taken: readonly number[], sofa: number, pantry = 0) {
   const staff = copy(s.staff);
   const rng = new SeededRNG(morningSeed(s.seedBase, s.day) ^ 0x57af);
-  const r = workNight(o, staff, s.assign, taken, rng, sofa);
+  const r = workNight(o, staff, s.assign, taken, rng, sofa, pantryBonus(pantry));
   o.money += r.money;
   return { staff, lines: r.lines, rankUp: r.rankUp };
 }
@@ -80,4 +84,25 @@ export function staffMorning(staff: Staff[], o: OfficeState, morning: MorningRep
   const w = payWages(staff, o.money);
   o.money -= w.paid;
   return { staff: w.kept, report: { wages: w.paid, quit: w.quit } };
+}
+
+// Several mornings in a row (a 원정 away): one report that adds them up, latest news on top.
+export function mergeMornings(a: Morning, b: Morning): Morning {
+  const wages = (a.wages ?? 0) + (b.wages ?? 0);
+  const quit = [...(a.quit ?? []), ...(b.quit ?? [])];
+  return {
+    ...b,
+    rentDue: a.rentDue || b.rentDue,
+    rentPaid: a.rentPaid + b.rentPaid,
+    debtAdded: a.debtAdded + b.debtAdded,
+    expired: a.expired + b.expired,
+    urgentMissed: a.urgentMissed + b.urgentMissed,
+    newOffers: a.newOffers + b.newOffers,
+    rankUp: b.rankUp ?? a.rankUp,
+    staff: [...(a.staff ?? []), ...(b.staff ?? [])],
+    ...(wages > 0 ? { wages } : {}),
+    ...(quit.length > 0 ? { quit } : {}),
+    loan: b.loan ?? a.loan,
+    envelopeMissed: a.envelopeMissed || b.envelopeMissed,
+  };
 }

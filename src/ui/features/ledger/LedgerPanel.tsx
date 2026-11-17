@@ -57,6 +57,7 @@ function finishAct(out: string[], l: NonNullable<Morning['loan']>): string[] {
 export function morningLines(m: Morning | null): string[] {
   if (!m) return [t('morning.quiet')];
   const lines: string[] = [];
+  if (m.away) lines.push(t('morning.away', { days: m.away }));
   if (m.rentDue && m.debtAdded > 0) lines.push(t('morning.rentShort', { short: m.debtAdded }));
   else if (m.rentDue) lines.push(t('morning.rentPaid', { paid: m.rentPaid }));
   if (m.urgentMissed > 0) lines.push(t('morning.urgentMissed'));

@@ -4,9 +4,14 @@ import { OFFICE } from '../src/data/office.data';
 import { freshLoan, loanAct, reclaimPrice, resolveEnvelope, settleLoan, type Seizable } from '../src/systems/office';
 import { migrate } from '../src/core/SaveManager';
 import { GameStore } from '../src/store/gameStore';
-import { loanMorning } from '../src/store/loanDesk';
+import { loanMorning, seizableOf } from '../src/store/loanDesk';
+import { pantryBonus } from '../src/store/staffDesk';
+import { FACILITY_EFFECTS, FACILITY_IDS } from '../src/data/facilities.data';
+import { STAFF } from '../src/data/staff.data';
 import { REQUESTS } from '../src/data/requests.data';
-import { assignable } from '../src/systems/staff';
+import { assignable, staffOdds } from '../src/systems/staff';
+import { creditorScene, type CreditorNews } from '../src/systems/story';
+import { CREDITOR, SCENES } from '../src/data/story.data';
 
 const L = OFFICE.loan;
 const things: Seizable[] = [
@@ -147,7 +152,7 @@ describe('인수 빚 in the store', () => {
   });
 
   it('broke twice: an envelope, then a red sticker on a facility, bought back for the reclaim price', () => {
-    const store = new GameStore({ money: 0, seedBase: 2, facilities: { desk: 0, bench: 0, sofa: 1 } });
+    const store = new GameStore({ money: 0, seedBase: 2, facilities: { desk: 0, bench: 0, sofa: 1, sign: 0, pantry: 0 } });
     toRentMorning(store);
     expect(store.getState().lastMorning!.loan?.envelope).toBe(true);
     expect(store.getState().loan.envelope).toBe('taken');
@@ -174,7 +179,7 @@ describe('인수 빚 in the store', () => {
   });
 
   it('saves and loads; a v10 save starts owing the whole debt', () => {
-    const store = new GameStore({ money: 0, seedBase: 2, facilities: { desk: 0, bench: 0, sofa: 1 } });
+    const store = new GameStore({ money: 0, seedBase: 2, facilities: { desk: 0, bench: 0, sofa: 1, sign: 0, pantry: 0 } });
     toRentMorning(store);
     toRentMorning(store);
     const saved = migrate(JSON.parse(JSON.stringify(store.toSave())))!;
@@ -216,7 +221,7 @@ describe('봉투 의뢰', () => {
   });
 
   it('left undone: it runs out on the next rent morning and the 집행관 takes something', () => {
-    const store = new GameStore({ money: 0, seedBase: 4, facilities: { desk: 0, bench: 0, sofa: 1 } });
+    const store = new GameStore({ money: 0, seedBase: 4, facilities: { desk: 0, bench: 0, sofa: 1, sign: 0, pantry: 0 } });
     toRentMorning(store);
     toRentMorning(store);
     const m = store.getState().lastMorning!;
@@ -228,9 +233,80 @@ describe('봉투 의뢰', () => {
   it('done: the credit comes off the debt the next morning', () => {
     const loan = { ...freshLoan(), envelope: 'taken' as const, missed: 1 };
     const morning = { day: 3, rentDue: false, rentPaid: 0, debtAdded: 0, expired: 0, urgentMissed: 0, newOffers: 0, rankUp: null };
-    const r = loanMorning({ money: 0, loan, seized: [], facilities: { desk: 0, bench: 0, sofa: 0 }, gear: [], equipped: {} }, 1, 3, morning, true);
+    const r = loanMorning({ money: 0, loan, seized: [], facilities: { desk: 0, bench: 0, sofa: 0, sign: 0, pantry: 0 }, gear: [], equipped: {} }, 1, 3, morning, true);
     expect(r.report?.credit).toBe(L.envelopeCredit);
     expect(r.patch.loan.left).toBe(L.total - L.envelopeCredit);
     expect(r.patch.loan.envelope).toBe('none');
+  });
+});
+
+describe('채권자 장면', () => {
+  const news = (patch: Partial<CreditorNews> = {}): CreditorNews => ({ paid: 300, left: 9000, short: false, envelope: false, seized: null, ...patch });
+  it('first visit introduces him, then the scene follows what happened', () => {
+    expect(creditorScene(undefined, 7, [])).toBeNull();
+    expect(creditorScene(news(), 7, [])).toBe(CREDITOR.first);
+    const seen = [CREDITOR.first];
+    expect(CREDITOR.paid).toContain(creditorScene(news(), 14, seen));
+    expect(CREDITOR.envelope).toContain(creditorScene(news({ short: true, envelope: true, paid: 0 }), 14, seen));
+    expect(CREDITOR.seized).toContain(creditorScene(news({ short: true, seized: {} }), 14, seen));
+    expect(CREDITOR.seized).toContain(creditorScene(news({ missedSeized: {} }), 14, seen));
+    expect(CREDITOR.credit).toContain(creditorScene(news({ credit: 1000, paid: 0 }), 15, seen));
+    expect(creditorScene(news({ left: 0 }), 21, seen)).toBe(CREDITOR.done);
+    expect(creditorScene(news({ left: 0 }), 21, [...seen, CREDITOR.done])).toBeNull();
+  });
+  it('every creditor scene has lines', () => {
+    for (const id of [CREDITOR.first, CREDITOR.done, ...CREDITOR.paid, ...CREDITOR.envelope, ...CREDITOR.seized, ...CREDITOR.credit]) expect(SCENES[id].length).toBeGreaterThan(0);
+  });
+});
+
+describe('새 시설: 네온 간판, 탕비실', () => {
+  it('탕비실 adds to staff odds, still within the cap', () => {
+    const st = { id: 1, origin: 'hire' as const, name: [0, 0] as [number, number], grade: 1 as const, power: 4, knack: null, trauma: 0, trained: 0 };
+    const offer = new GameStore({ seedBase: 3 }).getState().board.find((o) => o.kind === 'general' && o.length !== 'long')!;
+    expect(staffOdds(st, offer, pantryBonus(2))).toBeCloseTo(Math.min(STAFF.odds.max, staffOdds(st, offer) + 2 * FACILITY_EFFECTS.pantry.oddsPerLevel));
+    expect(staffOdds({ ...st, power: 99 }, offer, pantryBonus(2))).toBe(STAFF.odds.max);
+  });
+  it('both are listed, built from the ledger, and can be seized', () => {
+    expect(FACILITY_IDS).toContain('sign');
+    expect(FACILITY_IDS).toContain('pantry');
+    const store = new GameStore({ money: 5000 });
+    expect(store.buildFacility('sign')).toBe(true);
+    expect(store.getState().facilities.sign).toBe(1);
+    expect(seizableOf(store.getState()).some((x) => x.kind === 'facility' && x.id === 'sign')).toBe(true);
+  });
+});
+
+describe('원정은 사흘', () => {
+  const run = (store: GameStore, id: number) => store.applyRunResult({ offerId: id, outcome: 'success', loot: 0, fee: 0, shards: 0, offers: [id], completed: [id], reached: [id], drops: [] });
+
+  it('a 원정 passes three mornings; a 단타 one', () => {
+    const store = new GameStore({ money: 9000, seedBase: 5, rankReached: 3 });
+    const long = { ...store.getState().board.find((o) => o.kind === 'general')!, length: 'long' as const };
+    const short = { ...store.getState().board.find((o) => o.kind === 'general' && o.id !== long.id)!, length: 'short' as const };
+    const s1 = new GameStore({ ...store.getState(), board: [long, short] });
+    const day = s1.getState().day;
+    s1.selectOffer(long.id);
+    run(s1, long.id);
+    expect(s1.getState().day).toBe(day + OFFICE.lengths.long.days);
+    expect(s1.getState().lastMorning!.away).toBe(OFFICE.lengths.long.days);
+    const s2 = new GameStore({ ...store.getState(), board: [long, short] });
+    s2.selectOffer(short.id);
+    run(s2, short.id);
+    expect(s2.getState().day).toBe(day + 1);
+    expect(s2.getState().lastMorning!.away).toBeUndefined();
+  });
+
+  it('rent that falls inside the 원정 is still charged and reported', () => {
+    const base = new GameStore({ money: 9000, seedBase: 6, rankReached: 3 });
+    for (let d = base.getState().day; (d + 2) % OFFICE.rentEvery !== 0; d++) base.restToday();
+    const long = { ...base.getState().board.find((o) => o.kind === 'general')!, length: 'long' as const };
+    const s = new GameStore({ ...base.getState(), board: [long] });
+    const before = s.getState().money;
+    s.selectOffer(long.id);
+    run(s, long.id);
+    const m = s.getState().lastMorning!;
+    expect(m.rentDue).toBe(true);
+    expect(m.loan?.paid).toBe(L.minPayment);
+    expect(s.getState().money).toBeLessThan(before);
   });
 });

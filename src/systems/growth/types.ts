@@ -21,4 +21,4 @@ export interface GrowthState {
   rank: number; // 평판 rank reached (caps training, gates facility levels); read-only here
 }
 
-export const NO_FACILITIES: Record<FacilityId, number> = { desk: 0, bench: 0, sofa: 0 };
+export const NO_FACILITIES: Record<FacilityId, number> = { desk: 0, bench: 0, sofa: 0, sign: 0, pantry: 0 };

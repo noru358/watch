@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { input, store } from '../../app/services';
 import { openFeature, openPanel } from '../../app/features';
-import { playScene } from '../../app/dialogue';
-import { nextScene } from '../../systems/story';
+import { dialogue, playScene } from '../../app/dialogue';
+import type { SceneId } from '../../types/ids';
+import { creditorScene, nextScene } from '../../systems/story';
 import { chapterStatus } from '../../systems/office';
 import { CHAPTER_IDS } from '../../data/chapters.data';
 import { PALETTE } from '../../data/feel.data';
@@ -22,6 +23,18 @@ import { RANKS } from '../../data/reputation.data';
 
 let rentTextDay = -1; // the landlady texts once per rent morning
 let rankTextDay = -1; // someone texts the morning after a new 평판 rank
+let creditorDay = -1; // the creditor comes in once per morning with 인수 빚 news
+
+// One scene, then (if given) a second once the first has closed.
+function playScenes(first: SceneId, second: SceneId | null): void {
+  playScene(first);
+  if (!second) return;
+  const off = dialogue.subscribe(() => {
+    if (dialogue.get()) return;
+    off();
+    setTimeout(() => playScene(second), 0);
+  });
+}
 
 // Day: inside the office, walked around souls-style. E on someone opens their panel;
 // the front door opens tonight's contract. Panels are React; while one is open the input
@@ -91,7 +104,12 @@ export class HubScene extends Phaser.Scene {
       this.time.delayedCall(after, () => showPhoneText(t(r.from), t(r.textKey)));
     }
     const chapters = Object.fromEntries(CHAPTER_IDS.map((id) => [id, chapterStatus(s, id)]));
-    const scene = nextScene({ seen: s.seen, solved: s.solved, chapters });
+    const story = nextScene({ seen: s.seen, solved: s.solved, chapters });
+    // The creditor comes first on a morning with 인수 빚 news (once per day), then any story scene.
+    const debt = creditorDay !== s.day ? creditorScene(m?.loan, s.day, s.seen) : null;
+    if (debt) creditorDay = s.day;
+    const scene = debt ?? story;
+    const then = debt ? story : null;
     // The morning after a night: the bookkeeper's 아침 보고 first, then any story scene once it is closed.
     if (s.lastRun && !s.lastRun.shown) {
       this.time.delayedCall(HUB_LOOK.sceneDelay, () => {
@@ -104,11 +122,11 @@ export class HubScene extends Phaser.Scene {
             if (openPanel.get() || played) return;
             played = true;
             off();
-            playScene(scene);
+            playScenes(scene, then);
           }, 0);
         });
       });
-    } else if (scene) this.time.delayedCall(HUB_LOOK.sceneDelay, () => playScene(scene));
+    } else if (scene) this.time.delayedCall(HUB_LOOK.sceneDelay, () => playScenes(scene, then));
     // Dev-only read access for automated play-testing; stripped from production builds.
     if (import.meta.env.DEV) (window as unknown as { __hub?: unknown }).__hub = this;
   }

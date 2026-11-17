@@ -21,7 +21,9 @@ export type ObjectiveKind = 'clear' | 'rescue' | 'bounty' | 'chase' | 'ward' | '
 // 현장 변형 (src/data/modifiers.data.ts): warnings make the night harder (and pay more), boons help.
 export type ModifierId = 'blackout' | 'lair' | 'surge' | 'regen' | 'lethal' | 'haste' | 'tough' | 'lesshealing' | 'subwayline' | 'windfall' | 'clearnight' | 'weakspot';
 export type FloorTheme = 'basement' | 'alley' | 'arcade' | 'rooftop' | 'lot';
-export type SceneId = 'intro' | 'bookkeeper' | 'lights_out_done' | 'ch2_start' | 'ch2_ready' | 'ch2_done'; // story scenes in the dialogue box
+export type SceneId = 'intro' | 'bookkeeper' | 'lights_out_done' | 'ch2_start' | 'ch2_ready' | 'ch2_done'
+  | 'creditor_first' | 'creditor_paid_1' | 'creditor_paid_2' | 'creditor_paid_3' | 'creditor_envelope_1' | 'creditor_envelope_2'
+  | 'creditor_seized_1' | 'creditor_seized_2' | 'creditor_credit_1' | 'creditor_done'; // story scenes in the dialogue box
 export type Phase = 'title' | 'day' | 'night';
 export type LobbyFeatureId = 'sortie' | 'ledger' | 'training' | 'sofa' | 'bench' | 'morning'; // hub panels (src/ui/features/<id>/)
 export type HubSpotId = 'door' | 'bookkeeper' | 'directorDesk' | 'sofa' | 'bench'; // things in the hub you can walk up to and use
@@ -30,7 +32,7 @@ export type HubPropId = 'bookkeeperDesk' | 'directorDesk' | 'sofa' | 'cabinet' |
 // Growth (docs/design/3-growth/progression.md, numbers in docs/rules/growth.md)
 export type TrainingGroup = 'power' | 'hands' | 'feet' | 'nerve' | 'focus' | 'eye' | 'knack' | 'trade';
 export type TrainingId = 'slash' | 'draw' | 'reach' | 'finisher' | 'strong' | 'fodder' | 'boss' | 'swing' | 'drawcd' | 'recover' | 'attackMove' | 'move' | 'dashcd' | 'dashlen' | 'dashguard' | 'hp' | 'parry' | 'iframes' | 'guard' | 'dark' | 'heal' | 'gauge' | 'bare' | 'focusGain' | 'crit' | 'critDmg' | 'magnet' | 'spirit' | 'shard' | 'fee' | 'ward' | 'survivor' | 'train';
-export type FacilityId = 'desk' | 'bench' | 'sofa';
+export type FacilityId = 'desk' | 'bench' | 'sofa' | 'sign' | 'pantry';
 export type SupplyId = 'salt_pack' | 'bacchus' | 'map_copy'; // 보급품 (one per night, from the 부적 작업대)
 export type SkillBranch = 'blade' | 'step' | 'eye' | 'craft';
 // 기술 칸: branch × tier; each slot has 2–4 sides and one is on (skills.data.ts SKILL_SLOTS).

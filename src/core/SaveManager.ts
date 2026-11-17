@@ -188,7 +188,7 @@ export function migrate(raw: unknown): SaveData | null {
     shards,
     training,
     trainingBought,
-    facilities: { desk: 0, bench: 0, sofa: 0, ...(facilities as object) },
+    facilities: { desk: 0, bench: 0, sofa: 0, sign: 0, pantry: 0, ...(facilities as object) },
     supply: supply ?? null,
     passives,
     actives,

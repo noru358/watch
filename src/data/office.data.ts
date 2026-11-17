@@ -34,12 +34,14 @@ export const OFFICE = {
   //   weight: how often the board rolls it · rank: 평판 등급 needed · feeMult: on top of the fee formula
   //   checkpoint: where the 귀환 지점 (a payphone that also saves) stands: 'middle' floor, or the floor
   //   after each mid-boss · midBossEvery: a named target with two affixes every N floors (0 = none)
+  //   days: mornings that pass before the director is back (원정 = 3, owner 2026-11-18): rent, deadlines and
+  //   the staff's nights run each of them (gameStore.morningsAfter)
   //   endShards: 심연 파편 in the last floor's treasure room · rareGearFrom: mid-bosses from this floor
   //   (1-based) drop a rare-or-better 장신구
   lengths: {
-    short: { floors: null, weight: 6, rank: 0, feeMult: 1, checkpoint: 'none', midBossEvery: 0, midBossShards: 0, endShards: 0, rareGearFrom: 0 },
-    normal: { floors: [6, 8], weight: 3, rank: 0, feeMult: 1.6, checkpoint: 'middle', midBossEvery: 0, midBossShards: 0, endShards: 1, rareGearFrom: 0 },
-    long: { floors: [15, 20], weight: 1, rank: 2, feeMult: 4, checkpoint: 'afterBoss', midBossEvery: 5, midBossShards: 1, endShards: 2, rareGearFrom: 10 },
+    short: { floors: null, days: 1, weight: 6, rank: 0, feeMult: 1, checkpoint: 'none', midBossEvery: 0, midBossShards: 0, endShards: 0, rareGearFrom: 0 },
+    normal: { floors: [6, 8], days: 1, weight: 3, rank: 0, feeMult: 1.6, checkpoint: 'middle', midBossEvery: 0, midBossShards: 0, endShards: 1, rareGearFrom: 0 },
+    long: { floors: [15, 20], days: 3, weight: 1, rank: 2, feeMult: 4, checkpoint: 'afterBoss', midBossEvery: 5, midBossShards: 1, endShards: 2, rareGearFrom: 10 },
   },
   // Floors past the 4th get harder slowly and richer (the first four are as they always were).
   depth: { from: 3, enemiesEvery: 2, lootPerFloor: 0.12, affixFrom: 7, affixChance: 0.25, affixChancePerFloor: 0.03, affixChanceMax: 0.6 },

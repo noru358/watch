@@ -18,11 +18,12 @@ const LOOK = {
 
 function Portrait({ speaker, active }: { speaker: SpeakerId; active: boolean }) {
   const side = SPEAKERS[speaker].side;
-  const pos = side === 'left' ? { left: 28 } : { right: 28 };
+  const inset = 28 + (SPEAKERS[speaker].inset ?? 0);
+  const pos = side === 'left' ? { left: inset } : { right: inset };
   const style = { position: 'absolute' as const, bottom: 120, ...pos, opacity: active ? 1 : 0.45, transition: 'opacity 120ms' };
   if (speaker === 'director') return <img src={directorPortrait} alt="" style={{ ...style, width: 224, height: 252, imageRendering: 'pixelated' }} />;
   // Bookkeeper and the chapter guest have no portrait art yet: a silhouette holds the place.
-  const tint = speaker === 'guest' ? '#e8e8ff' : '#7d6a9e';
+  const tint = speaker === 'guest' ? '#e8e8ff' : speaker === 'creditor' ? '#c9a46a' : '#7d6a9e';
   return (
     <div aria-hidden="true" style={{ ...style, width: 170, height: 230, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}>
       <div style={{ width: 84, height: 84, borderRadius: '50%', background: tint, opacity: 0.85 }} />

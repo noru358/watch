@@ -3,11 +3,13 @@ import { SeededRNG } from '../core/SeededRNG';
 import * as desk from './staffDesk';
 import * as debt from './loanDesk';
 import { GEAR_ECONOMY } from '../data/gear.data';
+import { FACILITY_EFFECTS } from '../data/facilities.data';
+import { OFFICE } from '../data/office.data';
 import type { ActiveId, FacilityId, Phase, SceneId, SkillSlotId, SupplyId, TrainingId, UpgradeId } from '../types/ids';
 import { rollDrop, type GearItem } from '../systems/gear';
 import * as growth from '../systems/growth';
 import { computeExorcistStats, settleRun, type RunResult } from '../systems/run';
-import { advanceDay, postEnvelope, morningSeed, canJoin, type OfficeState, nightDifficulty, refillBoard, resolveNight, type ContractOffer } from '../systems/office';
+import { advanceDay, postEnvelope, morningSeed, canJoin, offerLength, type OfficeState, nightDifficulty, refillBoard, resolveNight, type ContractOffer } from '../systems/office';
 import { freshState, growthOf, office, planOf, toSave, type GameState, type NightPlan, type NightSettlement } from './state';
 
 export type { GameState, LastRun, NightPlan, NightSettlement } from './state';
@@ -134,15 +136,30 @@ export class GameStore {
 
   // ---- 인수 빚 (store/loanDesk.ts wires systems/office/loan.ts) ----
 
-  // Each morning after rent and wages: the 봉투 의뢰's outcome, then on rent mornings the creditor's
-  // minimum (store/loanDesk.ts). Mutates `o` (money, and an envelope job on the board).
-  private loanMorning(o: OfficeState, morning: Parameters<typeof debt.loanMorning>[3], gear: GearItem[], envelopeDone = false) {
+  // The night is over (or rested): `days` mornings pass (원정 = 3). Each one: the staff's night (only the
+  // first has assignments), the day loop (rent, deadlines, board), wages, then the 인수 빚 (봉투 의뢰
+  // outcome first, the creditor's minimum on rent mornings, an envelope job when short). Mutates `o`.
+  private morningsAfter(o: OfficeState, taken: readonly number[], gear: GearItem[], envelopeDone: boolean, days: number) {
     const s = this.state;
-    const r = debt.loanMorning({ money: o.money, loan: s.loan, seized: s.seized, facilities: s.facilities, gear, equipped: s.equipped }, s.seedBase, o.day, morning, envelopeDone);
-    o.money = r.patch.money;
-    if (r.postEnvelope) postEnvelope(o, new SeededRNG(morningSeed(s.seedBase, o.day) ^ 0xe7e1));
-    const { money: _m, ...patch } = r.patch;
-    return { patch, report: r.report };
+    let staff = s.staff;
+    let assign = s.assign;
+    let slice = { loan: s.loan, seized: s.seized, facilities: s.facilities, gear, equipped: s.equipped };
+    let acc: desk.Morning | null = null;
+    for (let i = 0; i < days; i += 1) {
+      const crew = desk.staffNight({ ...s, day: o.day, staff, assign }, o, i === 0 ? taken : [], slice.facilities.sofa, slice.facilities.pantry);
+      const morning = advanceDay(o, new SeededRNG(morningSeed(s.seedBase, o.day + 1)));
+      const paid = desk.staffMorning(crew.staff, o, morning);
+      const r = debt.loanMorning({ money: o.money, ...slice }, s.seedBase, o.day, morning, i === 0 && envelopeDone);
+      o.money = r.patch.money;
+      if (r.postEnvelope) postEnvelope(o, new SeededRNG(morningSeed(s.seedBase, o.day) ^ 0xe7e1));
+      const { money: _m, ...rest } = r.patch;
+      slice = rest;
+      staff = paid.staff;
+      assign = {};
+      const m: desk.Morning = { ...morning, rankUp: crew.rankUp ?? morning.rankUp, staff: crew.lines, ...paid.report, ...(r.report ? { loan: r.report } : {}) };
+      acc = acc ? desk.mergeMornings(acc, m) : m;
+    }
+    return { patch: { ...slice, staff }, morning: { ...acc!, ...(days > 1 ? { away: days } : {}) } };
   }
 
   // 더 갚기 (ledger): one minimum-payment step off the purchase debt.
@@ -169,20 +186,16 @@ export class GameStore {
   // 휴식하기: no night out; the day passes (rent, the city, deadlines) and trauma comes down.
   restToday(): void {
     const o = office(this.state);
-    const crew = desk.staffNight(this.state, o, [], this.state.facilities.sofa);
-    const morning = advanceDay(o, new SeededRNG(morningSeed(this.state.seedBase, o.day + 1)));
-    const paid = desk.staffMorning(crew.staff, o, morning);
-    const owed = this.loanMorning(o, morning, this.state.gear);
+    const after = this.morningsAfter(o, [], this.state.gear, false, 1);
     this.set({
       ...o,
-      ...owed.patch,
-      staff: paid.staff,
+      ...after.patch,
       assign: {},
       trauma: Math.max(0, this.state.trauma - growth.restAmount(this.state)),
       activeOfferId: null,
       joined: [],
       lastRun: null,
-      lastMorning: { ...morning, rankUp: crew.rankUp ?? morning.rankUp, staff: crew.lines, ...paid.report, ...(owed.report ? { loan: owed.report } : {}) },
+      lastMorning: after.morning,
     });
   }
 
@@ -267,7 +280,7 @@ export class GameStore {
     const night = resolveNight(o, { offers: result.offers, completed: result.completed, reached: result.reached, outcome: result.outcome });
     // 수임료 (training / gear feeBonus) — the one place it is applied.
     const loadout = growth.loadoutOf(growthOf(this.state));
-    const feeBonus = computeExorcistStats('director', loadout.training, [], 'newspaper_sword', loadout.perks, loadout.gear).feeBonus;
+    const feeBonus = computeExorcistStats('director', loadout.training, [], 'newspaper_sword', loadout.perks, loadout.gear).feeBonus + FACILITY_EFFECTS.sign.feePerLevel * this.state.facilities.sign;
     const settlement = settleRun({ ...result, fee: Math.round(night.fee * (1 + feeBonus)) }, this.state.money);
     // 장신구 that fell tonight are rolled now (seeded by the save and the day: a reload replays it).
     const g = growthOf(this.state);
@@ -277,14 +290,11 @@ export class GameStore {
     const rolled = result.drops.map((src) => rollDrop(rng, src, difficulty, nextGearId++)).filter((x): x is GearItem => !!x);
     const stowed = growth.stowDrops(g, rolled);
     o.money = g.money;
-    const crew = desk.staffNight(this.state, o, result.offers, this.state.facilities.sofa);
-    const morning = advanceDay(o, new SeededRNG(morningSeed(this.state.seedBase, o.day + 1)));
-    const paid = desk.staffMorning(crew.staff, o, morning);
-    const owed = this.loanMorning(o, morning, g.gear, taken.some((x) => x.envelope && night.completed.includes(x.id)));
+    const days = Math.max(1, ...taken.map((x) => OFFICE.lengths[offerLength(x)].days));
+    const after = this.morningsAfter(o, result.offers, g.gear, taken.some((x) => x.envelope && night.completed.includes(x.id)), days);
     this.set({
       ...o,
-      ...owed.patch,
-      staff: paid.staff,
+      ...after.patch,
       assign: {},
       nextGearId,
       trauma: this.state.trauma + settlement.traumaDelta,
@@ -297,7 +307,7 @@ export class GameStore {
         offers: taken, paid: Object.fromEntries(night.completed.map((id) => [id, Math.round((taken.find((x) => x.id === id)?.fee ?? 0) * (1 + feeBonus))])),
         reputation: night.reputation, gear: stowed.kept, gearMelted: stowed.melted, shown: false,
       },
-      lastMorning: { ...morning, rankUp: night.rankUp ?? crew.rankUp, staff: crew.lines, ...paid.report, ...(owed.report ? { loan: owed.report } : {}) },
+      lastMorning: { ...after.morning, rankUp: night.rankUp ?? after.morning.rankUp },
     });
     return { ...settlement, clue: night.clue, completed: night.completed.length, reputation: night.reputation, gear: stowed.kept, gearMelted: stowed.melted };
   }

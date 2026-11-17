@@ -7,6 +7,7 @@ import type { FacilityId, SupplyId } from '../types/ids';
 //   desk  — office/board.ts (board size, deadlines) and the board panel (ghost lists)
 //   bench — which supplies the 부적 작업대 offers (level 0 = not built: no spot in the office)
 //   sofa  — 휴식하기 recovery
+//   sign  — fee bonus (store/gameStore.ts finishNight) · pantry — staff odds (systems/staff staffOdds)
 export interface FacilityData {
   nameKey: TKey;
   costs: readonly number[];
@@ -18,14 +19,19 @@ export const FACILITIES: Record<FacilityId, FacilityData> = {
   desk: { nameKey: 'facility.desk', costs: [600, 1200, 2000], ranks: [0, 1, 2], levelKeys: ['facility.desk.1', 'facility.desk.2', 'facility.desk.3'] },
   bench: { nameKey: 'facility.bench', costs: [500, 1000, 1800], ranks: [0, 1, 2], levelKeys: ['facility.bench.1', 'facility.bench.2', 'facility.bench.3'] },
   sofa: { nameKey: 'facility.sofa', costs: [800, 1500], ranks: [0, 1], levelKeys: ['facility.sofa.1', 'facility.sofa.2'] },
+  // 2026-11-18 (owner "ㅇㅇ" to the economy.md 새 시설 후보 pick): things the 집행관 can take that matter.
+  sign: { nameKey: 'facility.sign', costs: [700, 1400], ranks: [0, 1], levelKeys: ['facility.sign.1', 'facility.sign.2'] },
+  pantry: { nameKey: 'facility.pantry', costs: [900, 1600], ranks: [0, 1], levelKeys: ['facility.pantry.1', 'facility.pantry.2'] },
 };
 
-export const FACILITY_IDS: readonly FacilityId[] = ['desk', 'bench', 'sofa'];
+export const FACILITY_IDS: readonly FacilityId[] = ['desk', 'bench', 'sofa', 'sign', 'pantry'];
 
 // What the levels do (read by the systems that apply them).
 export const FACILITY_EFFECTS = {
   desk: { boardPlusAt: 1, revealAt: 2, deadlinePlusAt: 3 },
   sofa: { restPerLevel: 1 },
+  sign: { feePerLevel: 0.05 }, // 네온 간판: every fee the director brings home × (1 + this × level) — gameStore finishNight
+  pantry: { oddsPerLevel: 0.05 }, // 탕비실: + this × level to every staff member's odds — staff.ts staffOdds
 } as const;
 
 // 보급품: one per night, paid when picked, used up when the night starts (kept if the director rests instead).

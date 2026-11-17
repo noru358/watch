@@ -21,17 +21,17 @@ export function assignable(offer: ContractOffer): boolean {
 export const canWork = (st: Staff): boolean => st.trauma < STAFF.trauma.block;
 
 // The chance this staff member finishes this offer (shown on the board before the night).
-export function staffOdds(st: Staff, offer: ContractOffer): number {
+export function staffOdds(st: Staff, offer: ContractOffer, bonus = 0): number {
   if (!assignable(offer)) return 0;
   const O = STAFF.odds;
   const power = st.power * (st.knack !== null && st.knack === offer.objective ? O.knack : 1);
-  return clamp(O.base + (power - offerDifficulty(offer) * O.perDifficulty + O.offset) * O.perPoint, O.min, O.max);
+  return clamp(O.base + (power - offerDifficulty(offer) * O.perDifficulty + O.offset) * O.perPoint + bonus, O.min, O.max);
 }
 
 // The night for everyone the director did not take along: assigned staff roll for their offer
 // (settled like a night: fee, 평판, clues — no spirit, 파편 or 장신구, those are the director's), the
 // rest rest. `taken` = the offers the director played tonight (an assignment there is void).
-export function workNight(o: OfficeState, staff: Staff[], assign: Readonly<Record<number, number>>, taken: readonly number[], rng: SeededRNG, sofa: number): { lines: StaffNightLine[]; money: number; rankUp: number | null; clue: NightResolution['clue'] } {
+export function workNight(o: OfficeState, staff: Staff[], assign: Readonly<Record<number, number>>, taken: readonly number[], rng: SeededRNG, sofa: number, oddsBonus = 0): { lines: StaffNightLine[]; money: number; rankUp: number | null; clue: NightResolution['clue'] } {
   const lines: StaffNightLine[] = [];
   let money = 0;
   let rankUp: number | null = null;
@@ -51,7 +51,7 @@ export function workNight(o: OfficeState, staff: Staff[], assign: Readonly<Recor
       lines.push({ staffId: st.id, name: st.name, offerId: null, node: null, objective: null, success: false, fee: 0, trauma: st.trauma - before });
       continue;
     }
-    const success = rng.chance(staffOdds(st, offer));
+    const success = rng.chance(staffOdds(st, offer, oddsBonus));
     const night = resolveNight(o, { offers: [offer.id], completed: success ? [offer.id] : [], reached: [offer.id] });
     money += night.fee;
     rankUp = night.rankUp ?? rankUp;

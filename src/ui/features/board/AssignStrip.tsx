@@ -9,7 +9,7 @@ import { staffName } from '../staffName';
 // "오늘 밤 배정" under the offer sheet (docs/design/4-day/economy.md "경영 뼈대 설계"): who takes
 // this offer tonight and their chance, R to change. The director's own offer is not shown here.
 export function AssignStrip({ offer, staff, assign }: { offer: ContractOffer; staff: readonly Staff[]; assign: Readonly<Record<number, number>> }) {
-  const here = oddsFor(staff, assign, offer);
+  const here = oddsFor(staff, assign, offer, store.getState().facilities.pantry);
   const free = assignable(offer);
   const total = Object.keys(assign).length;
   const line = !free ? t('staff.notHere') : staff.length === 0 ? t('staff.noStaff') : here ? `${staffName(here.staff)} · ${t('staff.odds', { pct: Math.round(here.odds * 100) })}` : t('staff.assignNone');

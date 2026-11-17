@@ -177,7 +177,7 @@ describe('트라우마', () => {
     expect(capitalTherapy(g)).toBe(true);
     expect(g.trauma).toBe(3 - TRAUMA.capitalAmount);
     expect(capitalTherapy(g)).toBe(false);
-    const store = new GameStore({ trauma: 5, facilities: { desk: 0, bench: 0, sofa: 1 } });
+    const store = new GameStore({ trauma: 5, facilities: { desk: 0, bench: 0, sofa: 1, sign: 0, pantry: 0 } });
     const day = store.getState().day;
     store.restToday();
     expect(store.getState().day).toBe(day + 1);
@@ -204,13 +204,13 @@ describe('시설 · 보급품', () => {
   });
 
   it('one supply at a time: switching refunds, the night uses it up', () => {
-    const g = g0({ money: 500, facilities: { desk: 0, bench: 3, sofa: 0 } });
+    const g = g0({ money: 500, facilities: { desk: 0, bench: 3, sofa: 0, sign: 0, pantry: 0 } });
     expect(packSupply(g, 'salt_pack')).toBe(true);
     expect(g.money).toBe(440);
     expect(packSupply(g, 'map_copy')).toBe(true);
     expect(g.money).toBe(380);
     expect(loadoutOf(g).perks).toContain('map_copy');
-    const store = new GameStore({ money: 500, facilities: { desk: 0, bench: 1, sofa: 0 } });
+    const store = new GameStore({ money: 500, facilities: { desk: 0, bench: 1, sofa: 0, sign: 0, pantry: 0 } });
     store.packSupply('salt_pack');
     const night = store.startNight();
     expect(night.loadout.perks).toContain('salt_pack');
@@ -228,7 +228,7 @@ describe('save v4', () => {
     expect(v.schemaVersion).toBe(SAVE_VERSION);
     expect(v.board).toEqual([]);
     expect(v.training).toEqual({});
-    expect(v.facilities).toEqual({ desk: 0, bench: 0, sofa: 0 });
+    expect(v.facilities).toEqual({ desk: 0, bench: 0, sofa: 0, sign: 0, pantry: 0 });
     expect(v.shards).toBe(0);
     expect(v.wanted).toEqual([]);
     const store = new GameStore(v);

@@ -110,7 +110,8 @@ export function OfferSheet({ offer, day, known, index, count, join, onJoin, link
     offer.objective === 'chase' ? t('board.whereAny') : offer.objective === 'bounty' ? t('board.where', { floor: goal.floor + 1 }) : early ? t('board.length', { floor: goal.floor + 1 }) : t('board.lengthAll', { floors: offer.floors });
   // 보통 / 원정 say so up front; 단타 reads as before.
   const tier = offer.kind === 'general' ? offerLength(offer) : 'short';
-  const lengthText = tier === 'short' ? lengthLabel : t('board.lengthTier', { tier: t(`length.${tier}` as TKey), floors: offer.floors });
+  const days = OFFICE.lengths[tier].days;
+  const lengthText = (tier === 'short' ? lengthLabel : t('board.lengthTier', { tier: t(`length.${tier}` as TKey), floors: offer.floors })) + (days > 1 ? ` · ${t('board.days', { days })}` : '');
   return (
     <div style={{ position: 'relative', paddingTop: 10 }}>
       {count > 1 && <div aria-hidden="true" style={{ position: 'absolute', left: 16, right: -4, top: 22, bottom: 0, background: L.paperBack[0], borderRadius: 4, transform: 'rotate(2.5deg)' }} />}
