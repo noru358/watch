@@ -15,7 +15,7 @@ export const weekOf = (day: number): number => Math.floor((day - 1) / 7);
 
 // Staff take 일반 의뢰 only, and not 원정 (the director's own).
 export function assignable(offer: ContractOffer): boolean {
-  return offer.kind === 'general' && offer.length !== 'long';
+  return offer.kind === 'general' && offer.length !== 'long' && !offer.envelope;
 }
 
 export const canWork = (st: Staff): boolean => st.trauma < STAFF.trauma.block;

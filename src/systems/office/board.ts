@@ -79,7 +79,7 @@ function rollGrade(s: OfficeState, rng: SeededRNG): number {
 
 function generalOffer(s: OfficeState, rng: SeededRNG, wanted: WantedTarget | null): ContractOffer {
   const objective = wanted ? 'bounty' : weighted(OBJECTIVE_IDS.filter((id) => GENERAL_OBJECTIVES[id].rank <= s.rankReached), (id) => GENERAL_OBJECTIVES[id].weight, rng);
-  const frames = (Object.keys(REQUESTS) as RequestId[]).filter((id) => REQUESTS[id].objective === objective);
+  const frames = (Object.keys(REQUESTS) as RequestId[]).filter((id) => REQUESTS[id].objective === objective && !REQUESTS[id].envelope);
   const request = rng.pick(frames);
   const frame = REQUESTS[request];
   const open = openNodes(s);
@@ -152,7 +152,7 @@ export function refillBoard(s: OfficeState, rng: SeededRNG): number {
   }
   const size = Math.min(OFFICE.boardMax, OFFICE.boardSize + deskBonus(s).board + s.rankReached * OFFICE.boardPerRank);
   const u = OFFICE.urgent;
-  while (s.board.filter((x) => x.kind === 'general').length < size) {
+  while (s.board.filter((x) => x.kind === 'general' && !x.envelope).length < size) {
     const offer = generalOffer(s, rng, s.wanted.shift() ?? null);
     // 긴급 의뢰: now and then a graded offer has to be taken tonight (at most one on the board).
     if (offer.risk >= u.fromGrade && !offer.target && !s.board.some((x) => x.urgent) && rng.chance(u.chance)) {
@@ -236,6 +236,7 @@ export function advanceDay(s: OfficeState, rng: SeededRNG): MorningReport {
       addReputation(s, -OFFICE.urgent.rep);
       report.urgentMissed += 1;
     }
+    if (o.envelope) report.envelopeMissed = true;
     // A 현상수배 left too long comes back one level stronger.
     if (o.objective === 'bounty' && o.target) s.wanted.push({ ...o.target, level: Math.min(OBJECTIVES.bounty.maxLevel, o.target.level + 1), node: o.node });
   }
@@ -244,6 +245,37 @@ export function advanceDay(s: OfficeState, rng: SeededRNG): MorningReport {
   report.expired = expired.length;
   report.newOffers = refillBoard(s, rng);
   return report;
+}
+
+// 채권자의 봉투 의뢰 (docs/design/4-day/economy.md "인수 빚과 채권자"): a general offer built by the
+// same rules, on an envelope frame, a grade higher, no fee (it pays off debt instead), the director's
+// own job, up until the day before the next rent morning. Outside the board size, like 긴급.
+export function postEnvelope(s: OfficeState, rng: SeededRNG): ContractOffer {
+  const frame = rng.pick((Object.keys(REQUESTS) as RequestId[]).filter((id) => REQUESTS[id].envelope && GENERAL_OBJECTIVES[REQUESTS[id].objective as keyof typeof GENERAL_OBJECTIVES]?.rank <= s.rankReached));
+  const base = generalOffer(s, rng, null);
+  const objective = REQUESTS[frame].objective;
+  const rule = GENERAL_OBJECTIVES[objective as keyof typeof GENERAL_OBJECTIVES];
+  const range = OFFICE.lengths.short.floors ?? rule.floors;
+  const floors = rng.int(range[0], range[1]);
+  const pool = [...NODES[base.node].pool];
+  const offer: ContractOffer = {
+    ...base,
+    objective,
+    length: 'short',
+    request: frame,
+    target: objective === 'bounty' || objective === 'chase' ? newTarget(pool, rng) : null,
+    pool,
+    risk: Math.min(3, base.risk + 1),
+    floors,
+    goalFloor: goalFloorFor(objective, floors, () => rng.range(0, 1)),
+    shards: 0,
+    deadline: s.day + (OFFICE.rentEvery - (s.day % OFFICE.rentEvery)) - 1,
+    urgent: false,
+    envelope: true,
+  };
+  offer.fee = 0;
+  s.board.push(offer);
+  return offer;
 }
 
 // The RNG for a given morning: fixed by the save's base seed and the day, so a reload replays it.

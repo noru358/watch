@@ -40,9 +40,15 @@ export function loanLines(m: Morning): string[] {
   const l = m.loan;
   if (!l) return [];
   const out: string[] = [];
+  if (l.credit) out.push(t('morning.loanCredit', { credit: l.credit }));
+  if (l.missedSeized !== undefined) out.push(l.missedSeized ? t('morning.loanEnvelopeMissed', { thing: seizedName(l.missedSeized) }) : t('morning.loanSeizedNone'));
+  if (l.paid === 0 && !l.short) return finishAct(out, l);
   if (!l.short) out.push(t('morning.loanPaid', { paid: l.paid, left: l.left }));
   else if (l.envelope) out.push(t('morning.loanEnvelope'));
   else out.push(l.seized ? t('morning.loanSeized', { thing: seizedName(l.seized) }) : t('morning.loanSeizedNone'));
+  return finishAct(out, l);
+}
+function finishAct(out: string[], l: NonNullable<Morning['loan']>): string[] {
   if (l.actUp !== null) out.push(l.actUp >= OFFICE.loan.acts ? t('morning.loanDone') : t('morning.loanAct', { pct: Math.round((l.actUp / OFFICE.loan.acts) * 100) }));
   return out;
 }
@@ -92,7 +98,7 @@ export function LedgerPanel() {
             <div style={css.row}><span>{t('ledger.rent')}</span><span>{t('ledger.rentDue', { rent: OFFICE.rent, days: rentIn })}</span></div>
             {s.debt > 0 && <div style={{ ...css.row, color: '#ff5d7a' }}><span>{t('ledger.debt')}</span><span>{won(s.debt)}</span></div>}
             {s.loan.left > 0 && <div style={css.row}><span>{t('ledger.loan')}</span><span>{t('ledger.loanLine', { left: s.loan.left, min: minPaymentDue(s.loan) })}</span></div>}
-            {s.loan.envelope !== 'none' && <div style={{ ...css.row, fontSize: 12, color: '#ff5d7a' }}><span />{t('ledger.envelope')}</div>}
+            {s.loan.envelope !== 'none' && <div style={{ ...css.row, fontSize: 12, color: '#ff5d7a' }}><span />{t(s.loan.envelope === 'taken' ? 'ledger.envelopeTaken' : 'ledger.envelope')}</div>}
             {s.loan.left > 0 && s.money > 0 && <button style={{ ...css.chip, marginTop: 4 }} onClick={() => store.payLoan()}>{t('ledger.loanPay', { n: Math.min(OFFICE.loan.minPayment, s.loan.left, s.money) })}</button>}
             {s.seized.length > 0 && <div style={{ ...css.row, ...css.dim, marginTop: 6 }}>{t('ledger.seized')}</div>}
             {s.seized.map((x, i) => (

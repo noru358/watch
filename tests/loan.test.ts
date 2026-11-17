@@ -4,6 +4,9 @@ import { OFFICE } from '../src/data/office.data';
 import { freshLoan, loanAct, reclaimPrice, resolveEnvelope, settleLoan, type Seizable } from '../src/systems/office';
 import { migrate } from '../src/core/SaveManager';
 import { GameStore } from '../src/store/gameStore';
+import { loanMorning } from '../src/store/loanDesk';
+import { REQUESTS } from '../src/data/requests.data';
+import { assignable } from '../src/systems/staff';
 
 const L = OFFICE.loan;
 const things: Seizable[] = [
@@ -147,10 +150,10 @@ describe('인수 빚 in the store', () => {
     const store = new GameStore({ money: 0, seedBase: 2, facilities: { desk: 0, bench: 0, sofa: 1 } });
     toRentMorning(store);
     expect(store.getState().lastMorning!.loan?.envelope).toBe(true);
-    expect(store.getState().loan.envelope).toBe('offered');
+    expect(store.getState().loan.envelope).toBe('taken');
     toRentMorning(store);
     const m = store.getState().lastMorning!;
-    expect(m.loan?.seized?.kind).toBe('facility');
+    expect(m.loan?.missedSeized?.kind).toBe('facility');
     expect(store.getState().facilities.sofa).toBe(0);
     expect(store.getState().seized).toHaveLength(1);
     const price = reclaimPrice(store.getState().seized[0]!);
@@ -181,5 +184,53 @@ describe('인수 빚 in the store', () => {
     const v = migrate({ ...rest, schemaVersion: 10 })!;
     expect(v.loan).toEqual(freshLoan());
     expect(v.seized).toEqual([]);
+  });
+});
+
+describe('봉투 의뢰', () => {
+  const toRentMorning = (store: GameStore) => {
+    for (let d = store.getState().day; (d + 1) % OFFICE.rentEvery !== 0; d++) store.restToday();
+    store.restToday();
+  };
+
+  it('normal boards never roll an envelope frame', () => {
+    for (let seed = 1; seed < 40; seed += 1) {
+      const store = new GameStore({ seedBase: seed, rankReached: 3 });
+      expect(store.getState().board.some((o) => o.envelope || (o.request ?? '').startsWith('envelope'))).toBe(false);
+    }
+  });
+
+  it('a broke rent morning posts one envelope job: no fee, outside the board size, the director\'s own, due before next rent', () => {
+    const store = new GameStore({ money: 0, seedBase: 4 });
+    const generals = store.getState().board.filter((o) => o.kind === 'general').length;
+    toRentMorning(store);
+    const s = store.getState();
+    const env = s.board.filter((o) => o.envelope);
+    expect(env).toHaveLength(1);
+    expect(env[0]!.fee).toBe(0);
+    expect(REQUESTS[env[0]!.request!].envelope).toBe(true);
+    expect(s.board.filter((o) => o.kind === 'general' && !o.envelope).length).toBe(generals);
+    expect(assignable(env[0]!)).toBe(false);
+    expect(env[0]!.deadline).toBe(s.day + OFFICE.rentEvery - 1);
+    expect(s.loan.envelope).toBe('taken');
+  });
+
+  it('left undone: it runs out on the next rent morning and the 집행관 takes something', () => {
+    const store = new GameStore({ money: 0, seedBase: 4, facilities: { desk: 0, bench: 0, sofa: 1 } });
+    toRentMorning(store);
+    toRentMorning(store);
+    const m = store.getState().lastMorning!;
+    expect(m.envelopeMissed).toBe(true);
+    expect(m.loan?.missedSeized?.kind).toBe('facility');
+    expect(store.getState().board.some((o) => o.envelope && o.deadline! < store.getState().day)).toBe(false);
+  });
+
+  it('done: the credit comes off the debt the next morning', () => {
+    const loan = { ...freshLoan(), envelope: 'taken' as const, missed: 1 };
+    const morning = { day: 3, rentDue: false, rentPaid: 0, debtAdded: 0, expired: 0, urgentMissed: 0, newOffers: 0, rankUp: null };
+    const r = loanMorning({ money: 0, loan, seized: [], facilities: { desk: 0, bench: 0, sofa: 0 }, gear: [], equipped: {} }, 1, 3, morning, true);
+    expect(r.report?.credit).toBe(L.envelopeCredit);
+    expect(r.patch.loan.left).toBe(L.total - L.envelopeCredit);
+    expect(r.patch.loan.envelope).toBe('none');
   });
 });

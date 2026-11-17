@@ -11,6 +11,7 @@ export interface RequestData {
   nodes: readonly NodeId[] | null;
   pool: readonly GhostId[] | null;
   objective: ObjectiveKind;
+  envelope?: true; // 채권자의 봉투 의뢰 frame (docs/design/4-day/economy.md): never on a normal offer
 }
 
 // Adding a frame = one row here + its two lines in ko.ts / en.ts (request.<id>.client / .text).
@@ -37,6 +38,10 @@ const ROWS = {
   closing: { clientKey: 'request.closing.client', textKey: 'request.closing.text', nodes: ['arcade', 'alley'], pool: null, objective: 'timeattack' },
   checkout: { clientKey: 'request.checkout.client', textKey: 'request.checkout.text', nodes: ['motel'], pool: null, objective: 'timeattack' },
   deadline: { clientKey: 'request.deadline.client', textKey: 'request.deadline.text', nodes: ['printshop', 'rooftop', 'station'], pool: null, objective: 'timeattack' },
+  // 봉투 의뢰 (채권자): posted only by postEnvelope, never rolled for a normal offer
+  envelope_clear: { clientKey: 'request.envelope_clear.client', textKey: 'request.envelope_clear.text', nodes: null, pool: null, objective: 'clear', envelope: true },
+  envelope_chase: { clientKey: 'request.envelope_chase.client', textKey: 'request.envelope_chase.text', nodes: null, pool: null, objective: 'chase', envelope: true },
+  envelope_ward: { clientKey: 'request.envelope_ward.client', textKey: 'request.envelope_ward.text', nodes: null, pool: null, objective: 'ward', envelope: true },
 } satisfies Record<string, RequestData>;
 
 export type RequestId = keyof typeof ROWS;

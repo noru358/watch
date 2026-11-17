@@ -6,7 +6,7 @@ import { FACILITIES, FACILITY_IDS } from '../data/facilities.data';
 import { OFFICE } from '../data/office.data';
 import type { FacilityId } from '../types/ids';
 import { dismantleValue, type GearItem, type GearSlot } from '../systems/gear';
-import { morningSeed, reclaimPrice, settleLoan, minPaymentDue, type LoanState, type MorningReport, type Seizable } from '../systems/office';
+import { loanAct, morningSeed, reclaimPrice, resolveEnvelope, settleLoan, minPaymentDue, type LoanState, type MorningReport, type Seizable } from '../systems/office';
 
 // A seized thing as kept in the save: the 장신구 itself rides along so it can come back whole.
 export type Seized = Seizable & { gear?: GearItem };
@@ -19,6 +19,8 @@ export interface LoanMorning {
   envelope: boolean;
   seized: Seized | null;
   actUp: number | null; // the act just reached (null = same act)
+  credit?: number; // the 봉투 의뢰 was done last night: taken off the debt
+  missedSeized?: Seized | null; // the 봉투 의뢰 ran out: what the 집행관 took for it (null = nothing to take)
 }
 
 export interface LoanSlice {
@@ -56,18 +58,40 @@ function applySeizure(s: LoanSlice, thing: Seized): void {
   s.seized = [...s.seized, thing];
 }
 
-// A rent morning, after rent and wages: the creditor comes for the minimum. Mutates and returns `s`'s parts.
-export function loanMorning(s: LoanSlice, seedBase: number, day: number, morning: MorningReport): { patch: LoanSlice; report: LoanMorning | null } {
+// Each morning, after rent and wages. First the 봉투 의뢰 (done last night → credit; ran out → seizure),
+// then, on a rent morning, the creditor's minimum. `postEnvelope` asks the caller to put an envelope
+// job on the board (the envelope is taken the moment it is posted: not doing it is the refusal).
+export function loanMorning(s: LoanSlice, seedBase: number, day: number, morning: MorningReport, envelopeDone: boolean): { patch: LoanSlice; report: LoanMorning | null; postEnvelope: boolean } {
   const patch: LoanSlice = { ...s, loan: { ...s.loan }, seized: [...s.seized], facilities: { ...s.facilities }, gear: s.gear.map(copyGear), equipped: { ...s.equipped } };
-  if (!morning.rentDue || minPaymentDue(patch.loan) === 0) return { patch, report: null };
   const rng = new SeededRNG(morningSeed(seedBase, day) ^ 0x10a7);
-  const week = settleLoan(patch.loan, patch.money, 0, seizableOf(patch), rng);
-  patch.money = week.cashLeft;
-  if (week.seized) applySeizure(patch, week.seized as Seized);
-  return {
-    patch,
-    report: { paid: week.paid, left: patch.loan.left, short: week.short, envelope: week.envelope, seized: (week.seized as Seized | null) ?? null, actUp: week.actAfter > week.actBefore ? week.actAfter : null },
-  };
+  const report: LoanMorning = { paid: 0, left: patch.loan.left, short: false, envelope: false, seized: null, actUp: null };
+  let news = false;
+  const actBefore = loanAct(patch.loan.left);
+  if (envelopeDone) {
+    report.credit = resolveEnvelope(patch.loan, 'cleared', [], rng).credit;
+    news = true;
+  } else if (morning.envelopeMissed) {
+    const r = resolveEnvelope(patch.loan, 'failed', seizableOf(patch), rng);
+    if (r.seized) applySeizure(patch, r.seized as Seized);
+    report.missedSeized = (r.seized as Seized | null) ?? null;
+    news = true;
+  }
+  let post = false;
+  if (morning.rentDue && minPaymentDue(patch.loan) > 0) {
+    const week = settleLoan(patch.loan, patch.money, 0, seizableOf(patch), rng);
+    patch.money = week.cashLeft;
+    if (week.seized) applySeizure(patch, week.seized as Seized);
+    if (week.envelope) {
+      resolveEnvelope(patch.loan, 'accepted', [], rng);
+      post = true;
+    }
+    Object.assign(report, { paid: week.paid, short: week.short, envelope: week.envelope, seized: (week.seized as Seized | null) ?? null });
+    news = true;
+  }
+  report.left = patch.loan.left;
+  const actAfter = loanAct(patch.loan.left);
+  report.actUp = actAfter > actBefore ? actAfter : null;
+  return { patch, report: news ? report : null, postEnvelope: post };
 }
 
 // 더 갚기 in the ledger: one minimum-payment step at a time, never past the debt or the wallet.

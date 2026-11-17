@@ -7,7 +7,7 @@ import type { ActiveId, FacilityId, Phase, SceneId, SkillSlotId, SupplyId, Train
 import { rollDrop, type GearItem } from '../systems/gear';
 import * as growth from '../systems/growth';
 import { computeExorcistStats, settleRun, type RunResult } from '../systems/run';
-import { advanceDay, morningSeed, canJoin, nightDifficulty, refillBoard, resolveNight, type ContractOffer } from '../systems/office';
+import { advanceDay, postEnvelope, morningSeed, canJoin, type OfficeState, nightDifficulty, refillBoard, resolveNight, type ContractOffer } from '../systems/office';
 import { freshState, growthOf, office, planOf, toSave, type GameState, type NightPlan, type NightSettlement } from './state';
 
 export type { GameState, LastRun, NightPlan, NightSettlement } from './state';
@@ -134,11 +134,13 @@ export class GameStore {
 
   // ---- 인수 빚 (store/loanDesk.ts wires systems/office/loan.ts) ----
 
-  // A rent morning: the creditor takes the minimum after rent and wages. Mutates `o.money`.
-  private loanMorning(o: { money: number; day: number }, morning: Parameters<typeof debt.loanMorning>[3], gear: GearItem[]) {
+  // Each morning after rent and wages: the 봉투 의뢰's outcome, then on rent mornings the creditor's
+  // minimum (store/loanDesk.ts). Mutates `o` (money, and an envelope job on the board).
+  private loanMorning(o: OfficeState, morning: Parameters<typeof debt.loanMorning>[3], gear: GearItem[], envelopeDone = false) {
     const s = this.state;
-    const r = debt.loanMorning({ money: o.money, loan: s.loan, seized: s.seized, facilities: s.facilities, gear, equipped: s.equipped }, s.seedBase, o.day, morning);
+    const r = debt.loanMorning({ money: o.money, loan: s.loan, seized: s.seized, facilities: s.facilities, gear, equipped: s.equipped }, s.seedBase, o.day, morning, envelopeDone);
     o.money = r.patch.money;
+    if (r.postEnvelope) postEnvelope(o, new SeededRNG(morningSeed(s.seedBase, o.day) ^ 0xe7e1));
     const { money: _m, ...patch } = r.patch;
     return { patch, report: r.report };
   }
@@ -278,7 +280,7 @@ export class GameStore {
     const crew = desk.staffNight(this.state, o, result.offers, this.state.facilities.sofa);
     const morning = advanceDay(o, new SeededRNG(morningSeed(this.state.seedBase, o.day + 1)));
     const paid = desk.staffMorning(crew.staff, o, morning);
-    const owed = this.loanMorning(o, morning, g.gear);
+    const owed = this.loanMorning(o, morning, g.gear, taken.some((x) => x.envelope && night.completed.includes(x.id)));
     this.set({
       ...o,
       ...owed.patch,

@@ -27,6 +27,7 @@ export interface ContractOffer {
   shards: number; // 심연 파편 for finishing the objective
   deadline: number | null; // last day it can be taken; null = stays until done
   urgent?: boolean; // 긴급 의뢰 (office.data.ts urgent): one night, pays more
+  envelope?: boolean; // 채권자의 봉투 의뢰: no fee, takes OFFICE.loan.envelopeCredit off the 인수 빚 (loan.ts)
 }
 
 // One main-story chapter's progress (save v5).
@@ -67,6 +68,7 @@ export interface MorningReport {
   urgentMissed: number; // 긴급 의뢰 left to expire last night
   newOffers: number;
   rankUp: number | null; // the rank reached last night (a text comes in the morning)
+  envelopeMissed?: boolean; // the 봉투 의뢰 ran out without being done (the 집행관 comes, loan.ts)
 }
 
 export interface NightResolution {
