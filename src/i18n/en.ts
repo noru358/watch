@@ -201,7 +201,7 @@ export const en: Record<TKey, string> = {
   'morning.loanEnvelope': 'We missed this week\'s payment. The creditor smiled and left an envelope. Miss again and it\'s red stickers.',
   'morning.loanSeized': 'The bailiff came. Red sticker on {thing}.',
   'morning.loanSeizedNone': 'The bailiff came, found nothing worth taking and left. ...Good news, I guess.',
-  'morning.loanAct': '{pct}% of the office loan paid.',
+  'morning.loanAct': '{pct}% of the office loan paid. But the creditor says something came up: at least ₩{min} every rent day from now on.',
   'morning.loanDone': 'The office loan is paid off. Go up to the roof for a bit.',
   'ledger.loan': 'Office loan',
   'ledger.loanLine': '₩{left} · at least ₩{min} on rent day',

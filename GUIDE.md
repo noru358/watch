@@ -101,6 +101,7 @@ tools/spritekit/  🧹 AI가 만든 픽셀 시트를 진짜 픽셀로 정리하�
 tools/catalog/    📒 총괄 장부: 게임의 모든 숫자·글을 코드에서 뽑아 웹 페이지 하나로 (npm run catalog). 줄마다 메모 → "장부 메모 반영해". 글 버전은 docs/catalog.md (AI가 읽는 용)
 tools/streetart/  🏮 골목 소품·간판 도트를 만드는 스크립트 (python3 tools/streetart/make.py → draw/art/streetArt.ts + 미리보기)
 tools/rooms/      🧱 방 틀 미리보기: src/data/rooms.data.ts의 글자 방을 평면도로 그린 페이지 (npm run rooms → dist-rooms/index.html, Claude가 게시)
+tools/econ/       💰 인수 빚 숫자 시험: 낮 코드는 진짜로, 밤은 주사위로 30주를 돌려 완납 주·봉투·압류를 셈 (npx vite-node tools/econ/sim.ts)
 assets/source/    🗃️ 받은 그림 원본 보관 (제미나이 시트 등, 지우지 않음)
 assets/sprites/   🖼️ 원본을 정리한 게임용 그림 (지금: 주인공 제미나이 1차·3차) → assets/README.md
 docs/design/      📐 기획(무엇을 왜): 1-foundation 기준 · 2-night 밤 · 3-growth 성장 · 4-day 낮 · 5-business 사업·제작

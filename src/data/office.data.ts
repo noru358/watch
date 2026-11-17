@@ -8,7 +8,9 @@ export const OFFICE = {
   //   total: the purchase debt at the start · minPayment: least the creditor takes a rent morning
   //   envelopeCredit: taken off the debt when an envelope job is cleared · reclaimRate: × an item's
   //   value to buy back a seized one · acts: the debt is paid off in this many equal steps (one per act)
-  loan: { total: 12000, minPayment: 300, envelopeCredit: 1000, reclaimRate: 0.5, acts: 4 },
+  //   minPayments: the least per rent morning, by act (it rises as income does: a flat minimum stopped
+  //   pressing after the first weeks in tools/econ/sim.ts) · minPayment: the first act's (ledger step)
+  loan: { total: 36000, minPayment: 700, minPayments: [700, 1200, 1700, 2100], envelopeCredit: 2000, reclaimRate: 0.5, acts: 4 },
   boardSize: 4, // 일반 의뢰 kept on the board (메인 스토리 comes on top; +1 with the 경리 책상 level 1)
   boardPerRank: 1, // …and +1 per 평판 rank (more work than the office can cover: staff take the rest)
   boardMax: 8, // general offers at most

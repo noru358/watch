@@ -200,7 +200,7 @@ export const ko = {
   'morning.loanEnvelope': '이번 주 상환 못 맞췄어요. 채권자분이 웃으면서 봉투 하나 두고 갔어요. 또 못 맞추면 딱지 붙인대요.',
   'morning.loanSeized': '집행관 왔다 갔어요. {thing}에 빨간 딱지요.',
   'morning.loanSeizedNone': '집행관 왔는데 가져갈 게 없어서 그냥 갔어요. ...이게 다행인 건지.',
-  'morning.loanAct': '인수 빚 {pct}% 갚았어요.',
+  'morning.loanAct': '인수 빚 {pct}% 갚았어요. 근데 채권자분이 사정이 생겼다고, 이제 월세 날마다 최소 ₩{min}이래요.',
   'morning.loanDone': '인수 빚 다 갚았어요. 옥상 한번 올라가 보세요.',
   'ledger.loan': '인수 빚',
   'ledger.loanLine': '₩{left} · 월세 날 최소 ₩{min}',

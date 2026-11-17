@@ -45,7 +45,9 @@ export function loanAct(left: number): number {
 }
 
 export function minPaymentDue(loan: LoanState): number {
-  return Math.min(OFFICE.loan.minPayment, Math.max(0, loan.left));
+  const { minPayments, acts } = OFFICE.loan;
+  const act = Math.min(acts - 1, loanAct(loan.left));
+  return Math.min(minPayments[act] ?? OFFICE.loan.minPayment, Math.max(0, loan.left));
 }
 
 export function reclaimPrice(item: Seizable): number {

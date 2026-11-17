@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SeededRNG } from '../src/core/SeededRNG';
 import { OFFICE } from '../src/data/office.data';
-import { freshLoan, loanAct, reclaimPrice, resolveEnvelope, settleLoan, type Seizable } from '../src/systems/office';
+import { freshLoan, loanAct, minPaymentDue, reclaimPrice, resolveEnvelope, settleLoan, type Seizable } from '../src/systems/office';
 import { migrate } from '../src/core/SaveManager';
 import { GameStore } from '../src/store/gameStore';
 import { loanMorning, seizableOf } from '../src/store/loanDesk';
@@ -126,9 +126,16 @@ describe('인수 빚: 막과 되찾기', () => {
 
   it('a settle reports the act change', () => {
     const loan = { ...freshLoan(), left: L.total * 0.75 + 100 };
-    const week = settleLoan(loan, 500, 500, things, new SeededRNG(8));
+    const week = settleLoan(loan, L.minPayment + 100, 500, things, new SeededRNG(8));
     expect(week.actBefore).toBe(0);
     expect(week.actAfter).toBe(1);
+  });
+
+  it('the minimum rises with the act and never asks for more than is owed', () => {
+    expect(minPaymentDue(freshLoan())).toBe(L.minPayments[0]);
+    expect(minPaymentDue({ ...freshLoan(), left: L.total * 0.5 })).toBe(L.minPayments[2]);
+    expect(minPaymentDue({ ...freshLoan(), left: 50 })).toBe(50);
+    for (let i = 1; i < L.minPayments.length; i += 1) expect(L.minPayments[i]!).toBeGreaterThan(L.minPayments[i - 1]!);
   });
 
   it('buying back costs the rate × value', () => {

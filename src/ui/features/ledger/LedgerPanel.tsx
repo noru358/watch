@@ -49,7 +49,7 @@ export function loanLines(m: Morning): string[] {
   return finishAct(out, l);
 }
 function finishAct(out: string[], l: NonNullable<Morning['loan']>): string[] {
-  if (l.actUp !== null) out.push(l.actUp >= OFFICE.loan.acts ? t('morning.loanDone') : t('morning.loanAct', { pct: Math.round((l.actUp / OFFICE.loan.acts) * 100) }));
+  if (l.actUp !== null) out.push(l.actUp >= OFFICE.loan.acts ? t('morning.loanDone') : t('morning.loanAct', { pct: Math.round((l.actUp / OFFICE.loan.acts) * 100), min: OFFICE.loan.minPayments[l.actUp] ?? OFFICE.loan.minPayment }));
   return out;
 }
 

@@ -17,15 +17,15 @@
 
 | 규칙 | 지금 값 | 어디서 바꾸나 |
 |------|--------|--------------|
-| 처음 빚 | 12,000 | `office.data.ts` `loan.total` |
-| 월세 날 최소 상환 | 300 (남은 빚이 더 적으면 그만큼) | `loan.minPayment` |
-| 더 갚기 | 장부에서 한 번에 최소 상환만큼, 지갑·남은 빚을 넘지 않음 | `loanDesk.ts` `payExtra` |
+| 처음 빚 | 36,000 | `office.data.ts` `loan.total` |
+| 월세 날 최소 상환 | 막마다 700 / 1,200 / 1,700 / 2,100 (남은 빚이 더 적으면 그만큼). 수입이 평판 등급과 함께 늘어서, 고정이면 첫 몇 주 뒤엔 압박이 사라졌다(`tools/econ/sim.ts`) | `loan.minPayments` |
+| 더 갚기 | 장부에서 한 번에 700(`loan.minPayment`)씩, 지갑·남은 빚을 넘지 않음 | `loanDesk.ts` `payExtra` |
 | 못 맞춘 첫 월세 날 | 있는 만큼 내고 봉투(`envelope: 'offered'`). 압류 없음 | `loan.ts` `settleLoan` |
 | 봉투가 나가 있는데 또 못 맞춤 | 있는 만큼 내고 압류 하나. 봉투·미달 횟수 초기화 | 같은 곳 |
 | 최소 상환을 맞춘 날 | 답 안 한 봉투는 거둬 간다, 미달 횟수 0 | 같은 곳 |
 | 압류 대상 | 지어진 시설의 맨 윗 단계(값 = 그 단계 공사비), 가방의 장신구(값 = 녹인 값). 가진 게 없으면 아무 일 없음. 직원 계약은 아직 아님 | `loanDesk.ts` `seizableOf` |
 | 되찾기 | 값 × 0.5. 시설은 한 단계 돌아오고, 장신구는 가방에 자리가 있을 때만 | `loan.reclaimRate`, `loanDesk.ts` `reclaim` |
-| 봉투 의뢰 | 못 맞춘 첫 월세 날 의뢰판에 한 장 붙는다(`postEnvelope`): 일반 의뢰 규칙 + 봉투 사연 틀(`requests.data.ts` `envelope: true`, 보통 의뢰엔 안 뜸), 단타, 등급 +1, 보수 0, 판 장수 제한 밖, 직원 배정 불가, 마감 = 다음 월세 전날. 받은 순간 수락(`taken`)이고 안 하는 게 거절이다. 깬 다음 날 아침 1,000 차감, 마감을 넘기면 다음 월세 날 아침 압류 하나. 그 아침에 또 못 맞추면 새 봉투가 붙는다(압류는 하루 하나) | `loan.envelopeCredit`, `board.ts` `postEnvelope`, `loanDesk.ts` `loanMorning` |
+| 봉투 의뢰 | 못 맞춘 첫 월세 날 의뢰판에 한 장 붙는다(`postEnvelope`): 일반 의뢰 규칙 + 봉투 사연 틀(`requests.data.ts` `envelope: true`, 보통 의뢰엔 안 뜸), 단타, 등급 +1, 보수 0, 판 장수 제한 밖, 직원 배정 불가, 마감 = 다음 월세 전날. 받은 순간 수락(`taken`)이고 안 하는 게 거절이다. 깬 다음 날 아침 2,000 차감, 마감을 넘기면 다음 월세 날 아침 압류 하나. 그 아침에 또 못 맞추면 새 봉투가 붙는다(압류는 하루 하나) | `loan.envelopeCredit`, `board.ts` `postEnvelope`, `loanDesk.ts` `loanMorning` |
 | 막 | 처음 빚을 4등분, 갚을 때마다 막 +1, 다 갚으면 끝. 아침 보고에만 나오고 장 해금과는 아직 안 묶임 | `loan.acts`, `loan.ts` `loanAct` |
 
 ## 의뢰판 채우기
