@@ -46,7 +46,7 @@ function Panels() {
       <div style={{ ...css.card, ...(LOBBY_FEATURES[open].wide ? css.cardWide : {}) }}>
         <div style={css.head}>
           <h2 style={css.title}>{t(LOBBY_FEATURES[open].titleKey)}</h2>
-          <span style={css.close}>{t('feature.close')}</span>
+          <span style={{ ...css.close, cursor: 'pointer' }} onClick={closeFeature}>{t('feature.close')}</span>
         </div>
         <Panel />
       </div>

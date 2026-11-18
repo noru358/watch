@@ -11,6 +11,7 @@ import { HubScene } from './scenes/hub/HubScene';
 import { RiftScene } from './scenes/rift/RiftScene';
 import { TitleScene } from './scenes/title/TitleScene';
 import { FeatureHost } from './ui/FeatureHost';
+import { TouchControls } from './ui/touch/TouchControls';
 
 const dayEl = document.getElementById('day-root')!;
 // Panels catch their own clicks; empty overlay space lets clicks through to the hub canvas.
@@ -26,6 +27,8 @@ const fitStage = () => {
 fitStage();
 window.addEventListener('resize', fitStage);
 const dayRoot = createRoot(stage);
+// Phones and tablets: on-screen stick and buttons, shown after the first touch.
+const touch = new TouchControls(input);
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -47,6 +50,7 @@ game.scene.add('title', TitleScene, false);
 const phases = new PhaseController({
   enterTitle() {
     input.resetContext('day');
+    touch.setMode('off');
     game.scene.start('title');
   },
   exitTitle() {
@@ -54,6 +58,7 @@ const phases = new PhaseController({
   },
   enterDay() {
     input.resetContext('day');
+    touch.setMode('day');
     game.scene.start('hub');
     dayEl.style.display = 'block';
     dayRoot.render(createElement(FeatureHost));
@@ -69,6 +74,7 @@ const phases = new PhaseController({
   },
   enterNight() {
     input.resetContext('night');
+    touch.setMode('night');
     game.scene.start('rift');
   },
   exitNight() {

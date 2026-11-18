@@ -34,6 +34,9 @@ export class InputManager {
   private actionListeners = new Set<(action: Action, context: InputContext) => void>();
   private pointerPos = { x: 0, y: 0 }; // client (CSS) pixels
   private pointerMoves = 0; // increments on every mouse move, so callers can tell the mouse is in use
+  private contextListeners = new Set<(context: InputContext) => void>();
+  private stickVec = { x: 0, y: 0 }; // touch stick, each axis -1..1; zero when the thumb is up
+  private touchUsed = false; // set by the first touch; aim then follows the touch rule
 
   constructor(source: KeySource) {
     for (const [action, codes] of Object.entries(KEY_BINDINGS) as [Action, readonly string[]][]) {
@@ -67,6 +70,46 @@ export class InputManager {
     return { ...this.pointerPos, moves: this.pointerMoves };
   }
 
+  // Touch buttons press and release a bound key code, so every reader hears touch as the keyboard.
+  pressCode(code: string): void {
+    this.touchUsed = true;
+    this.onKeyDown({ code, preventDefault: () => {} });
+  }
+
+  releaseCode(code: string): void {
+    this.down.delete(code);
+  }
+
+  // The touch stick's analog direction (night movement reads it; W/A/S/D codes are pressed too).
+  setStick(x: number, y: number): void {
+    this.touchUsed = true;
+    this.stickVec = { x, y };
+  }
+
+  stick(context: InputContext): { x: number; y: number } {
+    return this.context === context ? { ...this.stickVec } : { x: 0, y: 0 };
+  }
+
+  // Touch controls are on screen (a touch device, or a touch was seen), before any button is pressed.
+  useTouch(): void {
+    this.touchUsed = true;
+  }
+
+  get touchActive(): boolean {
+    return this.touchUsed;
+  }
+
+  // Notifies whenever the top context may have changed (touch controls swap their layout).
+  onContextChange(fn: (context: InputContext) => void): () => void {
+    this.contextListeners.add(fn);
+    return () => this.contextListeners.delete(fn);
+  }
+
+  private contextChanged(): void {
+    const ctx = this.context;
+    this.contextListeners.forEach((fn) => fn(ctx));
+  }
+
   get context(): InputContext {
     return this.stack[this.stack.length - 1] ?? 'day';
   }
@@ -76,16 +119,19 @@ export class InputManager {
     this.stack = [base];
     this.down.clear();
     this.pressed.clear();
+    this.contextChanged();
   }
 
   push(context: InputContext): void {
     this.stack.push(context);
     this.pressed.clear();
+    this.contextChanged();
   }
 
   pop(): void {
     if (this.stack.length > 1) this.stack.pop();
     this.pressed.clear();
+    this.contextChanged();
   }
 
   // Drops unconsumed presses, e.g. so an attack press doesn't confirm a menu

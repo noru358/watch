@@ -17,6 +17,7 @@ export const FEEL = {
   cameraLerp: 10, // camera follow speed per second
   mouseAimTimeout: 1.5, // seconds without mouse movement before aim falls back to keyboard aim
   keyboardSnapRange: 3, // keyboard aim: when standing still, face the nearest ghost within this many tiles
+  touchAimRange: 4.5, // touch aim: face the nearest ghost within this many tiles, moving or not; else the stick direction
   uiTextResolution: 3, // UI text is rendered at this resolution so it stays crisp when the canvas is scaled
   bobHeight: 1.5, // px hop while walking
   ghostFloat: 2, // px ghost float amplitude

@@ -51,6 +51,32 @@ class FakeWindow {
 }
 
 describe('InputManager', () => {
+  it('touch buttons press bound codes exactly like keys, and the stick is per context', () => {
+    const w = new FakeWindow();
+    const input = new InputManager(w);
+    input.resetContext('night');
+    expect(input.touchActive).toBe(false);
+    input.pressCode('KeyJ');
+    expect(input.touchActive).toBe(true);
+    expect(input.isDown('attack', 'night')).toBe(true);
+    expect(input.consume('confirm', 'night')).toBe(true); // J is attack and confirm, as on the keyboard
+    input.releaseCode('KeyJ');
+    expect(input.isDown('attack', 'night')).toBe(false);
+    input.setStick(0.6, -0.8);
+    expect(input.stick('night')).toEqual({ x: 0.6, y: -0.8 });
+    input.push('modal');
+    expect(input.stick('night')).toEqual({ x: 0, y: 0 });
+  });
+  it('context listeners hear push, pop and reset', () => {
+    const w = new FakeWindow();
+    const input = new InputManager(w);
+    const seen: string[] = [];
+    input.onContextChange((c) => seen.push(c));
+    input.resetContext('night');
+    input.push('modal');
+    input.pop();
+    expect(seen).toEqual(['night', 'modal', 'night']);
+  });
   it('only the top context receives input', () => {
     const w = new FakeWindow();
     const input = new InputManager(w);

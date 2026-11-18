@@ -22,6 +22,7 @@ export interface HudInfo {
   total: number;
   goalFloors: readonly number[]; // 1-based floors where an objective ends before the last floor
   targetName: string | null; // 현상수배 / 추격: the named ghost
+  touch: boolean; // touch controls on screen: the slot row moves to the bottom centre, clear of the buttons
 }
 
 type SlotId = 'attack' | 'dash' | 'draw' | 'skill';
@@ -66,7 +67,7 @@ export class RiftHud {
     this.renderGoal(f, info);
     this.renderFloor(f, info);
     this.renderVitals(f);
-    this.renderSlots(f);
+    this.renderSlots(f, info.touch);
     this.renderCry(f);
     this.renderPointers(f);
   }
@@ -206,15 +207,16 @@ export class RiftHud {
     this.bareText.setVisible(p.bare > 0);
   }
 
-  // Bottom right: 베기 · 돌진 · 발도 (shows what a press would do) · L 액티브 기술 (dashed when none).
-  private renderSlots(f: Floor): void {
+  // Bottom right (bottom centre with touch controls): 베기 · 돌진 · 발도 (shows what a press would do) · L 액티브 기술 (dashed when none).
+  private renderSlots(f: Floor, touch: boolean): void {
     const g = this.g;
     const p = f.player;
     const cue = counterable(f).length > 0;
     const full = p.focus >= f.stats.focusMax;
     const sizes: Record<SlotId, number> = { attack: SLOT, dash: SLOT, draw: DRAW_SLOT, skill: SLOT };
     const order: SlotId[] = ['attack', 'dash', 'draw', 'skill'];
-    let x = W - 18 - order.reduce((sum, id) => sum + sizes[id], 0) - SLOT_GAP * (order.length - 1);
+    const row = order.reduce((sum, id) => sum + sizes[id], 0) + SLOT_GAP * (order.length - 1);
+    let x = touch ? (W - row) / 2 : W - 18 - row;
     const base = H - 34;
     for (const id of order) {
       const s = sizes[id];

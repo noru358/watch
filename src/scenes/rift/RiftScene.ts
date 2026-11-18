@@ -157,26 +157,38 @@ export class RiftScene extends Phaser.Scene {
       const world = this.cameras.main.getWorldPoint(gx, gy);
       const p = this.floor.player;
       this.aim = Math.atan2(world.y / FEEL.tile - (p.y - 0.5), world.x / FEEL.tile - p.x);
+    } else if (input.touchActive) {
+      // Touch play: there is no second stick, so face the nearest ghost in range even while moving.
+      if (!this.faceNearestGhost(FEEL.touchAimRange) && (moveX || moveY)) this.aim = Math.atan2(moveY, moveX);
     } else if (moveX || moveY) this.aim = Math.atan2(moveY, moveX);
-    else {
-      // Keyboard play, standing still: face the nearest ghost in range.
-      const p = this.floor.player;
-      let best: number = FEEL.keyboardSnapRange;
-      for (const e of this.floor.enemies) {
-        const d = Math.hypot(e.x - p.x, e.y - p.y);
-        if (d < best) {
-          best = d;
-          this.aim = Math.atan2(e.y - p.y, e.x - p.x);
-        }
+    // Keyboard play, standing still: face the nearest ghost in range.
+    else this.faceNearestGhost(FEEL.keyboardSnapRange);
+  }
+
+  // Turns the aim to the nearest ghost within range; false when none is in range.
+  private faceNearestGhost(range: number): boolean {
+    const p = this.floor.player;
+    let best = range;
+    let found = false;
+    for (const e of this.floor.enemies) {
+      const d = Math.hypot(e.x - p.x, e.y - p.y);
+      if (d < best) {
+        best = d;
+        found = true;
+        this.aim = Math.atan2(e.y - p.y, e.x - p.x);
       }
     }
+    return found;
   }
 
   private readInput(): RiftInput {
     const ctx = 'night';
+    // The touch stick gives a full direction; the keys give eight.
+    const stick = input.stick(ctx);
+    const touching = stick.x !== 0 || stick.y !== 0;
     return {
-      moveX: (input.isDown('right', ctx) ? 1 : 0) - (input.isDown('left', ctx) ? 1 : 0),
-      moveY: (input.isDown('down', ctx) ? 1 : 0) - (input.isDown('up', ctx) ? 1 : 0),
+      moveX: touching ? stick.x : (input.isDown('right', ctx) ? 1 : 0) - (input.isDown('left', ctx) ? 1 : 0),
+      moveY: touching ? stick.y : (input.isDown('down', ctx) ? 1 : 0) - (input.isDown('up', ctx) ? 1 : 0),
       aim: this.aim,
       attack: input.isDown('attack', ctx),
       dash: input.consume('dash', ctx),
@@ -204,7 +216,7 @@ export class RiftScene extends Phaser.Scene {
     else this.simulate(dt);
     this.followCamera(dt);
     this.view.render(this.floor, this.acc / FEEL.fixedStep, dt);
-    this.hud.render(this.floor, { floor: this.floor.index + 1, total: totalFloors(this.run), goalFloors: this.goalFloors(), targetName: this.floorTarget() }, dt);
+    this.hud.render(this.floor, { floor: this.floor.index + 1, total: totalFloors(this.run), goalFloors: this.goalFloors(), targetName: this.floorTarget(), touch: input.touchActive }, dt);
   }
 
   private simulate(dt: number): void {

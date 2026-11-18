@@ -93,7 +93,7 @@ src/
 │   ├── title/        타이틀: 네온 간판 + 이어하기·새로 시작·설정(음량)
 │   └── shared/       공용: 카드 선택·결과 창, 타격 연출, 효과음
 │       └── draw/         밤·사무소 공용 그리기: 도트 찍기(pixelSprite), 주인공 프레임 불러오기·조합(directorFrames), 도우미(common)
-├── ui/           🖥️ React 창: FeatureHost(열린 창 하나 띄우기) · DialogueBox(이야기 대화창) · features/<이름>/ (board 의뢰판: 지도 OpsMap·의뢰서 OfferSheet, ledger 장부)
+├── ui/           🖥️ React 창: FeatureHost(열린 창 하나 띄우기) · DialogueBox(이야기 대화창) · features/<이름>/ (board 의뢰판: 지도 OpsMap·의뢰서 OfferSheet, ledger 장부) · touch/ (폰 화면 위 스틱·버튼, 배치는 input.data.ts TOUCH)
 └── main.ts       ▶️ 시작점
 tests/            ✅ 자동 테스트
 tools/artlab/     🎨 그림체 견본 작업대 (게임 밖, 그림을 글자 격자로 적어서 뽑음; 구미호 생성기 gumiho_grid.py)
